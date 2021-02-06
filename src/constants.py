@@ -1,0 +1,6 @@
+WORD = 'word'
+PART_OF_SPEECH = 'pos'
+DEFINITION = 'def'
+PRONUNCIATION_IPA = 'ipa'
+SYNONYMS = 'syns'
+ANTONYMS = 'ants'
