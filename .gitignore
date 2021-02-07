@@ -3,3 +3,6 @@ __pycache__/
 *$py.class
 *api_key.txt
 .idea/*
+data/*.txt
+data/*.tsv
+data/*.csv
