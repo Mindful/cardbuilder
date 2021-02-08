@@ -1,9 +1,14 @@
 import os
 import csv
 from collections import defaultdict
+from typing import List, Dict, Union
 from common import *
+from data_sources import DataSource
 
-class TatoebaExampleSentences:
+MAX_RESULTS = 100
+
+
+class TatoebaExampleSentences(DataSource):
     def __init__(self, source_lang, target_lang):
         self.source_lang = source_lang
         self.target_lang = target_lang
@@ -40,17 +45,20 @@ class TatoebaExampleSentences:
 
         return results
 
-    def lookup_word(self, word):
+    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
         if word not in self.source_index:
             raise LookupException('Could not find {} in Tatoeba example sentences for {}'.
                                   format(word, self.source_lang))
 
         source_idents = [ident for ident in self.source_index[word]]
+        example_sentence_pairs = [(self.source_lang_data[ident],
+                                   self.target_lang_data[self.source_target_links[ident]]
+                                   if ident in self.source_target_links else None)
+                                  for ident in source_idents]
+
+        final_selection = sorted(example_sentence_pairs, key=lambda x: 1 if x[1] is None else 0)[:MAX_RESULTS]
 
         return {
-            EXAMPLE_SENTENCES: [(self.source_lang_data[ident],
-                                 self.target_lang_data[self.source_target_links[ident]]
-                                 if ident in self.source_target_links else None)
-                                for ident in source_idents]
+            EXAMPLE_SENTENCES: ['{}\n{}'.format(example, translated_example) if translated_example is not None
+                                else example for example, translated_example in final_selection]
         }
-

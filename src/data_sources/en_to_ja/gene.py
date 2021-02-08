@@ -1,11 +1,13 @@
 from common import *
+from data_sources import DataSource
+from typing import Dict, Union, List
 
 GENE_DICT = os.path.join(DATA_DIR, 'gene_dict.txt')
 SUPPLEMENTAL_DATA_DELIM = '     '
 EXPECTED_FIRST_ELEMENT = '!'
 
 
-class GeneDict:
+class GeneDict(DataSource):
     def __init__(self):
         self.definitions = {}
         self.supplemental = {}
@@ -29,7 +31,7 @@ class GeneDict:
                 self.definitions[word] = line.strip()
                 reading_word = True
 
-    def lookup_word(self, word):
+    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
         if word not in self.definitions:
             raise LookupException("Could not find {} in Gene dictionary".format(word))
         result = {

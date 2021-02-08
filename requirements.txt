@@ -1,2 +1,4 @@
 requests ~= 2.25.1
 lxml ~= 4.6.2
+genanki ~= 0.10.1
+tqdm ~= 4.56.0

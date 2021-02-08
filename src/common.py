@@ -10,6 +10,7 @@ SYNONYMS = 'syns'
 ANTONYMS = 'ants'
 INFLECTIONS = 'infs'
 EXAMPLE_SENTENCES = 'exst'
+AUDIO = 'aud'
 
 
 # Languages

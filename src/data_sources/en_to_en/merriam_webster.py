@@ -2,7 +2,10 @@
 import requests
 import re
 from common import *
+from data_sources import DataSource
+from typing import Dict, Union, List
 
+WORD_ID = 'wid'
 
 # https://dictionaryapi.com/products/api-collegiate-thesaurus
 class CollegiateThesaurus:
@@ -15,7 +18,7 @@ class CollegiateThesaurus:
         )
         return requests.get(url).json()
 
-    def lookup_word(self, word):
+    def query_api(self, word: str) -> List[Dict[str, Union[str, List[str]]]]:
         raw_json = self._query_api(word)
         results = []
 
@@ -24,14 +27,14 @@ class CollegiateThesaurus:
             raise LookupException('Merriam Webster collegiate thesaurus had no exact matches for {}'.format(word))
 
         for word_data in target_words:
-            uuid = word_data['meta']['uuid']
+            word_id = word_data['meta']['id'].split(':')[0] + '_' + word_data['fl']
             synonyms = word_data['meta']['syns'][0] if len(word_data['meta']['syns']) > 0 else []
             antonyms = word_data['meta']['ants'][0] if len(word_data['meta']['ants']) > 0 else []
 
             results.append({
                 SYNONYMS: synonyms,
                 ANTONYMS: antonyms,
-                'uuid': uuid
+                WORD_ID: word_id
             })
 
         return results
@@ -68,7 +71,7 @@ class LearnerDictionary:
 
         return url
 
-    def lookup_word(self, word):
+    def query_api(self, word: str) -> List[Dict[str, Union[str, List[str]]]]:
         raw_json = self._query_api(word)
         results = []
 
@@ -78,7 +81,7 @@ class LearnerDictionary:
 
         for word_data in target_words:
             metadata = word_data['meta']
-            uuid = metadata['uuid']
+            word_id = word_data['meta']['id'].split(':')[0] + '_' + word_data['fl']
             try:
                 pronunciation_data = word_data['hwi']['prs'][0]
             except KeyError:
@@ -105,31 +108,32 @@ class LearnerDictionary:
                 DEFINITIONS: definitions,
                 PRONUNCIATION_IPA: word_ipa,
                 INFLECTIONS: inflections,
-                'audio_url': pronunciation_url,
-                'uuid': uuid
+                AUDIO: pronunciation_url,
+                WORD_ID: word_id
             })
 
         return results
 
 
-# Each lookup here is two requests to MW; be careful if you're limited to 1000/day
-class MerriamWebster:
+# Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
+class MerriamWebster(DataSource):
     def __init__(self, learners_api_key, thesaurus_api_key):
         self.learners_dict = LearnerDictionary(learners_api_key)
         self.thesaurus = CollegiateThesaurus(thesaurus_api_key)
 
-    def lookup_word(self, word):
-        dictionary_data = self.learners_dict.lookup_word(word)
-        thesaurus_data = self.thesaurus.lookup_word(word)
+    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
+        dictionary_data = self.learners_dict.query_api(word)
+        thesaurus_data = self.thesaurus.query_api(word)
 
-        results_by_uuid = {
-            x['uuid']: x for x in dictionary_data
+        results_by_wid = {
+            x[WORD_ID]: x for x in dictionary_data
         }
 
         for d in thesaurus_data:
-            if d['uuid'] in results_by_uuid:
-                results_by_uuid[d['uuid']].update(d)
+            if d[WORD_ID] in results_by_wid:
+                results_by_wid[d[WORD_ID]].update(d)
 
-        return list(results_by_uuid.values())
+        # TODO: something smarter than just taking the first result
+        return next(iter(results_by_wid.values()))
 
 
