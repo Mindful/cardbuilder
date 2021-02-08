@@ -49,6 +49,7 @@ class Resolver(ABC):
             raise RuntimeError('Duplicate target field name in fields list')
 
         self.field_order_by_target_name = {}
+        self.set_field_order(fields)
 
     def set_field_order(self, ordered_fields: List[Field]):
         for index, field in enumerate(ordered_fields):
