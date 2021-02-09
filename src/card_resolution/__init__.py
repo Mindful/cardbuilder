@@ -16,6 +16,10 @@ def default_preprocessing(value: Union[str, List[str]]) -> str:
         raise RuntimeError('Field value must be list of strings or string')
 
 
+def comma_separated_preprocessing(value: List[str]) -> str:
+    return ', '.join(value)
+
+
 class ResolvedField:
     __slots__ = ['name', 'source_name', 'value']
 

@@ -1,5 +1,5 @@
 from card_resolution import ResolvedField, Resolver
-from typing import List, Dict
+from typing import List, Dict, Union
 from common import *
 import genanki
 from os.path import exists, join
@@ -22,6 +22,15 @@ def media_download_preprocessor(value: str) -> str:
     return filename
 
 
+def linebreak_preprocessing(value: Union[str, List[str]]) -> str:
+    if isinstance(value, list):
+        return '<br/>'.join(value).replace('\n', '<br/>')
+    elif isinstance(value, str):
+        return value.replace('\n', '<br/>')
+    else:
+        raise RuntimeError('Field value must be list of strings or string')
+
+
 class AkpgResolver(Resolver):
     default_templates = [{
                               'name': 'Dummy Card',
@@ -39,7 +48,7 @@ class AkpgResolver(Resolver):
 
     def set_card_templates(self, templates: List[Dict[str, str]]):
         for template in templates:
-            for attr in ['name', 'gfmt', 'afmt']:
+            for attr in ['name', 'qfmt', 'afmt']:
                 if attr not in template:
                     raise RuntimeError('Template missing required field {}'.format(attr))
 
@@ -60,7 +69,7 @@ class AkpgResolver(Resolver):
 
         deck = genanki.Deck(self._str_to_id(name), name)
         for row in rows:
-            fields = (rf.value if rf.source_name != AUDIO else '[{}]'.format(rf.value) for rf in row)
+            fields = (rf.value if rf.source_name != AUDIO else '[sound:{}]'.format(rf.value) for rf in row)
             fields = [x if len(x) > 0 else ' ' for x in fields]  # Anki sometimes doesn't like empty fields
             deck.add_note(genanki.Note(model=model, fields=fields))
 

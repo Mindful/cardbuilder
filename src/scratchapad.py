@@ -1,12 +1,12 @@
-import genanki
-
+from typing import List
 from data_sources.en_to_ja.ejdict_hand import EJDictHand
-from data_sources.en_to_ja.gene import GeneDict
+from card_resolution.word_freq import WordFrequency
 from data_sources.tatoeba import TatoebaExampleSentences
 from common import *
 from data_sources.en_to_en.merriam_webster import MerriamWebster
-from card_resolution.anki import AkpgResolver, media_download_preprocessor
-from card_resolution import Field
+from card_resolution.anki import AkpgResolver, media_download_preprocessor, linebreak_preprocessing
+from card_resolution import Field, comma_separated_preprocessing
+
 
 def integrationtest():
     with open('mw_learner_api_key.txt') as f:
@@ -17,19 +17,47 @@ def integrationtest():
     mw = MerriamWebster(learner_key, thesaurus_key)
     ejdict = EJDictHand()
     tatoeba = TatoebaExampleSentences(ENGLISH, JAPANESE)
+    wf = WordFrequency()
+
+    def word_freq_comma_preprocessing(words: List[str]) -> str:
+        return comma_separated_preprocessing(wf.sort_by_freq(words))
 
     fields = [
         Field(mw, WORD, '英単語'),
-        Field(mw, INFLECTIONS, '活用形'),
+        Field(mw, PRONUNCIATION_IPA, '国際音声記号'),
+        Field(mw, INFLECTIONS, '活用形', preproc_func=comma_separated_preprocessing),
         Field(mw, AUDIO, '音声', preproc_func=media_download_preprocessor),
-        Field(mw, DEFINITIONS, '英語での定義'),
-        Field(ejdict, DEFINITIONS, '日本語での定義'),
-        Field(mw, SYNONYMS, '類義語'),
-        Field(mw, ANTONYMS, '対義語'),
-        Field(tatoeba, EXAMPLE_SENTENCES, '例文')
+        Field(mw, DEFINITIONS, '英語での定義', preproc_func=linebreak_preprocessing),
+        Field(ejdict, DEFINITIONS, '日本語での定義', preproc_func=linebreak_preprocessing),
+        Field(mw, SYNONYMS, '類義語', preproc_func=word_freq_comma_preprocessing),
+        Field(mw, ANTONYMS, '対義語', preproc_func=word_freq_comma_preprocessing),
+        Field(tatoeba, EXAMPLE_SENTENCES, '例文', preproc_func=lambda x: linebreak_preprocessing(x[:10]))
     ]
 
     resolver = AkpgResolver(fields)
+
+    card_back = '''{{英単語}} ({{国際音声記号}})<br/>
+                            {{日本語での定義}}
+                            <br/><br/>
+                            活用形: {{活用形}}<br/>
+                            類義語: {{類義語}}<br/>
+                            対義語: {{対義語}}
+                            <br/><br/>
+                            {{例文}}'''
+
+    resolver.set_card_templates([
+            {
+                'name': '英語->日本語',
+                'qfmt': '''{{音声}}{{英単語}}<br/>
+                            {{英語での定義}}''',
+                'afmt': card_back,
+            },
+            {
+                'name': '日本語->英語',
+                'qfmt': '{{日本語での定義}}',
+                'afmt': card_back+'{{音声}}'
+            },
+        ])
     resolver.resolve_to_file(['dog', 'hot', 'think', 'quickly'], 'test')
 
 

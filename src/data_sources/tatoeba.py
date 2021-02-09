@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import List, Dict, Union
 from common import *
 from data_sources import DataSource
+from tqdm import tqdm
 
 MAX_RESULTS = 100
 
@@ -20,18 +21,21 @@ class TatoebaExampleSentences(DataSource):
 
         self.source_target_links = {}
         links_file = os.path.join(DATA_DIR, 'links.csv')
+        line_count = fast_linecount(links_file)
         with open(links_file, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
-            for source_id, target_id in reader:
+            for source_id, target_id in tqdm(reader, total=line_count, desc='reading links.csv'):
                 if source_id in self.source_lang_data and target_id in self.target_lang_data:
                     self.source_target_links[source_id] = target_id
 
     def _load_language_sents(self, lang):
-        sentence_file = os.path.join(DATA_DIR, '{}_sentences.tsv'.format(lang))
+        filename = '{}_sentences.tsv'.format(lang)
+        sentence_file = os.path.join(DATA_DIR, filename)
+        line_count = fast_linecount(sentence_file)
         results = []
         with open(sentence_file, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
-            for ident, _, sentence in reader:
+            for ident, _, sentence in tqdm(reader, total=line_count, desc='reading {}'.format(filename)):
                 results.append((ident, sentence))
 
         return results
