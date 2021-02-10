@@ -61,7 +61,15 @@ def integrationtest():
     resolver.resolve_to_file(['dog', 'hot', 'think', 'quickly'], 'test')
 
 
+from data_sources.ja_to_en.jisho import Jisho
+
+def jishotest():
+    j = Jisho()
+    j.lookup_word('犬')
+
+
 if __name__ == '__main__':
-    integrationtest()
+    #integrationtest()
+    jishotest()
 
 
