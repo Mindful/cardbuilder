@@ -27,6 +27,9 @@ wget https://downloads.tatoeba.org/exports/links.tar.bz2
 tar -xf links.tar.bz2
 rm links.tar.bz2
 
+# https://github.com/javdejong/nhk-pronunciation
+wget https://raw.githubusercontent.com/javdejong/nhk-pronunciation/master/ACCDB_unicode.csv
+
 
 
 

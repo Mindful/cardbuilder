@@ -5,15 +5,38 @@ from typing import List, Dict, Union
 from common import *
 from data_sources import DataSource
 from tqdm import tqdm
+from fugashi import Tagger
+import re
+from string import punctuation
+
 
 MAX_RESULTS = 100
+EN_PUNCTUATION_REGEX = re.compile('[{}]'.format(re.escape(punctuation)))
 
 
 class TatoebaExampleSentences(DataSource):
-    def __init__(self, source_lang, target_lang):
+    def _split_japanese_sentence(self, sentence: str) -> List[str]:
+        # hacky and only accommodates  exact matches (I.E. conjugated verbs are shot), could probably be done better
+        split_words_generator = (str(x) for x in self.tagger(sentence))
+        split_words = [x for x in split_words_generator if not (len(x) == 1 and is_hiragana(x))]
+        return split_words
+
+    def _split_english_sentence(self, sentence: str) -> List[str]:
+        cleaned_sentence = EN_PUNCTUATION_REGEX.sub(' ', sentence.lower())
+        return cleaned_sentence.split()
+
+    def __init__(self, source_lang: str, target_lang: str):
         self.source_lang = source_lang
         self.target_lang = target_lang
         source_lang_data = self._load_language_sents(source_lang)
+
+        if source_lang == JAPANESE:
+            self.tagger = Tagger('-Owakati')
+            self._split_sentence = self._split_japanese_sentence
+        elif source_lang == ENGLISH:
+            self._split_sentence = self._split_english_sentence
+        else:
+            raise RuntimeError('No sentence splitting implemented for source language {}'.format(source_lang))
 
         self.source_index = self._build_word_index(source_lang_data)
         self.source_lang_data = dict(source_lang_data)
@@ -41,13 +64,12 @@ class TatoebaExampleSentences(DataSource):
         return results
 
     def _build_word_index(self, id_sent_data):
+        # the word index would certainly take up less memory as a trie, but it's probably not worth the trouble
         results = defaultdict(set)
-        for ident, sent in id_sent_data:
-            # TODO: split() is only reliable for languages that use spaces.
-            # we'll need something else to split words for japanese
-            tokens = [x.lower() for x in sent.split()]
-            for token in tokens:
-                results[token].add(ident)
+        for ident, sent in tqdm(id_sent_data, desc='indexing sentences'):
+            words = self._split_sentence(sent)
+            for word in words:
+                results[word].add(ident)
 
         return results
 

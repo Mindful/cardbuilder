@@ -25,9 +25,6 @@ class Jisho(DataSource):
     def _to_romaji_reading(self, word: str) -> str:
         return ''.join(x['hepburn'] for x in self.readings.convert(word))
 
-    def _is_hiragana(self, char):
-        return ord(char) in range(ord(u'\u3040'), ord(u'\u309f'))
-
     def _detailed_reading(self, word: str) -> str:
         reading_components = sorted((comp for comp in self.readings.convert(word)),
                                     key=lambda comp: word.index(comp['orig']))
@@ -41,7 +38,7 @@ class Jisho(DataSource):
                 # hiragana component
                 output_str += comp['hira']
             else:
-                okurigana = ''.join(c for c in comp['orig'] if self._is_hiragana(c))
+                okurigana = ''.join(c for c in comp['orig'] if is_hiragana(c))
                 if len(okurigana) > 0:
                     ruby = comp['hira'][:-len(okurigana)]
                     kanji = comp['orig'][:-len(okurigana)]

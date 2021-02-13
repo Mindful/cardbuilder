@@ -25,6 +25,7 @@ ANTONYMS = 'ants'
 INFLECTIONS = 'infs'
 EXAMPLE_SENTENCES = 'exst'
 AUDIO = 'aud'
+PITCH_ACCENT = 'acnt'
 
 # Japanese specific attributes
 READING = 'read'
@@ -63,3 +64,7 @@ class WordFrequency:
 
     def sort_by_freq(self, words: List[str]):
         return sorted(words, key=lambda x: -self[x] if x in self.frequency else 0)
+
+
+def is_hiragana(char):
+    return ord(char) in range(ord(u'\u3040'), ord(u'\u309f'))

@@ -6,6 +6,8 @@ from tqdm import tqdm
 from common import *
 from data_sources import DataSource
 
+RESOLUTION_ERRORS_FILE = 'resolution_errors.tsv'
+
 
 def default_preprocessing(value: Union[str, List[str]]) -> str:
     if isinstance(value, list):
@@ -59,6 +61,7 @@ class Resolver(ABC):
 
         self.field_order_by_target_name = {}
         self.set_field_order(fields)
+        self.failed_resolutions = []
 
     def set_field_order(self, ordered_fields: List[Field]):
         for index, field in enumerate(ordered_fields):
@@ -68,7 +71,15 @@ class Resolver(ABC):
         return self.field_order_by_target_name.get(fieldname, 100), fieldname
 
     def _wordlist_to_rows(self, words: Union[List[str], WordSource]) -> List[List[ResolvedField]]:
-        return [self._resolve_fieldlist(word, self.fields) for word in tqdm(words, desc='populating rows')]
+        self.failed_resolutions = []
+        results = []
+        for word in tqdm(words, desc='populating rows'):
+            try:
+                results.append(self._resolve_fieldlist(word, self.fields))
+            except CardResolutionException as ex:
+                self.failed_resolutions.append((word, str(ex)))
+
+        return results
 
     def _resolve_fieldlist(self, word: str, fields: List[Field]) -> List[ResolvedField]:
         fields_by_datasource = defaultdict(list)
@@ -101,3 +112,10 @@ class Resolver(ABC):
         rows = self._wordlist_to_rows(words)
         final_out_name = self._output_file(rows, name)
         print('Resolved card data written to file {}'.format(final_out_name))
+        if len(self.failed_resolutions) > 0:
+            print('Failed to resolve {} cards'.format(len(self.failed_resolutions)))
+            with open(RESOLUTION_ERRORS_FILE, 'w+') as f:
+                writer = csv.writer(f, delimiter='\t')
+                writer.writerows(self.failed_resolutions)
+            print('Wrote causes of failed resolutions to {}'.format(RESOLUTION_ERRORS_FILE))
+
