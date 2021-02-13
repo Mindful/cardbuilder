@@ -21,6 +21,11 @@ INFLECTIONS = 'infs'
 EXAMPLE_SENTENCES = 'exst'
 AUDIO = 'aud'
 
+# Japanese specific attributes
+READING = 'read'
+WRITINGS = 'writ'
+DETAILED_READING = 'rubi'
+
 
 # Languages
 JAPANESE = 'jpn'

@@ -6,6 +6,7 @@ from common import *
 from data_sources.en_to_en.merriam_webster import MerriamWebster
 from card_resolution.anki import AkpgResolver, media_download_preprocessor, linebreak_preprocessing
 from card_resolution import Field, comma_separated_preprocessing
+from data_sources.ja_to_en.jisho import Jisho
 
 
 def integrationtest():
@@ -61,15 +62,32 @@ def integrationtest():
     resolver.resolve_to_file(['dog', 'hot', 'think', 'quickly'], 'test')
 
 
-from data_sources.ja_to_en.jisho import Jisho
+def mwtest():
+    with open('mw_learner_api_key.txt') as f:
+        learner_key = f.readlines()[0]
+
+    with open('mw_thesaurus_api_key.txt') as f:
+        thesaurus_key = f.readlines()[0]
+    mw = MerriamWebster(learner_key, thesaurus_key, pos_in_definitions=True)
+
+    res = mw.lookup_word('hyperbole')
+
+    print('debug')
+
 
 def jishotest():
     j = Jisho()
-    j.lookup_word('犬')
+
+    words = [j.lookup_word('元気'), j.lookup_word('食べる'),
+                j.lookup_word('ご機嫌'), j.lookup_word('目利き'), j.lookup_word('水飲み場'),
+                j.lookup_word('随に'), j.lookup_word('凛々しい')]
+
+    print('woog')
 
 
 if __name__ == '__main__':
     #integrationtest()
     jishotest()
+    #mwtest()
 
 

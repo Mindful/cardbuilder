@@ -117,9 +117,10 @@ class LearnerDictionary:
 
 # Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
 class MerriamWebster(DataSource):
-    def __init__(self, learners_api_key, thesaurus_api_key):
+    def __init__(self, learners_api_key, thesaurus_api_key, pos_in_definitions=False):
         self.learners_dict = LearnerDictionary(learners_api_key)
         self.thesaurus = CollegiateThesaurus(thesaurus_api_key)
+        self.pos_in_definitions = pos_in_definitions
 
     def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
         dictionary_data = self.learners_dict.query_api(word)
@@ -132,6 +133,14 @@ class MerriamWebster(DataSource):
         for d in thesaurus_data:
             if d[WORD_ID] in results_by_wid:
                 results_by_wid[d[WORD_ID]].update(d)
+
+        if self.pos_in_definitions:
+            for result in results_by_wid.values():
+                result[DEFINITIONS] = ['{}: {}'.format(result[PART_OF_SPEECH], x) for x in result[DEFINITIONS]]
+
+        primary_result = next(iter(results_by_wid.values()))
+        for secondary_result in list(results_by_wid.values())[1:]:
+            primary_result[DEFINITIONS].extend(secondary_result[DEFINITIONS])
 
         # TODO: something smarter than just taking the first result
         return next(iter(results_by_wid.values()))
