@@ -12,8 +12,12 @@ class EJDictHand(DataSource):
         self.content = {}
         with open(EJDICT_HAND, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
-            for word, definition in reader:
-                self.content[word] = definition.split(DEFINITION_DELIM)
+            for word_entry, definition in reader:
+                for word in word_entry.split(','):
+                    if word not in self.content:
+                        self.content[word] = definition.split(DEFINITION_DELIM)
+                    else:
+                        self.content[word].extend(definition.split(DEFINITION_DELIM))
 
     def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
         if word not in self.content:
