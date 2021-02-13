@@ -17,7 +17,7 @@ class EJDictHand(DataSource):
 
     def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
         if word not in self.content:
-            raise LookupException("Could not find {} in EJDictHand dictionary".format(word))
+            raise WordLookupException("Could not find {} in EJDictHand dictionary".format(word))
         return {
             WORD: word,
             DEFINITIONS: self.content[word]

@@ -33,7 +33,7 @@ class GeneDict(DataSource):
 
     def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
         if word not in self.definitions:
-            raise LookupException("Could not find {} in Gene dictionary".format(word))
+            raise WordLookupException("Could not find {} in Gene dictionary".format(word))
         result = {
             WORD: word,
             DEFINITIONS: [self.definitions[word]]

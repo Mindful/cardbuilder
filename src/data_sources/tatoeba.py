@@ -43,6 +43,8 @@ class TatoebaExampleSentences(DataSource):
     def _build_word_index(self, id_sent_data):
         results = defaultdict(set)
         for ident, sent in id_sent_data:
+            # TODO: split() is only reliable for languages that use spaces.
+            # we'll need something else to split words for japanese
             tokens = [x.lower() for x in sent.split()]
             for token in tokens:
                 results[token].add(ident)
@@ -51,8 +53,8 @@ class TatoebaExampleSentences(DataSource):
 
     def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
         if word not in self.source_index:
-            raise LookupException('Could not find {} in Tatoeba example sentences for {}'.
-                                  format(word, self.source_lang))
+            raise WordLookupException('Could not find {} in Tatoeba example sentences for {}'.
+                                      format(word, self.source_lang))
 
         source_idents = [ident for ident in self.source_index[word]]
         example_sentence_pairs = [(self.source_lang_data[ident],

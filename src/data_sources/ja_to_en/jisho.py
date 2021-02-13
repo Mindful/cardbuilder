@@ -33,7 +33,7 @@ class Jisho(DataSource):
                                     key=lambda comp: word.index(comp['orig']))
 
         if ''.join(x['orig'] for x in reading_components) != word:
-            raise LookupException('Reading component originals did not equal original word for {}'.format(word))
+            raise WordLookupException('Reading component originals did not equal original word for {}'.format(word))
 
         output_str = ''
         for comp in reading_components:
@@ -71,7 +71,7 @@ class Jisho(DataSource):
             match = next(iter(json))
 
         if match is None:
-            raise LookupException('Could not find a match for {} in Jisho'.format(word))
+            raise WordLookupException('Could not find a match for {} in Jisho'.format(word))
 
         # delete senses that are just romaji readings
         romaji = self._to_romaji_reading(word)
@@ -82,6 +82,9 @@ class Jisho(DataSource):
         else:
             definitions = [', '.join(x['english_definitions']) for x in match['senses']
                            if romaji not in {y.lower() for y in x['english_definitions']}]
+
+        seen_definitions = set()
+        definitions = [x for x in definitions if not (x.lower() in seen_definitions or seen_definitions.add(x.lower()))]
         writing_candidates = list({x['word'] for x in match['japanese'] if 'word' in x})  # set for unique, then list
         primary_pos = match['senses'][0]['parts_of_speech'][0]
         detailed_reading = self._detailed_reading(word)

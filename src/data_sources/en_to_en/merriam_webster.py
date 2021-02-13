@@ -24,7 +24,7 @@ class CollegiateThesaurus:
 
         target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
         if len(target_words) == 0:
-            raise LookupException('Merriam Webster collegiate thesaurus had no exact matches for {}'.format(word))
+            raise WordLookupException('Merriam Webster collegiate thesaurus had no exact matches for {}'.format(word))
 
         for word_data in target_words:
             word_id = word_data['meta']['id'].split(':')[0] + '_' + word_data['fl']
@@ -77,7 +77,7 @@ class LearnerDictionary:
 
         target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
         if len(target_words) == 0:
-            raise LookupException('Merriam Webster learner\'s dictionary had no exact matches for {}'.format(word))
+            raise WordLookupException('Merriam Webster learner\'s dictionary had no exact matches for {}'.format(word))
 
         for word_data in target_words:
             metadata = word_data['meta']
