@@ -3,11 +3,11 @@
 from data_sources.en_to_ja.ejdict_hand import EJDictHand
 from data_sources.tatoeba import TatoebaExampleSentences
 from common import *
-from data_sources.en_to_en.merriam_webster import MerriamWebster
+from data_sources.en_to_en import MerriamWebster
 from card_resolution.anki import AkpgResolver, media_download_preprocessor, linebreak_preprocessing
 from card_resolution import Field, comma_separated_preprocessing
 from argparse import ArgumentParser
-from word_sources.en.svl import SvlWords
+from word_sources.en import SvlWords
 
 if __name__ == '__main__':
     parser = ArgumentParser()

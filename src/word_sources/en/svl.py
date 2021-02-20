@@ -1,23 +1,46 @@
-from common import *
 from word_sources import WordSource
-from os.path import join
 from glob import glob
+from lxml import html
+from common import *
 
 
-class SvlWords(WordSource):
-    def __init__(self, word_freq: WordFrequency = None):
-        self.word_freq = word_freq
-        self.level_wordlist_tuples = []
+class SvlWords(WordSource, ExternalDataDependent):
+    @staticmethod
+    def _read_data() -> Any:
+        level_wordlist_tuples = []
         filenames = glob(join(DATA_DIR, 'svl_*'))
         for name in filenames:
             level = int(name.split('.')[0].split('_')[-1])
             with open(name, 'r') as f:
                 words = [x.strip().lower() for x in f.readlines()]
-                if self.word_freq is not None:
-                    words = word_freq.sort_by_freq(words)
-                self.level_wordlist_tuples.append((level, words))
 
-        self.level_wordlist_tuples.sort(key=lambda tupl: tupl[0])
+                level_wordlist_tuples.append((level, words))
+
+        return sorted(level_wordlist_tuples, key=lambda tupl: tupl[0])
+
+    def _fetch_remote_files_if_necessary(self):
+        for i in range(1, 13):
+            filename = 'svl_lvl_{}.txt'.format(i)
+            if not exists(filename):
+                log(self, '{} not found - downloading...'.format(filename))
+                numstring = '0{}'.format(i) if i < 10 else str(i)
+                url = 'http://web.archive.org/web/20081219085635/http://www.alc.co.jp/goi/svl_l{}_list.htm'.format(
+                    numstring)
+                page = requests.get(url)
+                tree = html.fromstring(page.content)
+                containing_element = next(x for x in tree.xpath('//font') if len(x) > 900)
+                entries = {x.tail.strip() for x in containing_element if x.tag == 'br'}
+                if containing_element.text is not None:
+                    entries.add(containing_element.text.strip())
+                assert (len(entries) == 1000)
+                with open(filename, 'w+') as f:
+                    f.writelines(x + '\n' for x in entries)
+
+    def __init__(self, word_freq: WordFrequency):
+        self.level_wordlist_tuples = self.get_data()
+        self.level_wordlist_tuples = [
+            (level, word_freq.sort_by_freq(words)) for level, words in self.level_wordlist_tuples
+        ]
         self.all_words = []
         self.word_level = {}
         for level, wordlist in self.level_wordlist_tuples:
@@ -25,7 +48,7 @@ class SvlWords(WordSource):
                 self.word_level[word] = level
             self.all_words.extend(wordlist)
 
-    def get_word_level(self, word:str) -> int:
+    def get_word_level(self, word: str) -> int:
         return self.word_level[word]
 
     def __getitem__(self, index: int) -> str:

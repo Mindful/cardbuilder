@@ -12,11 +12,10 @@ import os
 # ************************************************
 
 # Paths to the database files and this particular file
-dir_path = os.path.dirname(os.path.normpath(__file__))
-thisfile = os.path.join(dir_path, "nhk_pronunciation.py")
-derivative_database = os.path.join(dir_path, "nhk_pronunciation.csv")
-derivative_pickle = os.path.join(dir_path, "nhk_pronunciation.pickle")
-accent_database = os.path.join(dir_path, "ACCDB_unicode.csv")
+thisfile = "nhk_pronunciation.py"
+derivative_database = "nhk_pronunciation.csv"
+derivative_pickle = "nhk_pronunciation.pickle"
+accent_database = "ACCDB_unicode.csv"
 
 # "Class" declaration
 AccentEntry = namedtuple('AccentEntry', ['NID','ID','WAVname','K_FLD','ACT','midashigo','nhk','kanjiexpr','NHKexpr','numberchars','nopronouncepos','nasalsoundpos','majiri','kaisi','KWAV','midashigo1','akusentosuu','bunshou','ac'])
@@ -145,6 +144,3 @@ def build_database():
             o.write("%s\t%s\t%s\n" % (key, kana, pron))
 
     o.close()
-
-build_database()
-

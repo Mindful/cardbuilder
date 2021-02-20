@@ -1,11 +1,12 @@
-from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Callable, Union, List, Dict
 from word_sources import WordSource
-from tqdm import tqdm
 from common import *
 from data_sources import DataSource
+from card_resolution.anki import AkpgResolver
+from card_resolution.delimited import CsvResolver
 
+#TODO: make this better
 RESOLUTION_ERRORS_FILE = 'resolution_errors.tsv'
 
 

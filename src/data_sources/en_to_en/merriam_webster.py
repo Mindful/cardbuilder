@@ -1,11 +1,13 @@
 # https://dictionaryapi.com/products/json
-import requests
 import re
 from common import *
-from data_sources import DataSource
 from typing import Dict, Union, List
 
+from common import DEFINITIONS, PART_OF_SPEECH
+from data_sources import DataSource
+
 WORD_ID = 'wid'
+
 
 # https://dictionaryapi.com/products/api-collegiate-thesaurus
 class CollegiateThesaurus:
@@ -144,5 +146,3 @@ class MerriamWebster(DataSource):
 
         # TODO: something smarter than just taking the first result
         return next(iter(results_by_wid.values()))
-
-

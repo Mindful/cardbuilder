@@ -13,8 +13,6 @@ mv EJDict/release/README.txt ejdicthand_readme.txt
 cat EJDict/src/* > ejdicthand.txt
 yes | rm -r EJDict
 
-# https://norvig.com/ngrams/
-wget http://norvig.com/ngrams/count_1w.txt
 
 # https://tatoeba.org/eng/downloads
 wget https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences.tsv.bz2
@@ -26,11 +24,6 @@ bzip2 -d heb_sentences.tsv.bz2
 wget https://downloads.tatoeba.org/exports/links.tar.bz2
 tar -xf links.tar.bz2
 rm links.tar.bz2
-
-# https://github.com/javdejong/nhk-pronunciation
-wget https://raw.githubusercontent.com/javdejong/nhk-pronunciation/master/ACCDB_unicode.csv
-
-
 
 
 # http://www.jamsystem.com/ancdic/index.html

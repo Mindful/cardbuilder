@@ -1,8 +1,11 @@
-from data_sources import DataSource
-from common import *
-from typing import List, Union, Dict, Set
+from typing import Dict, Set, Union, List
+
 import requests
 from pykakasi import kakasi
+
+from common import WordLookupException, is_hiragana, WORD, PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, \
+    DEFINITIONS
+from data_sources import DataSource
 
 
 class Jisho(DataSource):
@@ -94,5 +97,3 @@ class Jisho(DataSource):
             DETAILED_READING: detailed_reading,
             DEFINITIONS: definitions
         }
-
-
