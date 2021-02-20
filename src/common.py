@@ -121,8 +121,9 @@ class CardResolutionException(CardBuilderException):
 
 
 class WordFrequency(ExternalDataDependent):
-    filename = 'count_1w.txt'
+    # https://norvig.com/ngrams/
     url = 'http://norvig.com/ngrams/count_1w.txt'
+    filename = 'count_1w.txt'
 
     @staticmethod
     def _read_data() -> Any:

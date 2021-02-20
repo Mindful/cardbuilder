@@ -7,12 +7,6 @@ rm readme.txt
 iconv -f SHIFT_JIS -t UTF-8 -c gene.txt > gene_dict.txt
 rm gene.txt
 
-# https://kujirahand.com/web-tools/EJDictFreeDL.php
-git clone git@github.com:kujirahand/EJDict.git
-mv EJDict/release/README.txt ejdicthand_readme.txt
-cat EJDict/src/* > ejdicthand.txt
-yes | rm -r EJDict
-
 
 # https://tatoeba.org/eng/downloads
 wget https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences.tsv.bz2
