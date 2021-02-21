@@ -1,14 +1,13 @@
 import csv
+import logging
 import os
+from abc import ABC, abstractmethod
 from itertools import takewhile, repeat
 from os.path import join, exists
-from typing import List
-import logging
-from tqdm import tqdm
-from typing import Any
-from abc import ABC, abstractmethod
-import requests
+from typing import List, Any
 
+import requests
+from tqdm import tqdm
 
 DATA_DIR = os.path.abspath('../data')
 LOGGER_NAME = 'cardbuilder'

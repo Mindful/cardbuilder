@@ -1,16 +1,17 @@
 # A deck for Japanese learners of English, using the SVL12000 as a source of words
 
-from data_sources.en_to_ja.ejdict_hand import EJDictHand
-from data_sources.tatoeba import TatoebaExampleSentences
-from data_sources.en_to_en import MerriamWebster
+from argparse import ArgumentParser
+from typing import List
+
 from card_resolution import AkpgResolver, Field
 from card_resolution.preprocessing import comma_separated_preprocessing
-from argparse import ArgumentParser
-from word_sources.en import SvlWords
 from common import WordFrequency
-from common.languages import JAPANESE, ENGLISH
-from typing import List
 from common.fieldnames import *
+from common.languages import JAPANESE, ENGLISH
+from data_sources.en_to_en import MerriamWebster
+from data_sources.en_to_ja.ejdict_hand import EJDictHand
+from data_sources.tatoeba import TatoebaExampleSentences
+from word_sources.en import SvlWords
 
 if __name__ == '__main__':
     parser = ArgumentParser()

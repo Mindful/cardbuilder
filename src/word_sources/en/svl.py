@@ -1,9 +1,11 @@
 from glob import glob
 from os.path import exists
-from lxml import html
-from common import ExternalDataDependent, log, WordFrequency
-import requests
 from typing import Any
+
+import requests
+from lxml import html
+
+from common import ExternalDataDependent, log, WordFrequency
 from word_sources import WordSource
 
 

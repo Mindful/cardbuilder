@@ -1,10 +1,11 @@
-from data_sources.ja_to_ja import NhkPitchAccent
-from data_sources.en_to_ja import EJDictHand, GeneDict
-from word_sources.en import SvlWords
 import sys
-from data_sources.tatoeba import TatoebaExampleSentences
+
 from common import *
 from common.languages import *
+from data_sources.en_to_ja import EJDictHand, GeneDict
+from data_sources.ja_to_ja import NhkPitchAccent
+from data_sources.tatoeba import TatoebaExampleSentences
+from word_sources.en import SvlWords
 
 if __name__ == '__main__':
     # create console handler with a higher log level

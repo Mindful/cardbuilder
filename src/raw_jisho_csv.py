@@ -1,14 +1,14 @@
 # Takes a raw input list of Japanese words and outputs a flashcard csv
+from argparse import ArgumentParser
+from time import time
+
+from card_resolution import CsvResolver, Field
+from card_resolution.preprocessing import default_preprocessing
 from common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING
+from common.languages import JAPANESE, ENGLISH
 from data_sources.ja_to_en import Jisho
 from data_sources.tatoeba import TatoebaExampleSentences
 from word_sources import InputWords
-from card_resolution import CsvResolver, Field
-from card_resolution.preprocessing import default_preprocessing
-from argparse import ArgumentParser
-from common.languages import JAPANESE, ENGLISH
-from time import time
-
 
 if __name__ == '__main__':
     parser = ArgumentParser()

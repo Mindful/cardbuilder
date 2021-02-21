@@ -1,21 +1,22 @@
-from collections import defaultdict
-from os.path import exists
-from typing import Dict, Union, List
-from typing import Any
-from common import ExternalDataDependent, fast_linecount, InDataDir, log, is_hiragana
-from common.languages import JAPANESE, ENGLISH
-from common.fieldnames import EXAMPLE_SENTENCES
-from data_sources import DataSource
-from tqdm import tqdm
-from fugashi import Tagger
-import re
-from string import punctuation
-from bz2 import BZ2Decompressor
-import tarfile
-from io import BytesIO
 import csv
-from exceptions import CardBuilderException, WordLookupException
+import re
+import tarfile
+from bz2 import BZ2Decompressor
+from collections import defaultdict
+from io import BytesIO
+from os.path import exists
+from string import punctuation
+from typing import Dict, Union, List, Any
+
 import requests
+from fugashi import Tagger
+from tqdm import tqdm
+
+from common import ExternalDataDependent, fast_linecount, InDataDir, log, is_hiragana
+from common.fieldnames import EXAMPLE_SENTENCES
+from common.languages import JAPANESE, ENGLISH
+from data_sources import DataSource
+from exceptions import CardBuilderException, WordLookupException
 
 
 class TatoebaExampleSentences(DataSource, ExternalDataDependent):

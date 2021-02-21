@@ -1,13 +1,14 @@
-from typing import Dict, Union
+import csv
+from os.path import exists
 from string import ascii_lowercase
+from typing import Dict, Union, Any, List
+
+import requests
+
+from common import ExternalDataDependent, log
+from common.fieldnames import WORD, DEFINITIONS
 from data_sources import DataSource
 from exceptions import WordLookupException
-from common import ExternalDataDependent, log
-import requests
-from os.path import exists
-from typing import Any, List
-import csv
-from common.fieldnames import WORD, DEFINITIONS
 
 
 class EJDictHand(DataSource, ExternalDataDependent):

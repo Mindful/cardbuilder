@@ -1,11 +1,9 @@
 # code here is entirely work from https://github.com/javdejong/nhk-pronunciation
 # see https://github.com/javdejong/nhk-pronunciation/blob/master/nhk_pronunciation.py
 
-from collections import namedtuple
 import io
 import re
-import os
-
+from collections import namedtuple
 
 # ************************************************
 #                Global Variables                *

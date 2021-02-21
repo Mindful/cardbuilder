@@ -1,13 +1,14 @@
+from hashlib import sha256
+from os import mkdir, remove
+from os.path import exists, join
+from shutil import rmtree
+from typing import Dict, Union, List
+
+import genanki
+import requests
+
 from card_resolution import ResolvedField
 from card_resolution.resolver import Resolver
-from typing import Dict, Union
-import genanki
-from os.path import exists, join
-from os import mkdir, remove
-from shutil import rmtree
-import requests
-from hashlib import sha256
-from typing import List
 from common.fieldnames import AUDIO
 from exceptions import CardBuilderException
 

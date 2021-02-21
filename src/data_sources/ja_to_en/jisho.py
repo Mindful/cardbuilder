@@ -5,8 +5,8 @@ from pykakasi import kakasi
 
 from common import is_hiragana, WORD, PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, \
     DEFINITIONS
-from exceptions import WordLookupException
 from data_sources import DataSource
+from exceptions import WordLookupException
 
 
 class Jisho(DataSource):

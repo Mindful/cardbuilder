@@ -1,12 +1,14 @@
-from typing import Any, Dict, Union, List
-from common import ExternalDataDependent, log
-from common.fieldnames import WORD, DEFINITIONS
-from exceptions import WordLookupException
-from os.path import exists
-import requests
-from data_sources import DataSource
 import tarfile
 from io import BytesIO
+from os.path import exists
+from typing import Any, Dict, Union, List
+
+import requests
+
+from common import ExternalDataDependent, log
+from common.fieldnames import WORD, DEFINITIONS
+from data_sources import DataSource
+from exceptions import WordLookupException
 
 
 class GeneDict(DataSource, ExternalDataDependent):

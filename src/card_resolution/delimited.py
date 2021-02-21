@@ -1,5 +1,6 @@
-from typing import List
 import csv
+from typing import List
+
 from card_resolution import ResolvedField
 from card_resolution.resolver import Resolver
 
