@@ -1,6 +1,7 @@
 from typing import List
 import csv
-from card_resolution import Resolver, ResolvedField
+from card_resolution import ResolvedField
+from card_resolution.resolver import Resolver
 
 
 class CsvResolver(Resolver):

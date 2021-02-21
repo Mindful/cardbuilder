@@ -16,7 +16,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 LOGGER.addHandler(logging.NullHandler())
 
 
-
 def get_logger() -> logging.Logger:
     return logging.getLogger(LOGGER_NAME)
 
@@ -62,8 +61,8 @@ class ExternalDataDependent(ABC):
             with open(self.filename, 'wb+') as f:
                 f.write(data.content)
 
-    @staticmethod
-    def _read_data() -> Any:
+    @abstractmethod
+    def _read_data(self) -> Any:
         raise NotImplementedError()
 
     def download_if_necessary(self):
@@ -76,48 +75,9 @@ class ExternalDataDependent(ABC):
         if not hasattr(clazz, 'data'):
             log(self, 'Loading external data...')
             with InDataDir():
-                clazz.data = clazz._read_data()
+                clazz.data = self._read_data()
 
         return clazz.data
-
-
-# Attributes
-WORD = 'word'
-PART_OF_SPEECH = 'pos'
-DEFINITIONS = 'def'
-PRONUNCIATION_IPA = 'ipa'
-SYNONYMS = 'syns'
-ANTONYMS = 'ants'
-INFLECTIONS = 'infs'
-EXAMPLE_SENTENCES = 'exst'
-AUDIO = 'aud'
-PITCH_ACCENT = 'acnt'
-
-# Japanese specific attributes
-READING = 'read'
-WRITINGS = 'writ'
-DETAILED_READING = 'rubi'
-
-
-# Languages
-JAPANESE = 'jpn'
-ENGLISH = 'eng'
-HEBREW = 'heb'
-
-
-class CardBuilderException(Exception):
-    def __init__(self, text):
-        super().__init__(text)
-
-
-class WordLookupException(CardBuilderException):
-    def __init__(self, text):
-        super().__init__(text)
-
-
-class CardResolutionException(CardBuilderException):
-    def __init__(self, text):
-        super().__init__(text)
 
 
 class WordFrequency(ExternalDataDependent):
@@ -125,13 +85,12 @@ class WordFrequency(ExternalDataDependent):
     url = 'http://norvig.com/ngrams/count_1w.txt'
     filename = 'count_1w.txt'
 
-    @staticmethod
-    def _read_data() -> Any:
+    def _read_data(self) -> Any:
         frequency = {}
-        line_count = fast_linecount(join(DATA_DIR, WordFrequency.filename))
-        with open(join(DATA_DIR, WordFrequency.filename), 'r') as f:
+        line_count = fast_linecount(join(DATA_DIR, self.filename))
+        with open(join(DATA_DIR, self.filename), 'r') as f:
             reader = csv.reader(f, delimiter='\t')
-            for word, freq in tqdm(reader, total=line_count, desc='reading {}'.format(WordFrequency.filename)):
+            for word, freq in tqdm(reader, total=line_count, desc='reading {}'.format(self.filename)):
                 frequency[word] = int(freq)
 
         return frequency

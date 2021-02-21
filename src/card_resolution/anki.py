@@ -1,12 +1,15 @@
-from card_resolution import ResolvedField, Resolver
-from typing import List, Dict, Union
-from common import *
+from card_resolution import ResolvedField
+from card_resolution.resolver import Resolver
+from typing import Dict, Union
 import genanki
 from os.path import exists, join
 from os import mkdir, remove
 from shutil import rmtree
 import requests
 from hashlib import sha256
+from typing import List
+from common.fieldnames import AUDIO
+from exceptions import CardBuilderException
 
 
 class AkpgResolver(Resolver):
@@ -92,6 +95,7 @@ class AkpgResolver(Resolver):
             remove(output_filename)
         package.write_to_file(final_out_name)
 
+        # this has to come last because the directory needs to exist when we write out the anki file
         if exists(self.media_temp_directory):
             rmtree(self.media_temp_directory)
 

@@ -1,12 +1,12 @@
 # Takes a raw input list of Japanese words and outputs a flashcard csv
-
+from common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING
 from data_sources.ja_to_en import Jisho
 from data_sources.tatoeba import TatoebaExampleSentences
 from word_sources import InputWords
-from card_resolution import default_preprocessing, CsvResolver
-from common import *
+from card_resolution import CsvResolver, Field
+from card_resolution.preprocessing import default_preprocessing
 from argparse import ArgumentParser
-from card_resolution import Field
+from common.languages import JAPANESE, ENGLISH
 from time import time
 
 

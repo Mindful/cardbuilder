@@ -3,8 +3,9 @@ from typing import Dict, Set, Union, List
 import requests
 from pykakasi import kakasi
 
-from common import WordLookupException, is_hiragana, WORD, PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, \
+from common import is_hiragana, WORD, PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, \
     DEFINITIONS
+from exceptions import WordLookupException
 from data_sources import DataSource
 
 

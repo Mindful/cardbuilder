@@ -1,14 +1,16 @@
-from word_sources import WordSource
 from glob import glob
+from os.path import exists
 from lxml import html
-from common import *
+from common import ExternalDataDependent, log, WordFrequency
+import requests
+from typing import Any
+from word_sources import WordSource
 
 
 class SvlWords(WordSource, ExternalDataDependent):
-    @staticmethod
-    def _read_data() -> Any:
+    def _read_data(self) -> Any:
         level_wordlist_tuples = []
-        filenames = glob(join(DATA_DIR, 'svl_*'))
+        filenames = glob('svl_*')
         for name in filenames:
             level = int(name.split('.')[0].split('_')[-1])
             with open(name, 'r') as f:

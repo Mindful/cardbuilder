@@ -1,11 +1,13 @@
-import csv
-import os
-from os.path import exists
-from typing import Any, Dict, Union, List
+from typing import Dict, Union
 from string import ascii_lowercase
 from data_sources import DataSource
+from exceptions import WordLookupException
+from common import ExternalDataDependent, log
 import requests
-from common import *
+from os.path import exists
+from typing import Any, List
+import csv
+from common.fieldnames import WORD, DEFINITIONS
 
 
 class EJDictHand(DataSource, ExternalDataDependent):
@@ -25,17 +27,16 @@ class EJDictHand(DataSource, ExternalDataDependent):
             with open(self.filename, 'wb+') as f:
                 f.write(all_content)
 
-    @staticmethod
-    def _read_data() -> Any:
+    def _read_data(self) -> Any:
         content = {}
-        with open(EJDictHand.filename, 'r') as f:
+        with open(self.filename, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
             for word_entry, definition in reader:
                 for word in word_entry.split(','):
                     if word not in content:
-                        content[word] = definition.split(EJDictHand.definition_delim)
+                        content[word] = definition.split(self.definition_delim)
                     else:
-                        content[word].extend(definition.split(EJDictHand.definition_delim))
+                        content[word].extend(definition.split(self.definition_delim))
 
         return content
 

@@ -1,8 +1,10 @@
-import os
-import csv
 from collections import defaultdict
-from typing import List, Dict, Union
-from common import *
+from os.path import exists
+from typing import Dict, Union, List
+from typing import Any
+from common import ExternalDataDependent, fast_linecount, InDataDir, log, is_hiragana
+from common.languages import JAPANESE, ENGLISH
+from common.fieldnames import EXAMPLE_SENTENCES
 from data_sources import DataSource
 from tqdm import tqdm
 from fugashi import Tagger
@@ -11,6 +13,9 @@ from string import punctuation
 from bz2 import BZ2Decompressor
 import tarfile
 from io import BytesIO
+import csv
+from exceptions import CardBuilderException, WordLookupException
+import requests
 
 
 class TatoebaExampleSentences(DataSource, ExternalDataDependent):
@@ -24,20 +29,17 @@ class TatoebaExampleSentences(DataSource, ExternalDataDependent):
     @staticmethod
     def _load_language_sents(lang):
         filename = TatoebaExampleSentences.sentences_filename_template.format(lang)
-        sentence_file = os.path.join(DATA_DIR, filename)
-        line_count = fast_linecount(sentence_file)
+        line_count = fast_linecount(filename)
         results = []
-        with open(sentence_file, 'r') as f:
+        with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
             for ident, _, sentence in tqdm(reader, total=line_count, desc='reading {}'.format(filename)):
                 results.append((ident, sentence))
 
         return results
 
-    @staticmethod
-    def _read_data() -> Any:
+    def _read_data(self) -> Any:
         pass  # not used because we override get_data()
-
 
     def get_data(self) -> Any:
         # we need different data depending on the languages this instance was initialized with

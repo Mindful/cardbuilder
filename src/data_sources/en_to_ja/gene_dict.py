@@ -1,13 +1,12 @@
-import os
 from typing import Any, Dict, Union, List
-from common import DATA_DIR, ExternalDataDependent, WordLookupException, WORD, DEFINITIONS, log
+from common import ExternalDataDependent, log
+from common.fieldnames import WORD, DEFINITIONS
+from exceptions import WordLookupException
 from os.path import exists
 import requests
 from data_sources import DataSource
 import tarfile
 from io import BytesIO
-
-GENE_DICT = os.path.join(DATA_DIR, 'gene_dict.txt')
 
 
 class GeneDict(DataSource, ExternalDataDependent):
@@ -26,22 +25,21 @@ class GeneDict(DataSource, ExternalDataDependent):
             with open(self.filename, 'w+') as f:
                 f.write(gene_data)
 
-    @staticmethod
-    def _read_data() -> Any:
+    def _read_data(self) -> Any:
         definitions = {}
         supplemental = {}
 
         found_first_valid_line = False
         reading_word = True
-        for line in open(GENE_DICT):
+        for line in open(self.filename):
             if not found_first_valid_line:
-                if line[0] == GeneDict.expected_first_element:
+                if line[0] == self.expected_first_element:
                     found_first_valid_line = True
                 else:
                     continue
 
             if reading_word:
-                word_line_content = line.split(GeneDict.supplemental_data_delim)
+                word_line_content = line.split(self.supplemental_data_delim)
                 word = word_line_content[0].strip()
                 if len(word_line_content) > 1:
                     supplemental[word] = word_line_content[1].strip()

@@ -1,11 +1,11 @@
 # https://dictionaryapi.com/products/json
 import re
-from common import *
 from typing import Dict, Union, List
-
-from common import DEFINITIONS, PART_OF_SPEECH
+from common.fieldnames import DEFINITIONS, PART_OF_SPEECH, SYNONYMS, AUDIO, ANTONYMS, WORD, PRONUNCIATION_IPA, \
+    INFLECTIONS
 from data_sources import DataSource
-
+from exceptions import WordLookupException
+import requests
 WORD_ID = 'wid'
 
 
