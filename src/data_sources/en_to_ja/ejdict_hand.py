@@ -7,6 +7,7 @@ from data_sources import DataSource
 import requests
 from common import *
 
+
 class EJDictHand(DataSource, ExternalDataDependent):
     filename = 'ejdicthand.txt'
     definition_delim = ' / '

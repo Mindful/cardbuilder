@@ -7,31 +7,33 @@ from os import mkdir, remove
 from shutil import rmtree
 import requests
 from hashlib import sha256
-ANKI_TEMP_DIR = 'ankitemp'
-
-
-def media_download_preprocessor(value: str) -> str:
-    filename = value.split('/')[-1]
-    if not exists(ANKI_TEMP_DIR):
-        mkdir(ANKI_TEMP_DIR)
-
-    r = requests.get(value)
-    with open(join(ANKI_TEMP_DIR, filename), 'wb') as f:
-        f.write(r.content)
-
-    return filename
-
-
-def linebreak_preprocessing(value: Union[str, List[str]]) -> str:
-    if isinstance(value, list):
-        return '<br/>'.join(value).replace('\n', '<br/>')
-    elif isinstance(value, str):
-        return value.replace('\n', '<br/>')
-    else:
-        raise RuntimeError('Field value must be list of strings or string')
 
 
 class AkpgResolver(Resolver):
+
+    media_temp_directory = 'ankitemp'
+
+    @staticmethod
+    def media_download_preprocessor(value: str) -> str:
+        filename = value.split('/')[-1]
+        if not exists(AkpgResolver.media_temp_directory):
+            mkdir(AkpgResolver.media_temp_directory)
+
+        r = requests.get(value)
+        with open(join(AkpgResolver.media_temp_directory, filename), 'wb') as f:
+            f.write(r.content)
+
+        return filename
+
+    @staticmethod
+    def linebreak_preprocessing(value: Union[str, List[str]]) -> str:
+        if isinstance(value, list):
+            return '<br/>'.join(value).replace('\n', '<br/>')
+        elif isinstance(value, str):
+            return value.replace('\n', '<br/>')
+        else:
+            raise RuntimeError('Field value must be list of strings or string')
+
     default_templates = [{
                               'name': 'Dummy Card',
                               'qfmt': 'This is a dummy card. Please update card types associated with this note.',
@@ -75,22 +77,22 @@ class AkpgResolver(Resolver):
 
         package = genanki.Package(deck)
         if next((rf for rf in sample_row if rf.source_name == AUDIO), None) is not None:
-            if not exists(ANKI_TEMP_DIR):
-                raise RuntimeError('Field with audio source found but no temporary media directory found')
+            if not exists(self.media_temp_directory):
+                raise CardBuilderException('Field with audio source found but no temporary media directory found')
 
-            package.media_files = [join(ANKI_TEMP_DIR, next(rf for rf in row if rf.source_name == AUDIO).value)
+            package.media_files = [join(self.media_temp_directory, next(rf for rf in row if rf.source_name == AUDIO).value)
                                    for row in rows]
 
             for file in package.media_files:
                 if not exists(file):
-                    raise RuntimeError('Supplied Anki media file {} not found'.format(file))
+                    raise CardBuilderException('Supplied Anki media file {} not found'.format(file))
 
         final_out_name = '{}.apkg'.format(output_filename)
         if exists(output_filename):
             remove(output_filename)
         package.write_to_file(final_out_name)
 
-        if exists(ANKI_TEMP_DIR):
-            rmtree(ANKI_TEMP_DIR)
+        if exists(self.media_temp_directory):
+            rmtree(self.media_temp_directory)
 
         return final_out_name

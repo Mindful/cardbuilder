@@ -4,7 +4,7 @@ from data_sources.en_to_ja.ejdict_hand import EJDictHand
 from data_sources.tatoeba import TatoebaExampleSentences
 from common import *
 from data_sources.en_to_en import MerriamWebster
-from card_resolution.anki import AkpgResolver, media_download_preprocessor, linebreak_preprocessing
+from card_resolution import AkpgResolver
 from card_resolution import Field, comma_separated_preprocessing
 from argparse import ArgumentParser
 from word_sources.en import SvlWords
@@ -47,12 +47,13 @@ if __name__ == '__main__':
         Field(mw, WORD, '英単語'),
         Field(mw, PRONUNCIATION_IPA, '国際音声記号'),
         Field(mw, INFLECTIONS, '活用形', preproc_func=comma_separated_preprocessing),
-        Field(mw, AUDIO, '音声', preproc_func=media_download_preprocessor),
-        Field(mw, DEFINITIONS, '英語での定義', preproc_func=linebreak_preprocessing),
-        Field(ejdict, DEFINITIONS, '日本語での定義', preproc_func=linebreak_preprocessing),
+        Field(mw, AUDIO, '音声', preproc_func=AkpgResolver.media_download_preprocessor),
+        Field(mw, DEFINITIONS, '英語での定義', preproc_func=AkpgResolver.linebreak_preprocessing),
+        Field(ejdict, DEFINITIONS, '日本語での定義', preproc_func=AkpgResolver.linebreak_preprocessing),
         Field(mw, SYNONYMS, '類義語', preproc_func=word_freq_comma_preprocessing),
         Field(mw, ANTONYMS, '対義語', preproc_func=word_freq_comma_preprocessing),
-        Field(tatoeba, EXAMPLE_SENTENCES, '例文', preproc_func=lambda x: linebreak_preprocessing(x[:10]), optional=True)
+        Field(tatoeba, EXAMPLE_SENTENCES, '例文',
+              preproc_func=lambda x: AkpgResolver.linebreak_preprocessing(x[:10]), optional=True)
     ]
 
     resolver = AkpgResolver(fields)

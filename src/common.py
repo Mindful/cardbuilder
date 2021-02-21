@@ -31,7 +31,7 @@ def log(obj: Any, text: str, level: int = logging.INFO):
 def fast_linecount(filename) -> int:
     f = open(filename, 'rb')
     bufgen = takewhile(lambda x: x, (f.raw.read(1024*1024) for _ in repeat(None)))
-    return sum(buf.count(b'\n') for buf in bufgen )
+    return sum(buf.count(b'\n') for buf in bufgen)
 
 
 def is_hiragana(char):
@@ -74,7 +74,7 @@ class ExternalDataDependent(ABC):
         self.download_if_necessary()
         clazz = type(self)
         if not hasattr(clazz, 'data'):
-            log(self, 'Loading data external data...')
+            log(self, 'Loading external data...')
             with InDataDir():
                 clazz.data = clazz._read_data()
 
