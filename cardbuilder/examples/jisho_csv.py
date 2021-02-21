@@ -10,7 +10,8 @@ from data_sources.ja_to_en import Jisho
 from data_sources.tatoeba import TatoebaExampleSentences
 from word_sources import InputWords
 
-if __name__ == '__main__':
+
+def main():
     parser = ArgumentParser()
     parser.add_argument('--input_file', required=True, help='Input file of words, one word per line')
     args = parser.parse_args()
@@ -30,5 +31,10 @@ if __name__ == '__main__':
 
     resolver = CsvResolver(fields)
     resolver.resolve_to_file(words, output_filename)
+
+
+if __name__ == '__main__':
+    main()
+
 
 

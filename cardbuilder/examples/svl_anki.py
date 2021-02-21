@@ -13,7 +13,8 @@ from data_sources.en_to_ja.ejdict_hand import EJDictHand
 from data_sources.tatoeba import TatoebaExampleSentences
 from word_sources.en import SvlWords
 
-if __name__ == '__main__':
+
+def main():
     parser = ArgumentParser()
     parser.add_argument('--start', help='Index of first word to include', required=False, type=int)
     parser.add_argument('--stop', help='Index of last word to include + 1', required=False, type=int)
@@ -86,3 +87,7 @@ if __name__ == '__main__':
         ])
 
     resolver.resolve_to_file(words, output_filename)
+
+
+if __name__ == '__main__':
+    main()

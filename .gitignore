@@ -7,4 +7,4 @@ data/*.txt
 data/*.tsv
 data/*.csv
 *.apkg
-resolution_errors.tsv
+scratchpad.py
