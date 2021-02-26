@@ -3,16 +3,16 @@
 from argparse import ArgumentParser
 from typing import List
 
-from card_resolution import AkpgResolver, Field
-from card_resolution.preprocessing import comma_separated_preprocessing
-from common import WordFrequency
-from common.fieldnames import *
-from common.languages import JAPANESE, ENGLISH
-from common.util import enable_console_reporting
-from data_sources.en_to_en import MerriamWebster
-from data_sources.en_to_ja.ejdict_hand import EJDictHand
-from data_sources.tatoeba import TatoebaExampleSentences
-from word_sources.en import SvlWords
+from cardbuilder.card_resolution import AkpgResolver, Field
+from cardbuilder.card_resolution.preprocessing import comma_separated_preprocessing
+from cardbuilder.common import WordFrequency
+from cardbuilder.common.fieldnames import *
+from cardbuilder.common.languages import JAPANESE, ENGLISH
+from cardbuilder.common.util import enable_console_reporting
+from cardbuilder.data_sources.en_to_en import MerriamWebster
+from cardbuilder.data_sources.en_to_ja.ejdict_hand import EJDictHand
+from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
+from cardbuilder.word_sources.en import SvlWords
 
 
 def main():

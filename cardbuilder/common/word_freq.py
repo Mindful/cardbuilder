@@ -1,8 +1,8 @@
 import csv
 from typing import Any, List
 
-from common import ExternalDataDependent
-from common.util import fast_linecount, InDataDir, loading_bar
+from cardbuilder.common import ExternalDataDependent
+from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar
 
 
 class WordFrequency(ExternalDataDependent):

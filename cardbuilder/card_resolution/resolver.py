@@ -3,11 +3,11 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import List, Union, Tuple, Dict, Callable
 
-from card_resolution import Field, ResolvedField
-from common.util import loading_bar, log
-from data_sources import DataSource
-from exceptions import CardResolutionException, CardBuilderException, WordLookupException
-from word_sources import WordSource
+from cardbuilder.card_resolution import Field, ResolvedField
+from cardbuilder.common.util import loading_bar, log
+from cardbuilder.data_sources import DataSource
+from cardbuilder.exceptions import CardResolutionException, CardBuilderException, WordLookupException
+from cardbuilder.word_sources import WordSource
 
 
 class Resolver(ABC):

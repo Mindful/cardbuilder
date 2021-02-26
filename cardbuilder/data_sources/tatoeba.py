@@ -11,12 +11,12 @@ from typing import Dict, Union, List, Any
 import requests
 from fugashi import Tagger
 
-from common import ExternalDataDependent, InDataDir
-from common.util import is_hiragana, fast_linecount, loading_bar, log
-from common.fieldnames import EXAMPLE_SENTENCES
-from common.languages import JAPANESE, ENGLISH
-from data_sources import DataSource
-from exceptions import CardBuilderException, WordLookupException
+from cardbuilder.common import ExternalDataDependent, InDataDir
+from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log
+from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES
+from cardbuilder.common.languages import JAPANESE, ENGLISH
+from cardbuilder.data_sources import DataSource
+from cardbuilder import CardBuilderException, WordLookupException
 
 
 class TatoebaExampleSentences(DataSource, ExternalDataDependent):

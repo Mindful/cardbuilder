@@ -1,7 +1,7 @@
 from typing import Callable, Union, List, Dict
 
-from card_resolution.preprocessing import default_preprocessing
-from data_sources import DataSource
+from cardbuilder.card_resolution.preprocessing import default_preprocessing
+from cardbuilder.data_sources import DataSource
 
 
 class ResolvedField:

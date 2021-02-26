@@ -2,10 +2,10 @@ from _csv import reader
 from collections import defaultdict
 from typing import Any, Dict, Union, List
 
-from common import ExternalDataDependent
-from common.fieldnames import PITCH_ACCENT
-from data_sources import DataSource
-from data_sources.ja_to_ja._build_nhk_pitch_accent_database import accent_database, build_database, derivative_database
+from cardbuilder.common import ExternalDataDependent
+from cardbuilder.common.fieldnames import PITCH_ACCENT
+from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
 
 
 # "styles": {"class=\"overline\"": "style=\"text-decoration:overline;\"",

@@ -1,6 +1,6 @@
-from common.external_data_dependent import ExternalDataDependent
-from common.word_freq import WordFrequency
-from common.util import InDataDir
+from cardbuilder.common.external_data_dependent import ExternalDataDependent
+from cardbuilder.common.word_freq import WordFrequency
+from cardbuilder.common.util import InDataDir
 
 
 

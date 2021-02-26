@@ -1,1 +1,1 @@
-from word_sources.en.svl import SvlWords
+from cardbuilder.word_sources.en.svl import SvlWords

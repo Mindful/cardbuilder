@@ -1,7 +1,8 @@
 import logging
 import sys
-from itertools import takewhile, repeat
 import os
+from itertools import takewhile, repeat
+from pathlib import Path
 from typing import Iterable, Optional, Any
 
 from tqdm import tqdm
@@ -9,8 +10,9 @@ from tqdm import tqdm
 
 class InDataDir:
 
-    #TODO: this is probably wrong, and should be based on the path of this file anyway
-    directory = os.path.abspath('../data')
+    directory = Path(__file__).parent.parent.absolute() / 'data'
+    if not directory.exists():
+        directory.mkdir()
 
     def __init__(self):
         self.prev_dir = None

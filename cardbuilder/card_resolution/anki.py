@@ -7,10 +7,10 @@ from typing import Dict, Union, List
 import genanki
 import requests
 
-from card_resolution import ResolvedField
-from card_resolution.resolver import Resolver
-from common.fieldnames import AUDIO
-from exceptions import CardBuilderException
+from cardbuilder.card_resolution import ResolvedField
+from cardbuilder.card_resolution.resolver import Resolver
+from cardbuilder.common.fieldnames import AUDIO
+from cardbuilder.exceptions import CardBuilderException
 
 
 class AkpgResolver(Resolver):

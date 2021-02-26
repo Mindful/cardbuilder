@@ -5,9 +5,9 @@ from typing import Any
 import requests
 from lxml import html
 
-from common import ExternalDataDependent, WordFrequency
-from common.util import log
-from word_sources import WordSource
+from cardbuilder.common import ExternalDataDependent, WordFrequency
+from cardbuilder.common.util import log
+from cardbuilder.word_sources import WordSource
 
 
 class SvlWords(WordSource, ExternalDataDependent):

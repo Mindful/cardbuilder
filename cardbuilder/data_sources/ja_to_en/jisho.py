@@ -3,11 +3,10 @@ from typing import Dict, Set, Union, List
 import requests
 from pykakasi import kakasi
 
-from common import WORD, PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, \
-    DEFINITIONS
-from common.util import is_hiragana
-from data_sources import DataSource
-from exceptions import WordLookupException
+from cardbuilder.common.fieldnames import WORD, PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, DEFINITIONS
+from cardbuilder.common.util import is_hiragana
+from cardbuilder.data_sources import DataSource
+from cardbuilder import WordLookupException
 
 
 class Jisho(DataSource):

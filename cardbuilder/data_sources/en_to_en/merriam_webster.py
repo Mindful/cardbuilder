@@ -4,10 +4,9 @@ from typing import Dict, Union, List
 
 import requests
 
-from common.fieldnames import DEFINITIONS, PART_OF_SPEECH, SYNONYMS, AUDIO, ANTONYMS, WORD, PRONUNCIATION_IPA, \
-    INFLECTIONS
-from data_sources import DataSource
-from exceptions import WordLookupException
+from cardbuilder.common import fieldnames
+from cardbuilder.data_sources import DataSource
+from cardbuilder.exceptions import WordLookupException
 
 WORD_ID = 'wid'
 
@@ -37,8 +36,8 @@ class CollegiateThesaurus:
             antonyms = word_data['meta']['ants'][0] if len(word_data['meta']['ants']) > 0 else []
 
             results.append({
-                SYNONYMS: synonyms,
-                ANTONYMS: antonyms,
+                fieldnames.SYNONYMS: synonyms,
+                fieldnames.ANTONYMS: antonyms,
                 WORD_ID: word_id
             })
 
@@ -108,12 +107,12 @@ class LearnerDictionary:
             definitions = [self.formatting_marker_regex.sub('', x) for x in shortdef['def']]
 
             results.append({
-                WORD: word,
-                PART_OF_SPEECH: pos_label,
-                DEFINITIONS: definitions,
-                PRONUNCIATION_IPA: word_ipa,
-                INFLECTIONS: inflections,
-                AUDIO: pronunciation_url,
+                fieldnames.WORD: word,
+                fieldnames.PART_OF_SPEECH: pos_label,
+                fieldnames.DEFINITIONS: definitions,
+                fieldnames.PRONUNCIATION_IPA: word_ipa,
+                fieldnames.INFLECTIONS: inflections,
+                fieldnames.AUDIO: pronunciation_url,
                 WORD_ID: word_id
             })
 
@@ -141,11 +140,12 @@ class MerriamWebster(DataSource):
 
         if self.pos_in_definitions:
             for result in results_by_wid.values():
-                result[DEFINITIONS] = ['{}: {}'.format(result[PART_OF_SPEECH], x) for x in result[DEFINITIONS]]
+                result[fieldnames.DEFINITIONS] = ['{}: {}'.format(result[fieldnames.PART_OF_SPEECH], x)
+                                                  for x in result[fieldnames.DEFINITIONS]]
 
         primary_result = next(iter(results_by_wid.values()))
         for secondary_result in list(results_by_wid.values())[1:]:
-            primary_result[DEFINITIONS].extend(secondary_result[DEFINITIONS])
+            primary_result[fieldnames.DEFINITIONS].extend(secondary_result[fieldnames.DEFINITIONS])
 
         # TODO: something smarter than just taking the first result
         return next(iter(results_by_wid.values()))

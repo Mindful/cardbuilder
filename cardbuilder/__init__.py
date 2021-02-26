@@ -1,1 +1,1 @@
-from exceptions import CardBuilderException, CardResolutionException, WordLookupException
+from cardbuilder.exceptions import CardBuilderException, CardResolutionException, WordLookupException

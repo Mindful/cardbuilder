@@ -5,11 +5,11 @@ from typing import Any, Dict, Union, List
 
 import requests
 
-from common import ExternalDataDependent
-from common.util import log
-from common.fieldnames import WORD, DEFINITIONS
-from data_sources import DataSource
-from exceptions import WordLookupException
+from cardbuilder.common import ExternalDataDependent
+from cardbuilder.common.util import log
+from cardbuilder.common.fieldnames import WORD, DEFINITIONS
+from cardbuilder.data_sources import DataSource
+from cardbuilder import WordLookupException
 
 
 class GeneDict(DataSource, ExternalDataDependent):

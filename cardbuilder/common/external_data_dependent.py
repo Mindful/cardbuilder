@@ -4,7 +4,7 @@ from typing import Any
 
 import requests
 
-from common.util import log, InDataDir
+from cardbuilder.common.util import log, InDataDir
 
 
 class ExternalDataDependent(ABC):
