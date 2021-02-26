@@ -9,3 +9,5 @@ scratchpad.py
 dist/*
 build/*
 *.egg-info/*
+*.csv
+*.tsv

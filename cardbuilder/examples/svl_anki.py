@@ -8,7 +8,7 @@ from cardbuilder.card_resolution.preprocessing import comma_separated_preprocess
 from cardbuilder.common import WordFrequency
 from cardbuilder.common.fieldnames import *
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.common.util import enable_console_reporting
+from cardbuilder.common.util import enable_console_reporting, log
 from cardbuilder.data_sources.en_to_en import MerriamWebster
 from cardbuilder.data_sources.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
@@ -88,7 +88,11 @@ def main():
             },
         ])
 
-    resolver.resolve_to_file(words, output_filename)
+    failed_resolutions = resolver.resolve_to_file(words, output_filename)
+    if len(failed_resolutions) > 0:
+        log(None, 'Printing failed resolutions')
+        for word, exception in failed_resolutions:
+            print('{} : {}'.format(word, exception))
 
 
 if __name__ == '__main__':
