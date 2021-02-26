@@ -7,7 +7,7 @@ from typing import Dict, Union, List
 import genanki
 import requests
 
-from cardbuilder.card_resolution import ResolvedField
+from cardbuilder.card_resolution.field import ResolvedField
 from cardbuilder.card_resolution.resolver import Resolver
 from cardbuilder.common.fieldnames import AUDIO
 from cardbuilder.exceptions import CardBuilderException

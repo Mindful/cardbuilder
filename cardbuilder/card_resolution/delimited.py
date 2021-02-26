@@ -1,7 +1,7 @@
 import csv
 from typing import List
 
-from cardbuilder.card_resolution import ResolvedField
+from cardbuilder.card_resolution.field import ResolvedField
 from cardbuilder.card_resolution.resolver import Resolver
 
 
