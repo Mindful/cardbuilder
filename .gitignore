@@ -8,3 +8,6 @@ data/*.tsv
 data/*.csv
 *.apkg
 scratchpad.py
+dist/*
+build/*
+*.egg-info/*
