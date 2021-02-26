@@ -6,12 +6,14 @@ from card_resolution import CsvResolver, Field
 from card_resolution.preprocessing import default_preprocessing
 from common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING
 from common.languages import JAPANESE, ENGLISH
+from common.util import enable_console_reporting
 from data_sources.ja_to_en import Jisho
 from data_sources.tatoeba import TatoebaExampleSentences
 from word_sources import InputWords
 
 
 def main():
+    enable_console_reporting()
     parser = ArgumentParser()
     parser.add_argument('--input_file', required=True, help='Input file of words, one word per line')
     args = parser.parse_args()

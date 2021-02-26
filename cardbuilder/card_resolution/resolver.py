@@ -3,10 +3,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import List, Union, Tuple, Dict, Callable
 
-from tqdm import tqdm
-
 from card_resolution import Field, ResolvedField
-from common import log
+from common.util import loading_bar, log
 from data_sources import DataSource
 from exceptions import CardResolutionException, CardBuilderException, WordLookupException
 from word_sources import WordSource
@@ -46,7 +44,7 @@ class Resolver(ABC):
     def _wordlist_to_rows(self, words: Union[List[str], WordSource]) -> List[List[ResolvedField]]:
         self.failed_resolutions = []
         results = []
-        for word in tqdm(words, desc='populating rows'):
+        for word in loading_bar(words, 'populating rows'):
             try:
                 results.append(self._resolve_fieldlist(word))
             except CardResolutionException as ex:

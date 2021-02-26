@@ -10,9 +10,9 @@ from typing import Dict, Union, List, Any
 
 import requests
 from fugashi import Tagger
-from tqdm import tqdm
 
-from common import ExternalDataDependent, fast_linecount, InDataDir, log, is_hiragana
+from common import ExternalDataDependent, InDataDir
+from common.util import is_hiragana, fast_linecount, loading_bar, log
 from common.fieldnames import EXAMPLE_SENTENCES
 from common.languages import JAPANESE, ENGLISH
 from data_sources import DataSource
@@ -34,7 +34,7 @@ class TatoebaExampleSentences(DataSource, ExternalDataDependent):
         results = []
         with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
-            for ident, _, sentence in tqdm(reader, total=line_count, desc='reading {}'.format(filename)):
+            for ident, _, sentence in loading_bar(reader, 'reading {}'.format(filename), line_count):
                 results.append((ident, sentence))
 
         return results
@@ -115,14 +115,14 @@ class TatoebaExampleSentences(DataSource, ExternalDataDependent):
                                                                                          self.target_lang))
             with open(self.links_file, 'r') as f:
                 reader = csv.reader(f, delimiter='\t')
-                for source_id, target_id in tqdm(reader, total=line_count, desc='reading links.csv'):
+                for source_id, target_id in loading_bar(reader, 'reading links.csv', line_count):
                     if source_id in self.source_lang_data and target_id in self.target_lang_data:
                         self.source_target_links[source_id] = target_id
 
     def _build_word_index(self, id_sent_data):
         # the word index would certainly take up less memory as a trie, but it's probably not worth the trouble
         results = defaultdict(set)
-        for ident, sent in tqdm(id_sent_data, desc='indexing sentences'):
+        for ident, sent in loading_bar(id_sent_data, 'indexing sentences'):
             words = self._split_sentence(sent)
             for word in words:
                 results[word].add(ident)

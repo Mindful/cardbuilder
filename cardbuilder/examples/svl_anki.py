@@ -8,6 +8,7 @@ from card_resolution.preprocessing import comma_separated_preprocessing
 from common import WordFrequency
 from common.fieldnames import *
 from common.languages import JAPANESE, ENGLISH
+from common.util import enable_console_reporting
 from data_sources.en_to_en import MerriamWebster
 from data_sources.en_to_ja.ejdict_hand import EJDictHand
 from data_sources.tatoeba import TatoebaExampleSentences
@@ -15,6 +16,7 @@ from word_sources.en import SvlWords
 
 
 def main():
+    enable_console_reporting()
     parser = ArgumentParser()
     parser.add_argument('--start', help='Index of first word to include', required=False, type=int)
     parser.add_argument('--stop', help='Index of last word to include + 1', required=False, type=int)

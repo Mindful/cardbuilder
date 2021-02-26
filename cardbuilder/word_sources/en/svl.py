@@ -5,7 +5,8 @@ from typing import Any
 import requests
 from lxml import html
 
-from common import ExternalDataDependent, log, WordFrequency
+from common import ExternalDataDependent, WordFrequency
+from common.util import log
 from word_sources import WordSource
 
 

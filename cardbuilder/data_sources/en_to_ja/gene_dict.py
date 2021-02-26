@@ -5,7 +5,8 @@ from typing import Any, Dict, Union, List
 
 import requests
 
-from common import ExternalDataDependent, log
+from common import ExternalDataDependent
+from common.util import log
 from common.fieldnames import WORD, DEFINITIONS
 from data_sources import DataSource
 from exceptions import WordLookupException
