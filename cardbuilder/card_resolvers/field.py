@@ -1,6 +1,6 @@
 from typing import Callable, Union, List, Dict
 
-from cardbuilder.card_resolution.preprocessing import default_preprocessing
+from cardbuilder.card_resolvers.preprocessing import default_preprocessing
 from cardbuilder.data_sources import DataSource
 
 

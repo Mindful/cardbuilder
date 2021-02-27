@@ -7,7 +7,7 @@ from lxml import html
 
 from cardbuilder.common import ExternalDataDependent, WordFrequency
 from cardbuilder.common.util import log
-from cardbuilder.word_sources import WordSource
+from cardbuilder.word_lists import WordSource
 
 
 class SvlWords(WordSource, ExternalDataDependent):

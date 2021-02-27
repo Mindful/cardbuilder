@@ -3,14 +3,14 @@ from argparse import ArgumentParser
 from time import time
 import csv
 
-from cardbuilder.card_resolution import CsvResolver, Field
-from cardbuilder.card_resolution.preprocessing import default_preprocessing
+from cardbuilder.card_resolvers import CsvResolver, Field
+from cardbuilder.card_resolvers.preprocessing import default_preprocessing
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import enable_console_reporting, log
 from cardbuilder.data_sources.ja_to_en import Jisho
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
-from cardbuilder.word_sources import InputWords
+from cardbuilder.word_lists import InputWords
 
 
 def main():

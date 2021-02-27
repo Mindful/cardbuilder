@@ -1,8 +1,8 @@
 import csv
 from typing import List
 
-from cardbuilder.card_resolution.field import ResolvedField
-from cardbuilder.card_resolution.resolver import Resolver
+from cardbuilder.card_resolvers.field import ResolvedField
+from cardbuilder.card_resolvers.resolver import Resolver
 
 
 class CsvResolver(Resolver):
