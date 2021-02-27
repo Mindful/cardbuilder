@@ -14,6 +14,7 @@ from cardbuilder.data_sources.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
 from cardbuilder.word_lists.en import SvlWords
 
+#TODO: this file needs some rewriting - specifically for changes to the MW dictionary and pre/post processing
 
 def main():
     enable_console_reporting()
@@ -33,6 +34,7 @@ def main():
     else:
         parser.error('Must include both --start and --stop or neither')
 
+    #TODO: these should be parser args, not hardcoded
     with open('mw_learner_api_key.txt') as f:
         learner_key = f.readlines()[0]
 

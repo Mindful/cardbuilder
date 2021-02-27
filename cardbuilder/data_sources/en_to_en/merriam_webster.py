@@ -1,21 +1,18 @@
 # https://dictionaryapi.com/products/json
 import re
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Optional
 
 import requests
 
 from cardbuilder.common import fieldnames
-from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources import DataSource, Value, StringListValue, StringValue
+from cardbuilder.data_sources.value import StringListsWithPOSValue, StringListsWithPrimaryPOSValue, RawDataValue
 from cardbuilder.exceptions import WordLookupException
 
 WORD_ID = 'wid'
 
-#TODO: turn the collegiatethesaurus and learnerdictionary into DataSources, change query_api to lookup_word
-# make them return much more information in the form of values, then have the MerriamWebster DataSource utilize it
-# with values. also use RAW_DATA and return the raw data
-
 # https://dictionaryapi.com/products/api-collegiate-thesaurus
-class CollegiateThesaurus:
+class CollegiateThesaurus(DataSource):
     def __init__(self, api_key):
         self.api_key = api_key
 
@@ -25,31 +22,34 @@ class CollegiateThesaurus:
         )
         return requests.get(url).json()
 
-    def query_api(self, word: str) -> List[Dict[str, Union[str, List[str]]]]:
+    def lookup_word(self, word: str) -> Dict[str, Value]:
         raw_json = self._query_api(word)
-        results = []
 
         target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
         if len(target_words) == 0:
             raise WordLookupException('Merriam Webster collegiate thesaurus had no exact matches for {}'.format(word))
 
+        syns_with_pos = []
+        ants_with_pos = []
+        word_ids = []
+
+        # we only take the first set of synonyms/antonyms per part of speech; at some point it's just overkill
         for word_data in target_words:
-            word_id = word_data['meta']['id'].split(':')[0] + '_' + word_data['fl']
-            synonyms = word_data['meta']['syns'][0] if len(word_data['meta']['syns']) > 0 else []
-            antonyms = word_data['meta']['ants'][0] if len(word_data['meta']['ants']) > 0 else []
+            pos = word_data['fl']
+            word_ids.append(word_data['meta']['id'].split(':')[0] + '_' + pos)
+            syns_with_pos.append((word_data['meta']['syns'][0] if len(word_data['meta']['syns']) > 0 else [], pos))
+            ants_with_pos.append((word_data['meta']['ants'][0] if len(word_data['meta']['ants']) > 0 else [], pos))
 
-            results.append({
-                fieldnames.SYNONYMS: synonyms,
-                fieldnames.ANTONYMS: antonyms,
-                WORD_ID: word_id
-            })
-
-        return results
+        return {
+            fieldnames.SYNONYMS: StringListsWithPOSValue(syns_with_pos),
+            fieldnames.ANTONYMS: StringListsWithPOSValue(ants_with_pos),
+            WORD_ID: StringListValue(word_ids),
+            fieldnames.RAW_DATA: RawDataValue(raw_json)
+        }
 
 
 # https://dictionaryapi.com/products/api-learners-dictionary
-class LearnerDictionary:
-
+class LearnerDictionary(DataSource):
     audio_file_format = 'ogg'
     number_subdir_regex = re.compile(r'^[^a-zA-Z]+')
     formatting_marker_regex = re.compile(r'{.*}')
@@ -62,8 +62,7 @@ class LearnerDictionary:
             word=word, api_key=self.api_key)
         return requests.get(url).json()
 
-    def _get_word_pronunciation_url(self, filename):
-        subdir = None
+    def _get_word_pronunciation_url(self, filename) -> str:
         if filename.startswith('bix'):
             subdir = 'bix'
         elif filename.startswith('gg'):
@@ -78,47 +77,52 @@ class LearnerDictionary:
 
         return url
 
-    def query_api(self, word: str) -> List[Dict[str, Union[str, List[str]]]]:
+    def lookup_word(self, word: str) -> Dict[str, Value]:
         raw_json = self._query_api(word)
-        results = []
 
         target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
         if len(target_words) == 0:
             raise WordLookupException('Merriam Webster learner\'s dictionary had no exact matches for {}'.format(word))
 
+        pos_list = []
+        word_id_list = []
+        ipa_with_pos = []
+        inflections_with_pos = []
+        audio_with_pos = []
+        definitions_with_pos = []
         for word_data in target_words:
             metadata = word_data['meta']
-            word_id = word_data['meta']['id'].split(':')[0] + '_' + word_data['fl']
+            shortdef = metadata['app-shortdef']
+            pos_label = shortdef['fl']
+            word_id = word_data['meta']['id'].split(':')[0] + '_' + pos_label
             try:
                 pronunciation_data = word_data['hwi']['prs'][0]
             except KeyError:
                 pronunciation_data = None
             if pronunciation_data:
-                word_ipa = pronunciation_data.get('ipa', None)
+                if 'ipa' in pronunciation_data:
+                    ipa_with_pos.append((pronunciation_data['ipa'], pos_label))
                 try:
                     pronunciation_url = self._get_word_pronunciation_url(pronunciation_data['sound']['audio'])
+                    audio_with_pos.append((pronunciation_url, pos_label))
                 except KeyError:
-                    pronunciation_url = None
-            else:
-                pronunciation_url = None
-                word_ipa = None
+                    pass
 
-            shortdef = metadata['app-shortdef']
-            inflections = [x['if'].replace('*', '') for x in word_data['ins']
-                           if 'if' in x] if 'ins' in word_data else []
-            pos_label = shortdef['fl']
-            definitions = [self.formatting_marker_regex.sub('', x) for x in shortdef['def']]
+            inflections_with_pos.append(([x['if'].replace('*', '') for x in word_data['ins']
+                                          if 'if' in x] if 'ins' in word_data else [], pos_label))
+            definitions_with_pos.append(([self.formatting_marker_regex.sub('', x) for x in shortdef['def']], pos_label))
+            pos_list.append(pos_label)
+            word_id_list.append(word_id)
 
-            results.append({
-                fieldnames.PART_OF_SPEECH: pos_label,
-                fieldnames.DEFINITIONS: definitions,
-                fieldnames.PRONUNCIATION_IPA: word_ipa,
-                fieldnames.INFLECTIONS: inflections,
-                fieldnames.AUDIO: pronunciation_url,
-                WORD_ID: word_id
-            })
-
-        return results
+        return {
+                fieldnames.PART_OF_SPEECH: StringListValue(pos_list),
+                fieldnames.DEFINITIONS: StringListsWithPOSValue(definitions_with_pos),
+                fieldnames.PRONUNCIATION_IPA: StringListsWithPOSValue(ipa_with_pos),
+                fieldnames.INFLECTIONS: StringListsWithPOSValue(inflections_with_pos),
+                fieldnames.AUDIO: StringListsWithPOSValue(audio_with_pos),
+                WORD_ID: StringListValue(word_id_list),
+                fieldnames.RAW_DATA: RawDataValue(raw_json)
+            }
 
 
 # Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
@@ -128,26 +132,39 @@ class MerriamWebster(DataSource):
         self.thesaurus = CollegiateThesaurus(thesaurus_api_key)
         self.pos_in_definitions = pos_in_definitions
 
-    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
-        dictionary_data = self.learners_dict.query_api(word)
-        thesaurus_data = self.thesaurus.query_api(word)
+    @staticmethod
+    def _add_primary_pos_value_if_present(val: StringListsWithPOSValue, pos: str,
+                                          key: str, target_dict: Dict[str, Value]):
+        present_parts_of_speech = {pos for values, pos in val.values_with_pos}
+        if pos in present_parts_of_speech:
+            target_dict[key] = StringListsWithPrimaryPOSValue(val.values_with_pos, pos)
 
-        results_by_wid = {
-            x[WORD_ID]: x for x in dictionary_data
+    def lookup_word(self, word: str) -> Dict[str, Value]:
+        dictionary_data = self.learners_dict.lookup_word(word)
+        thesaurus_data = self.thesaurus.lookup_word(word)
+
+        primary_pos = dictionary_data[fieldnames.PART_OF_SPEECH].val_list[0]
+
+        output = {
+            fieldnames.PART_OF_SPEECH: dictionary_data[fieldnames.PART_OF_SPEECH],
+            fieldnames.DEFINITIONS: dictionary_data[fieldnames.DEFINITIONS],
+            fieldnames.PRONUNCIATION_IPA: dictionary_data[fieldnames.PRONUNCIATION_IPA],
+            fieldnames.AUDIO: dictionary_data[fieldnames.AUDIO],
+            fieldnames.RAW_DATA: RawDataValue({
+                'thesaurus': thesaurus_data[fieldnames.RAW_DATA].data,
+                'dictionary': dictionary_data[fieldnames.RAW_DATA].data
+            })
         }
 
-        for d in thesaurus_data:
-            if d[WORD_ID] in results_by_wid:
-                results_by_wid[d[WORD_ID]].update(d)
+        self._add_primary_pos_value_if_present(dictionary_data[fieldnames.INFLECTIONS], primary_pos,
+                                               fieldnames.INFLECTIONS, output)
+        self._add_primary_pos_value_if_present(thesaurus_data[fieldnames.SYNONYMS], primary_pos,
+                                               fieldnames.SYNONYMS, output)
+        self._add_primary_pos_value_if_present(thesaurus_data[fieldnames.ANTONYMS], primary_pos,
+                                               fieldnames.SYNONYMS, output)
 
-        if self.pos_in_definitions:
-            for result in results_by_wid.values():
-                result[fieldnames.DEFINITIONS] = ['{}: {}'.format(result[fieldnames.PART_OF_SPEECH], x)
-                                                  for x in result[fieldnames.DEFINITIONS]]
+        return output
 
-        primary_result = next(iter(results_by_wid.values()))
-        for secondary_result in list(results_by_wid.values())[1:]:
-            primary_result[fieldnames.DEFINITIONS].extend(secondary_result[fieldnames.DEFINITIONS])
 
-        # TODO: something smarter than just taking the first result
-        return next(iter(results_by_wid.values()))
+
+

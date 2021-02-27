@@ -8,7 +8,7 @@ from cardbuilder.common.fieldnames import WORD, PART_OF_SPEECH, READING, WRITING
 from cardbuilder.common.util import is_hiragana
 from cardbuilder.data_sources import DataSource, Value, StringValue, StringListValue
 from cardbuilder import WordLookupException
-from cardbuilder.data_sources.value import DefinitionsWithPOSValue
+from cardbuilder.data_sources.value import StringListsWithPOSValue, RawDataValue
 
 
 class Jisho(DataSource):
@@ -86,12 +86,12 @@ class Jisho(DataSource):
         writing_candidates = list({x['word'] for x in match['japanese'] if 'word' in x})  # set for unique, then list
         detailed_reading = self._detailed_reading(word)
 
-        definitions_value = DefinitionsWithPOSValue(definitions_with_pos)
+        definitions_value = StringListsWithPOSValue(definitions_with_pos)
         return {
-            PART_OF_SPEECH: StringValue(definitions_value.definitions_with_pos[0][1]),
+            PART_OF_SPEECH: StringValue(definitions_value.values_with_pos[0][1]),
             DEFINITIONS: definitions_value,
             READING: StringValue(reading),
             WRITINGS: StringListValue(writing_candidates),
             DETAILED_READING: StringValue(detailed_reading),
-            RAW_DATA: match
+            RAW_DATA: RawDataValue(match)
         }
