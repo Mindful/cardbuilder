@@ -1,10 +1,10 @@
 from cardbuilder.card_resolvers import Field, CsvResolver
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS, DETAILED_READING
 from cardbuilder.data_sources.ja_to_en import Jisho
-from cardbuilder.word_lists import InputWords
+from cardbuilder.word_lists import InputList
 
 dictionary = Jisho()
-words = InputWords(input_file_name)
+words = InputList(input_file_name)
 
 fields = [
     Field(dictionary, WORD, 'word'),

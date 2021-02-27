@@ -2,7 +2,7 @@ from typing import Any, Dict, Union, List
 from collections import defaultdict
 
 from cardbuilder.common import ExternalDataDependent
-from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources import DataSource, Value, StringValue
 from cardbuilder.common.fieldnames import DEFINITIONS, PART_OF_SPEECH
 
 
@@ -34,10 +34,10 @@ class ESPDIC(DataSource, ExternalDataDependent):
             'ŭ': 'adverb'
         }[last_char]
 
-    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
+    def lookup_word(self, word: str) -> Dict[str, Value]:
         return {
-            DEFINITIONS: self.definitions[word],
-            PART_OF_SPEECH: self._infer_pos(word)
+            DEFINITIONS: StringValue(self.definitions[word]),
+            PART_OF_SPEECH: StringValue(self._infer_pos(word))
         }
 
     def _read_data(self) -> Any:

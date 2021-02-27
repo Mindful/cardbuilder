@@ -3,22 +3,23 @@ from typing import Dict, Set, Union, List
 import requests
 from pykakasi import kakasi
 
-from cardbuilder.common.fieldnames import WORD, PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, DEFINITIONS
+from cardbuilder.common.fieldnames import WORD, PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, DEFINITIONS, \
+    RAW_DATA
 from cardbuilder.common.util import is_hiragana
-from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources import DataSource, Value, StringValue, StringListValue
 from cardbuilder import WordLookupException
+from cardbuilder.data_sources.value import DefinitionsWithPOSValue
 
 
 class Jisho(DataSource):
 
-    def __init__(self, accept_reading_match=True, accept_non_match=False, pos_in_definitions=False):
+    def __init__(self, accept_reading_match=True, accept_non_match=False):
         self._exact_matched = set()
         self._reading_matched = set()
         self._non_matched = set()
         self.readings = kakasi()
         self.accept_reading_match = accept_reading_match
         self.accept_non_match = accept_non_match
-        self.pos_in_definitions = pos_in_definitions
 
     def _to_katakana_reading(self, word: str) -> str:
         return ''.join(x['kana'] for x in self.readings.convert(word))
@@ -56,7 +57,7 @@ class Jisho(DataSource):
 
         return output_str.strip()
 
-    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
+    def lookup_word(self, word: str) -> Dict[str, Value]:
         url = 'https://jisho.org/api/v1/search/words?keyword={}'.format(word)
         json = requests.get(url).json()['data']
         match = next((x for x in json if x['slug'] == word), None)
@@ -76,25 +77,21 @@ class Jisho(DataSource):
 
         # delete senses that are just romaji readings
         romaji = self._to_romaji_reading(word)
-        if self.pos_in_definitions:
-            definitions = [((', '.join(x['parts_of_speech']) + ': ') if 'parts_of_speech' in x else '') +
-                           ', '.join(x['english_definitions']) for x in match['senses']
-                           if romaji not in {y.lower() for y in x['english_definitions']}]
-        else:
-            definitions = [', '.join(x['english_definitions']) for x in match['senses']
-                           if romaji not in {y.lower() for y in x['english_definitions']}]
 
-        seen_definitions = set()
-        definitions = [x for x in definitions if not (x.lower() in seen_definitions or seen_definitions.add(x.lower()))]
+        definitions_with_pos = [
+            (sense['english_definitions'], sense['parts_of_speech'][0] if 'parts_of_speech' in sense else None)
+            for sense in match['senses'] if romaji not in {dfn.lower() for dfn in sense['english_definitions']}
+        ]
+
         writing_candidates = list({x['word'] for x in match['japanese'] if 'word' in x})  # set for unique, then list
-        primary_pos = match['senses'][0]['parts_of_speech'][0]
         detailed_reading = self._detailed_reading(word)
 
+        definitions_value = DefinitionsWithPOSValue(definitions_with_pos)
         return {
-            WORD: match['slug'],
-            PART_OF_SPEECH: primary_pos,
-            READING: reading,
-            WRITINGS: writing_candidates,
-            DETAILED_READING: detailed_reading,
-            DEFINITIONS: definitions
+            PART_OF_SPEECH: StringValue(definitions_value.definitions_with_pos[0][1]),
+            DEFINITIONS: definitions_value,
+            READING: StringValue(reading),
+            WRITINGS: StringListValue(writing_candidates),
+            DETAILED_READING: StringValue(detailed_reading),
+            RAW_DATA: match
         }

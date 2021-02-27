@@ -7,10 +7,10 @@ from lxml import html
 
 from cardbuilder.common import ExternalDataDependent, WordFrequency
 from cardbuilder.common.util import log
-from cardbuilder.word_lists import WordSource
+from cardbuilder.word_lists import WordList
 
 
-class SvlWords(WordSource, ExternalDataDependent):
+class SvlWords(WordList, ExternalDataDependent):
     def _read_data(self) -> Any:
         level_wordlist_tuples = []
         filenames = glob('svl_*')

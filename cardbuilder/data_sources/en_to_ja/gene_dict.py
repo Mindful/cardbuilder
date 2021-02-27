@@ -8,7 +8,7 @@ import requests
 from cardbuilder.common import ExternalDataDependent
 from cardbuilder.common.util import log
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS
-from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources import DataSource, Value
 from cardbuilder import WordLookupException
 
 
@@ -56,14 +56,23 @@ class GeneDict(DataSource, ExternalDataDependent):
     def __init__(self):
         self.definitions, self.supplemental = self.get_data()
 
-    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
+    def lookup_word(self, word: str) -> Dict[str, Value]:
         if word not in self.definitions:
             raise WordLookupException("Could not find {} in Gene dictionary".format(word))
         result = {
-            WORD: word,
             DEFINITIONS: [self.definitions[word]]
         }
         if word in self.supplemental:
             result['supplemental'] = self.supplemental[word]
 
         return result
+
+
+class GeneDictValue(Value):
+    def __init__(self, definition: str, supplemental: str):
+        self.definition = definition
+        self.supplemental = supplemental
+
+    def to_output_string(self):
+        # supplemental probably not that important in most cases
+        return self.definition

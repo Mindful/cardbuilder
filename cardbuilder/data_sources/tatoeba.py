@@ -6,7 +6,7 @@ from collections import defaultdict
 from io import BytesIO
 from os.path import exists
 from string import punctuation
-from typing import Dict, Union, List, Any
+from typing import Dict, List, Any, Tuple
 
 import requests
 from fugashi import Tagger
@@ -15,12 +15,11 @@ from cardbuilder.common import ExternalDataDependent, InDataDir
 from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log
 from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources import DataSource, Value
 from cardbuilder import CardBuilderException, WordLookupException
 
 
 class TatoebaExampleSentences(DataSource, ExternalDataDependent):
-    max_results = 100
     en_punctuation_regex = re.compile('[{}]'.format(re.escape(punctuation)))
     links_file = 'links.csv'
     links_url = 'https://downloads.tatoeba.org/exports/links.tar.bz2'
@@ -129,7 +128,7 @@ class TatoebaExampleSentences(DataSource, ExternalDataDependent):
 
         return results
 
-    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
+    def lookup_word(self, word: str) -> Dict[str, Value]:
         if word not in self.source_index:
             raise WordLookupException('Could not find {} in Tatoeba example sentences for {}'.
                                       format(word, self.source_lang))
@@ -140,9 +139,17 @@ class TatoebaExampleSentences(DataSource, ExternalDataDependent):
                                    if ident in self.source_target_links else None)
                                   for ident in source_idents]
 
-        final_selection = sorted(example_sentence_pairs, key=lambda x: 1 if x[1] is None else 0)[:self.max_results]
+        example_sentences_value = TatoebaExampleSentencesValue(example_sentence_pairs)
 
         return {
-            EXAMPLE_SENTENCES: ['{}\n{}'.format(example, translated_example) if translated_example is not None
-                                else example for example, translated_example in final_selection]
+            EXAMPLE_SENTENCES: example_sentences_value
         }
+
+
+class TatoebaExampleSentencesValue(Value):
+    def __init__(self, example_sentence_pairs: List[Tuple[str, str]]):
+        self.sentence_pairs = sorted(example_sentence_pairs, key=lambda x: 1 if x[1] is None else 0)
+
+    def to_output_string(self, pair_format_string: str = '{}\n{}\n', max_sentences: int = 10) -> str:
+        sentence_pairs = self.sentence_pairs[:max_sentences] if max_sentences is not None else self.sentence_pairs
+        return ''.join([pair_format_string.format(*pair) for pair in sentence_pairs])

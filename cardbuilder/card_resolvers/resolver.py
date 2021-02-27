@@ -4,10 +4,11 @@ from collections import defaultdict
 from typing import List, Union, Tuple, Dict, Callable
 
 from cardbuilder.card_resolvers.field import Field, ResolvedField
+from cardbuilder.common.fieldnames import WORD
 from cardbuilder.common.util import loading_bar, log
-from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources import DataSource, StringValue
 from cardbuilder.exceptions import CardResolutionException, CardBuilderException, WordLookupException
-from cardbuilder.word_lists import WordSource
+from cardbuilder.word_lists import WordList
 
 
 class Resolver(ABC):
@@ -41,7 +42,7 @@ class Resolver(ABC):
     def _get_order_by_resolved_fieldname(self, fieldname: str):
         return self.field_order_by_target_name.get(fieldname, 100), fieldname
 
-    def _wordlist_to_rows(self, words: Union[List[str], WordSource]) -> List[List[ResolvedField]]:
+    def _wordlist_to_rows(self, words: Union[List[str], WordList]) -> List[List[ResolvedField]]:
         self.failed_resolutions = []
         results = []
         for word in loading_bar(words, 'populating rows'):
@@ -62,6 +63,7 @@ class Resolver(ABC):
         for datasource, fields in self.fields_by_datasource.items():
             try:
                 data = datasource.lookup_word(word)
+                data[WORD] = StringValue(word)
                 data_by_source[datasource] = data
             except WordLookupException as ex:
                 for field in fields:
@@ -86,7 +88,7 @@ class Resolver(ABC):
     def _output_file(self, rows: List[List[ResolvedField]], filename: str) -> str:
         raise NotImplementedError('Resolver classes must define _output_file')
 
-    def resolve_to_file(self, words: Union[List[str], WordSource], name: str) -> List[Tuple[str, CardResolutionException]]:
+    def resolve_to_file(self, words: Union[List[str], WordList], name: str) -> List[Tuple[str, CardResolutionException]]:
         if len(words) == 0:
             raise RuntimeError('Cannot resolve an empty wordlist')
         rows = self._wordlist_to_rows(words)

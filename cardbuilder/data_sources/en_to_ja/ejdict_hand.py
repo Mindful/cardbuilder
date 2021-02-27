@@ -8,7 +8,7 @@ import requests
 from cardbuilder.common import ExternalDataDependent
 from cardbuilder.common.util import log
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS
-from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources import DataSource, Value, StringListValue
 from cardbuilder import WordLookupException
 
 
@@ -45,10 +45,9 @@ class EJDictHand(DataSource, ExternalDataDependent):
     def __init__(self):
         self.content = self.get_data()
 
-    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
+    def lookup_word(self, word: str) -> Dict[str, Value]:
         if word not in self.content:
             raise WordLookupException("Could not find {} in EJDictHand dictionary".format(word))
         return {
-            WORD: word,
-            DEFINITIONS: self.content[word]
+            DEFINITIONS: StringListValue(self.content[word])
         }

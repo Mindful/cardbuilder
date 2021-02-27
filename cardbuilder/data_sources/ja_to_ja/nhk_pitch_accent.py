@@ -3,8 +3,8 @@ from collections import defaultdict
 from typing import Any, Dict, Union, List
 
 from cardbuilder.common import ExternalDataDependent
-from cardbuilder.common.fieldnames import PITCH_ACCENT
-from cardbuilder.data_sources import DataSource
+from cardbuilder.common.fieldnames import PITCH_ACCENT, WORD
+from cardbuilder.data_sources import DataSource, Value
 from cardbuilder.data_sources.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
 
 
@@ -34,9 +34,18 @@ class NhkPitchAccent(DataSource, ExternalDataDependent):
     def __init__(self):
         self.pitch_accents = self.get_data()
 
-    def lookup_word(self, word: str) -> Dict[str, Union[str, List[str]]]:
+    def lookup_word(self, word: str) -> Dict[str, Value]:
         pitch_accent_by_reading = self.pitch_accents[word]
         # naively choosing the first option isn't great, but we can't do better without using the reading
         return {
-            PITCH_ACCENT: next(iter(pitch_accent_by_reading.values()))
+            PITCH_ACCENT: NhkPitchAccentValue(pitch_accent_by_reading)
         }
+
+
+class NhkPitchAccentValue(Value):
+    def __init__(self, pitch_accent_by_reading: Dict[str, str]):
+        self.pitch_accent_by_reading = pitch_accent_by_reading
+
+    def to_output_string(self):
+        # we can't do better than this without retrieving pitch accent by reading
+        return next(iter(self.pitch_accent_by_reading.values()))

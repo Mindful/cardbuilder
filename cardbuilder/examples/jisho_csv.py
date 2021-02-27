@@ -4,13 +4,12 @@ from time import time
 import csv
 
 from cardbuilder.card_resolvers import CsvResolver, Field
-from cardbuilder.card_resolvers.preprocessing import default_preprocessing
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import enable_console_reporting, log
 from cardbuilder.data_sources.ja_to_en import Jisho
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
-from cardbuilder.word_lists import InputWords
+from cardbuilder.word_lists import InputList
 
 
 def main():
@@ -21,16 +20,15 @@ def main():
     run_time = int(time())
     output_filename = 'cardlist_additions_{}'.format(run_time)
 
+    words = InputList(args.input_file)
     dictionary = Jisho()
     example_sentences = TatoebaExampleSentences(source_lang=JAPANESE, target_lang=ENGLISH)
-    words = InputWords(args.input_file)
 
     fields = [
         Field(dictionary, WORD, 'word'),
         Field(dictionary, DEFINITIONS, 'definitions'),
         Field(dictionary, DETAILED_READING, 'readding'),
-        Field(example_sentences, EXAMPLE_SENTENCES, 'example sentence',
-              preproc_func=lambda x: default_preprocessing(x[:2]), optional=True)
+        Field(example_sentences, EXAMPLE_SENTENCES, 'example sentence')
     ]
 
     resolver = CsvResolver(fields)

@@ -8,6 +8,7 @@ ANTONYMS = 'ants'
 INFLECTIONS = 'infs'
 EXAMPLE_SENTENCES = 'exst'
 AUDIO = 'aud'
+RAW_DATA = 'raw'
 
 # Japanese specific
 PITCH_ACCENT = 'acnt'

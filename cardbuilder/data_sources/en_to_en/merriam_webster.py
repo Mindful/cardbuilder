@@ -10,6 +10,9 @@ from cardbuilder.exceptions import WordLookupException
 
 WORD_ID = 'wid'
 
+#TODO: turn the collegiatethesaurus and learnerdictionary into DataSources, change query_api to lookup_word
+# make them return much more information in the form of values, then have the MerriamWebster DataSource utilize it
+# with values. also use RAW_DATA and return the raw data
 
 # https://dictionaryapi.com/products/api-collegiate-thesaurus
 class CollegiateThesaurus:
@@ -107,7 +110,6 @@ class LearnerDictionary:
             definitions = [self.formatting_marker_regex.sub('', x) for x in shortdef['def']]
 
             results.append({
-                fieldnames.WORD: word,
                 fieldnames.PART_OF_SPEECH: pos_label,
                 fieldnames.DEFINITIONS: definitions,
                 fieldnames.PRONUNCIATION_IPA: word_ipa,
