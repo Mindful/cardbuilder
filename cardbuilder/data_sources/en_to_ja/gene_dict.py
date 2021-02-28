@@ -7,7 +7,7 @@ import requests
 
 from cardbuilder.common import ExternalDataDependent
 from cardbuilder.common.util import log
-from cardbuilder.common.fieldnames import WORD, DEFINITIONS
+from cardbuilder.common.fieldnames import WORD, DEFINITIONS, SUPPLEMENTAL
 from cardbuilder.data_sources import DataSource, Value
 from cardbuilder import WordLookupException
 
@@ -63,7 +63,7 @@ class GeneDict(DataSource, ExternalDataDependent):
             DEFINITIONS: [self.definitions[word]]
         }
         if word in self.supplemental:
-            result['supplemental'] = self.supplemental[word]
+            result[SUPPLEMENTAL] = self.supplemental[word]
 
         return result
 

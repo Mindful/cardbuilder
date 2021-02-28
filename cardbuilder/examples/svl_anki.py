@@ -1,7 +1,6 @@
 # A deck for Japanese learners of English, using the SVL12000 as a source of words
 
 from argparse import ArgumentParser
-from typing import List
 
 from cardbuilder.card_resolvers import AkpgResolver, Field
 from cardbuilder.common import WordFrequency
@@ -14,25 +13,26 @@ from cardbuilder.data_sources.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
 from cardbuilder.word_lists.en import SvlWords
 
-#TODO: this file needs some rewriting - specifically for changes to the MW dictionary and pre/post processing
-
 
 def main():
     enable_console_reporting()
     parser = ArgumentParser()
     parser.add_argument('--start', help='Index of first word to include', required=True, type=int)
     parser.add_argument('--stop', help='Index of last word to include + 1', required=True, type=int)
+    parser.add_argument('--learner_key', help="Location of a text file containing a "
+                                              "Merriam-Webster's Learner's Dictionary api key", required=True)
+    parser.add_argument('--thesaurus_key', help="Location of a text file containing a "
+                                                "Merriam-Webster's Collegiate Thesaurus api key")
     args = parser.parse_args()
 
     start = args.start
     stop = args.stop
     output_filename = 'svl_{}_to_{}'.format(start, stop)
 
-    #TODO: these should be parser args, not hardcoded
-    with open('mw_learner_api_key.txt') as f:
+    with open(args.learner_key) as f:
         learner_key = f.readlines()[0]
 
-    with open('mw_thesaurus_api_key.txt') as f:
+    with open(args.thesaurus_key) as f:
         thesaurus_key = f.readlines()[0]
 
     mw = MerriamWebster(learner_key, thesaurus_key)

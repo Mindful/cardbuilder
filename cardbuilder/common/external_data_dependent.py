@@ -8,6 +8,9 @@ from cardbuilder.common.util import log, InDataDir
 
 
 class ExternalDataDependent(ABC):
+
+    uses_data_dir = True
+
     def _fetch_remote_files_if_necessary(self):
         if not hasattr(self, 'filename') or not hasattr(self, 'url'):
             raise NotImplementedError('Inheriting classes must either define filename and url static variables or '
@@ -23,7 +26,10 @@ class ExternalDataDependent(ABC):
         raise NotImplementedError()
 
     def download_if_necessary(self):
-        with InDataDir():
+        if self.uses_data_dir:
+            with InDataDir():
+                self._fetch_remote_files_if_necessary()
+        else:
             self._fetch_remote_files_if_necessary()
 
     def get_data(self) -> Any:
@@ -31,7 +37,10 @@ class ExternalDataDependent(ABC):
         clazz = type(self)
         if not hasattr(clazz, 'data'):
             log(self, 'Loading external data...')
-            with InDataDir():
+            if self.uses_data_dir:
+                with InDataDir():
+                    clazz.data = self._read_data()
+            else:
                 clazz.data = self._read_data()
 
         return clazz.data
