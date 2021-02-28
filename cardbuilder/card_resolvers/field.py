@@ -1,5 +1,6 @@
 from typing import Callable, Dict
 
+from cardbuilder import CardBuilderException
 from cardbuilder.data_sources import DataSource, Value
 
 
@@ -27,11 +28,17 @@ class Field:
         self.value = None
         self.optional = optional
 
-    def resolve(self, data: Dict[str, Value]):
-        result = data[self.source_field_name]
-        result = self.stringifier(result)
+    def resolve(self, data: Dict[str, Value]) -> ResolvedField:
+        if self.source_field_name in data:
+            result = data[self.source_field_name]
+            result = self.stringifier(result)
+            return ResolvedField(self.target_field_name, self.source_field_name, result)
+        elif self.optional:
+            return self.blank()
+        else:
+            raise CardBuilderException("Field name '{}' not found for non-optional field with target name '{}'".format(
+                self.source_field_name, self.target_field_name
+            ))
 
-        return ResolvedField(self.target_field_name, self.source_field_name, result)
-
-    def blank(self):
+    def blank(self) -> ResolvedField:
         return ResolvedField(self.target_field_name, self.source_field_name, '')

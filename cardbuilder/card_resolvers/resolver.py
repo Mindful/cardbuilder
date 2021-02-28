@@ -17,7 +17,7 @@ class Resolver(ABC):
         self.mutator = self.default_mutator if mutator is None else mutator
         self.fields = fields
         if len(set(x.target_field_name for x in self.fields)) != len(self.fields):
-            raise RuntimeError('Duplicate target field name in fields list')
+            raise CardBuilderException('Duplicate target field name in fields list')
 
         self.fields_by_datasource = defaultdict(list)
         self.datasource_by_name = {}
@@ -90,7 +90,7 @@ class Resolver(ABC):
 
     def resolve_to_file(self, words: Union[List[str], WordList], name: str) -> List[Tuple[str, CardResolutionException]]:
         if len(words) == 0:
-            raise RuntimeError('Cannot resolve an empty wordlist')
+            raise CardBuilderException('Cannot resolve an empty wordlist')
         rows = self._wordlist_to_rows(words)
         final_out_name = self._output_file(rows, name)
         log(self, 'Resolved card data written to file {}'.format(final_out_name))

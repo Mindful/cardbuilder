@@ -10,6 +10,8 @@ import requests
 from cardbuilder.card_resolvers.field import ResolvedField
 from cardbuilder.card_resolvers.resolver import Resolver
 from cardbuilder.common.fieldnames import AUDIO
+from cardbuilder.data_sources import Value, StringValue, StringListValue
+from cardbuilder.data_sources.value import StringListsWithPrimaryPOSValue, ListConvertibleValue
 from cardbuilder.exceptions import CardBuilderException
 
 
@@ -18,7 +20,16 @@ class AkpgResolver(Resolver):
     media_temp_directory = 'ankitemp'
 
     @staticmethod
-    def media_download_preprocessor(value: str) -> str:
+    def media_download_postprocessor(value: Union[Value, str]) -> str:
+        # Anki only supports one media value per field
+        if isinstance(value, StringValue):
+            value = value.val
+        if isinstance(value, ListConvertibleValue):
+            value = value.to_list()[0]
+        elif not isinstance(value, str):
+            raise CardBuilderException('Anki media postprocessing input value must be '
+                                       'either StringValue, ListConvertibleValue or str')
+
         filename = value.split('/')[-1]
         if not exists(AkpgResolver.media_temp_directory):
             mkdir(AkpgResolver.media_temp_directory)
@@ -29,16 +40,14 @@ class AkpgResolver(Resolver):
 
         return filename
 
-
-    #TODO: no more preprocessing, but we can mak this "linebreak postprocessing" and just replace linebreaks in a string
     @staticmethod
-    def linebreak_preprocessing(value: Union[str, List[str]]) -> str:
-        if isinstance(value, list):
-            return '<br/>'.join(value).replace('\n', '<br/>')
+    def linebreak_postprocessing(value: Union[Value, str]) -> str:
+        if isinstance(value, Value):
+            return value.to_output_string().replace('\n', '<br/>')
         elif isinstance(value, str):
             return value.replace('\n', '<br/>')
         else:
-            raise RuntimeError('Field value must be list of strings or string')
+            raise CardBuilderException('Anki linebreak postprocessing input value must be either Value or str')
 
     default_templates = [{
                               'name': 'Dummy Card',
@@ -58,7 +67,7 @@ class AkpgResolver(Resolver):
         for template in templates:
             for attr in ['name', 'qfmt', 'afmt']:
                 if attr not in template:
-                    raise RuntimeError('Template missing required field {}'.format(attr))
+                    raise CardBuilderException('Template missing required field {}'.format(attr))
 
         self.templates = templates
 

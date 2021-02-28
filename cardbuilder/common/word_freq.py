@@ -28,4 +28,8 @@ class WordFrequency(ExternalDataDependent):
         return self.frequency[word]
 
     def sort_by_freq(self, words: List[str]):
-        return sorted(words, key=lambda x: -self[x] if x in self.frequency else 0)
+        return sorted(words, key=self.get_sort_key())
+
+    def get_sort_key(self):
+        return lambda x: -self[x] if x in self.frequency else 0
+

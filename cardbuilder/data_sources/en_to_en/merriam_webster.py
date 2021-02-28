@@ -6,7 +6,8 @@ import requests
 
 from cardbuilder.common import fieldnames
 from cardbuilder.data_sources import DataSource, Value, StringListValue, StringValue
-from cardbuilder.data_sources.value import StringListsWithPOSValue, StringListsWithPrimaryPOSValue, RawDataValue
+from cardbuilder.data_sources.value import StringListsWithPOSValue, StringListsWithPrimaryPOSValue, RawDataValue, \
+    StringsWithPosValue
 from cardbuilder.exceptions import WordLookupException
 
 WORD_ID = 'wid'
@@ -101,7 +102,7 @@ class LearnerDictionary(DataSource):
                 pronunciation_data = None
             if pronunciation_data:
                 if 'ipa' in pronunciation_data:
-                    ipa_with_pos.append((pronunciation_data['ipa'], pos_label))
+                    ipa_with_pos.append((pronunciation_data['ipa'].strip(), pos_label))
                 try:
                     pronunciation_url = self._get_word_pronunciation_url(pronunciation_data['sound']['audio'])
                     audio_with_pos.append((pronunciation_url, pos_label))
@@ -117,9 +118,9 @@ class LearnerDictionary(DataSource):
         return {
                 fieldnames.PART_OF_SPEECH: StringListValue(pos_list),
                 fieldnames.DEFINITIONS: StringListsWithPOSValue(definitions_with_pos),
-                fieldnames.PRONUNCIATION_IPA: StringListsWithPOSValue(ipa_with_pos),
+                fieldnames.PRONUNCIATION_IPA: StringsWithPosValue(ipa_with_pos),
                 fieldnames.INFLECTIONS: StringListsWithPOSValue(inflections_with_pos),
-                fieldnames.AUDIO: StringListsWithPOSValue(audio_with_pos),
+                fieldnames.AUDIO: StringsWithPosValue(audio_with_pos),
                 WORD_ID: StringListValue(word_id_list),
                 fieldnames.RAW_DATA: RawDataValue(raw_json)
             }
@@ -161,7 +162,7 @@ class MerriamWebster(DataSource):
         self._add_primary_pos_value_if_present(thesaurus_data[fieldnames.SYNONYMS], primary_pos,
                                                fieldnames.SYNONYMS, output)
         self._add_primary_pos_value_if_present(thesaurus_data[fieldnames.ANTONYMS], primary_pos,
-                                               fieldnames.SYNONYMS, output)
+                                               fieldnames.ANTONYMS, output)
 
         return output
 
