@@ -62,9 +62,7 @@ class Resolver(ABC):
         data_by_source = {}
         for datasource, fields in self.fields_by_datasource.items():
             try:
-                data = datasource.lookup_word(word)
-                data[WORD] = StringValue(word)
-                data_by_source[datasource] = data
+                data_by_source[datasource] = datasource.lookup_word(word)
             except WordLookupException as ex:
                 for field in fields:
                     if not field.optional:

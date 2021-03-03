@@ -4,6 +4,7 @@ import os
 from itertools import takewhile, repeat
 from pathlib import Path
 from typing import Iterable, Optional, Any
+from itertools import zip_longest
 
 from tqdm import tqdm
 
@@ -72,3 +73,9 @@ def loading_bar(iterable: Iterable, description: str, total: Optional[int] = Non
         return tqdm(iterable=iterable, desc=description, total=total)
     else:
         return iterable
+
+
+def grouper(n, iterable):
+    args = [iter(iterable)] * n
+    return ((x for x in group if x is not None) for group in zip_longest(fillvalue=None, *args))
+
