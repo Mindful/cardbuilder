@@ -14,19 +14,17 @@ from cardbuilder.data_sources.value import Value, StringValue
 
 
 class DataSource(ABC):
-    # https://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
-    camel_case_pattern = re.compile(r'(?<!^)(?=[A-Z])')
 
     @abstractmethod
     def lookup_word(self, word: str) -> Dict[str, Value]:
         raise NotImplementedError()
 
     @abstractmethod
-    def _parse_word_content(self, content: str) -> Dict[str, Value]:
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         raise NotImplementedError()
 
     def parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        parsed_content = self._parse_word_content(content)
+        parsed_content = self._parse_word_content(word, content)
         parsed_content[WORD] = StringValue(word)
         return parsed_content
 
@@ -34,7 +32,7 @@ class DataSource(ABC):
         with InDataDir():
             self.conn = sqlite3.connect('cardbuilder.db')
 
-        self.default_table = self.camel_case_pattern.sub(type(self).__name__, '_')
+        self.default_table = type(self).__name__.lower()
         self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
             word TEXT PRIMARY KEY,
             content TEXT

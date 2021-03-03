@@ -1,11 +1,10 @@
 import csv
 from typing import Any, List
 
-from cardbuilder.common import ExternalDataDependent
 from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar
 
-
-class WordFrequency(ExternalDataDependent):
+#TODO: update to use its own sqlite table
+class WordFrequency:
     # https://norvig.com/ngrams/
     url = 'http://norvig.com/ngrams/count_1w.txt'
     filename = 'count_1w.txt'

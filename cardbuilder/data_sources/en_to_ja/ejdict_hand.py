@@ -2,7 +2,7 @@ import csv
 from collections import defaultdict
 from os.path import exists
 from string import ascii_lowercase
-from typing import Dict, Union, Any, List, Tuple, Iterable
+from typing import Dict, Tuple, Iterable
 
 import requests
 
@@ -48,7 +48,7 @@ class EJDictHand(ExternalDataDataSource):
 
         return ((word, self.definition_delim.join(defs)) for word, defs in definition_map.items())
 
-    def _parse_word_content(self, content: str) -> Dict[str, Value]:
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         return {
             DEFINITIONS: StringListValue(content.split(self.definition_delim))
         }

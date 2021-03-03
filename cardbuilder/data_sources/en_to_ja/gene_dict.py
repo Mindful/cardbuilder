@@ -1,36 +1,28 @@
 import tarfile
 from io import BytesIO
 from os.path import exists
-from typing import Any, Dict, Union, List
+from typing import Dict, Iterable, Tuple
+from json import dumps, loads
 
 import requests
 
-from cardbuilder.common import ExternalDataDependent
 from cardbuilder.common.util import log
-from cardbuilder.common.fieldnames import WORD, DEFINITIONS, SUPPLEMENTAL
-from cardbuilder.data_sources import DataSource, Value
-from cardbuilder import WordLookupException
+from cardbuilder.common.fieldnames import DEFINITIONS, SUPPLEMENTAL, EXAMPLE_SENTENCES
+from cardbuilder.data_sources import Value, StringValue
+from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
 
-class GeneDict(DataSource, ExternalDataDependent):
+class GeneDict(ExternalDataDataSource):
     supplemental_data_delim = '     '
+    example_sentence_delim = ' / '
     expected_first_element = '!'
     filename = 'gene_dict.txt'
     url = 'http://www.namazu.org/~tsuchiya/sdic/data/gene95.tar.gz'
 
-    def _fetch_remote_files_if_necessary(self):
-        if not exists(self.filename):
-            log(self, '{} not found - downloading and extracting...'.format(self.filename))
-            data = requests.get(self.url)
-            filelike = BytesIO(data.content)
-            tar = tarfile.open(fileobj=filelike, mode='r:gz')
-            gene_data = tar.extractfile('gene.txt').read().decode('shift_jisx0213')
-            with open(self.filename, 'w+') as f:
-                f.write(gene_data)
-
-    def _read_data(self) -> Any:
+    def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         definitions = {}
         supplemental = {}
+        examples = {}
 
         found_first_valid_line = False
         reading_word = True
@@ -48,31 +40,31 @@ class GeneDict(DataSource, ExternalDataDependent):
                     supplemental[word] = word_line_content[1].strip()
                 reading_word = False
             else:  # we're reading a definition line
-                definitions[word] = line.strip()
+                definition_line_list = line.strip().split(self.example_sentence_delim)
+                definitions[word] = definition_line_list[0]
+                if len(definition_line_list) > 1:
+                    examples[word] = definition_line_list[1]
                 reading_word = True
 
-        return definitions, supplemental
+        for word in definitions:
+            data = {DEFINITIONS: definitions[word]}
+            if word in supplemental:
+                data[SUPPLEMENTAL] = supplemental[word]
+            if word in examples:
+                data[EXAMPLE_SENTENCES] = examples[word]
+            yield word, dumps(data)
 
-    def __init__(self):
-        self.definitions, self.supplemental = self.get_data()
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        return {key: StringValue(val) for key, val in loads(content).items()}
 
-    def lookup_word(self, word: str) -> Dict[str, Value]:
-        if word not in self.definitions:
-            raise WordLookupException("Could not find {} in Gene dictionary".format(word))
-        result = {
-            DEFINITIONS: [self.definitions[word]]
-        }
-        if word in self.supplemental:
-            result[SUPPLEMENTAL] = self.supplemental[word]
+    def _fetch_remote_files_if_necessary(self):
+        if not exists(self.filename):
+            log(self, '{} not found - downloading and extracting...'.format(self.filename))
+            data = requests.get(self.url)
+            filelike = BytesIO(data.content)
+            tar = tarfile.open(fileobj=filelike, mode='r:gz')
+            gene_data = tar.extractfile('gene.txt').read().decode('shift_jisx0213')
+            with open(self.filename, 'w+') as f:
+                f.write(gene_data)
 
-        return result
 
-
-class GeneDictValue(Value):
-    def __init__(self, definition: str, supplemental: str):
-        self.definition = definition
-        self.supplemental = supplemental
-
-    def to_output_string(self):
-        # supplemental probably not that important in most cases
-        return self.definition
