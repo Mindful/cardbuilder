@@ -70,6 +70,7 @@ class WebApiDataSource(DataSource, ABC):
             # update cache
             self.conn.execute('INSERT OR REPLACE INTO {} VALUES (?, ?)'.format(self.default_table),
                               (word, content))
+            self.conn.commit()
 
             return self.parse_word_content(word, content)
 
