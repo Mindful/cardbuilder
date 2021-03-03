@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from os.path import exists
 from typing import Dict, Optional, Any, Iterable, Tuple
 import sqlite3
-import re
 
 import requests
 
@@ -82,7 +81,7 @@ class WebApiDataSource(DataSource, ABC):
 
 class ExternalDataDataSource(DataSource, ABC):
 
-    batch_size = 5000
+    batch_size = 10000
 
     @abstractmethod
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
@@ -120,8 +119,9 @@ class ExternalDataDataSource(DataSource, ABC):
             with InDataDir():
                 for batch_iter in grouper(self.batch_size, self._read_and_convert_data()):
                     self.conn.executemany('INSERT INTO {} VALUES (?, ?)'.format(self.default_table), batch_iter)
+                    self.conn.commit()
 
-            log(self, 'finished populating sqlite table')
+            log(self, 'finished populating sqlite table with {} entries'.format(self.get_default_table_rowcount()))
 
 
 

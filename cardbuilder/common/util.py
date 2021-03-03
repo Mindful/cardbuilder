@@ -52,7 +52,7 @@ def enable_console_reporting():
         logging.getLogger().setLevel(logging.DEBUG)
         streamhandler = logging.StreamHandler(sys.stdout)
         streamhandler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', "%H:%M:%S")
         streamhandler.setFormatter(formatter)
         LOGGER.addHandler(streamhandler)
 
