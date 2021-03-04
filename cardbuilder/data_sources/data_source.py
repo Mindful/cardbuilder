@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from os.path import exists
-from typing import Dict, Optional, Any, Iterable, Tuple
+from typing import Dict, Optional, Any, Iterable, Tuple, Callable
 import sqlite3
 
 import requests
@@ -40,8 +40,9 @@ class DataSource(ABC):
     def __del__(self):
         self.conn.close()
 
-    def get_default_table_rowcount(self):
-        c = self.conn.execute('SELECT COUNT(*) FROM {}'.format(self.default_table))
+    def get_table_rowcount(self, table_name: str = None):
+        table_name = self.default_table if table_name is None else table_name
+        c = self.conn.execute('SELECT COUNT(*) FROM {}'.format(table_name))
         return c.fetchone()[0]
 
 
@@ -54,7 +55,7 @@ class WebApiDataSource(DataSource, ABC):
         super().__init__()
         self.enable_cache_retrieval = enable_cache_retrieval
         if self.enable_cache_retrieval:
-            log(self, 'Found {} cached entries'.format(self.get_default_table_rowcount()))
+            log(self, 'Found {} cached entries'.format(self.get_table_rowcount()))
         else:
             log(self, 'Running with cache retrieval disabled (will still write to cache)')
 
@@ -111,19 +112,25 @@ class ExternalDataDataSource(DataSource, ABC):
             with open(self.filename, 'wb+') as f:
                 f.write(data.content)
 
-    def _load_data_into_database(self):
-        data_count = self.get_default_table_rowcount()
+    def _load_data_into_database(self, table_name: str = None, iter_func: Callable[[], Iterable] = None,
+                                 sql: str = None):
+        table_name = self.default_table if table_name is None else table_name
+        iter_func = self._read_and_convert_data if iter_func is None else iter_func
+        sql = 'INSERT INTO {} VALUES (?, ?)'.format(table_name) if sql is None else sql
+        data_count = self.get_table_rowcount(table_name)
         if data_count != 0:
-            log(self, 'found {} database entries'.format(data_count))
+            log(self, 'found {} database entries for table {}'.format(data_count, table_name))
             return
         else:
-            log(self, 'sqlite table appears to be empty, and will be populated')
+            log(self, 'sqlite table {} appears to be empty, and will be populated'.format(table_name))
             with InDataDir():
-                for batch_iter in grouper(self.batch_size, self._read_and_convert_data()):
-                    self.conn.executemany('INSERT INTO {} VALUES (?, ?)'.format(self.default_table), batch_iter)
+                for batch_iter in grouper(self.batch_size, iter_func()):
+                    self.conn.executemany(sql, batch_iter)
                     self.conn.commit()
 
-            log(self, 'finished populating sqlite table with {} entries'.format(self.get_default_table_rowcount()))
+            log(self, 'finished populating sqlite table {} with {} entries'.format(table_name,
+                                                                                   self.get_table_rowcount(table_name)))
+
 
 
 

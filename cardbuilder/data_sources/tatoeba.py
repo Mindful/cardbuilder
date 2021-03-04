@@ -1,12 +1,13 @@
 import csv
 import re
+import sqlite3
 import tarfile
 from bz2 import BZ2Decompressor
 from collections import defaultdict
 from io import BytesIO
 from os.path import exists
 from string import punctuation
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, Iterable
 
 import requests
 from fugashi import Tagger
@@ -17,46 +18,120 @@ from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.data_sources import DataSource, Value
 from cardbuilder import CardBuilderException, WordLookupException
+from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
 
-class TatoebaExampleSentences(DataSource):
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        pass #TODO: we can actually use this method
+class TatoebaExampleSentences(ExternalDataDataSource):
 
+    links_table_name = 'tatoeba_links'
+    sentences_table_name_formatstring = 'tatoeba_{}_sentences'
+    index_table_name_formatstring = 'tatoeba_{}_index'
     en_punctuation_regex = re.compile('[{}]'.format(re.escape(punctuation)))
     links_file = 'links.csv'
     links_url = 'https://downloads.tatoeba.org/exports/links.tar.bz2'
     sentences_filename_template = '{}_sentences.tsv'
     data_dict = {}
 
-    @staticmethod
-    def _load_language_sents(lang):
-        filename = TatoebaExampleSentences.sentences_filename_template.format(lang)
+    def lookup_word(self, word: str) -> Dict[str, Value]:
+        #TODO: rewrite this
+        # 1. query index table, get list of appropriate source sentence IDs
+        # 2. query links table, get list of acceptable target ids
+        # 3. query sentence tables for each language...
+        # probably can just do this with a join, and will be faster/cleaner
+
+
+        if word not in self.source_index:
+            raise WordLookupException('Could not find {} in Tatoeba example sentences for {}'.
+                                      format(word, self.source_lang))
+
+        source_idents = [ident for ident in self.source_index[word]]
+        example_sentence_pairs = [(self.source_lang_data[ident],
+                                   self.target_lang_data[self.source_target_links[ident]]
+                                   if ident in self.source_target_links else None)
+                                  for ident in source_idents]
+
+        example_sentences_value = TatoebaExampleSentencesValue(example_sentence_pairs)
+
+        return {
+            EXAMPLE_SENTENCES: example_sentences_value
+        }
+
+    def _create_tables(self):
+        # links table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
+             src_sent_id INT PRIMARY KEY,
+             target_sent_id INT
+         );'''.format(self.links_table_name))
+
+        # index of words to sentence IDs table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
+             word TEXT PRIMARY KEY,
+             sent_id_list TEXT
+         );'''.format(self.index_table_name_formatstring.format(self.source_lang)))
+
+        # sentences table for both languages
+        for lang in (self.source_lang, self.target_lang):
+            self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
+                 sent_id INT PRIMARY KEY,
+                 sentence TEXT
+             );'''.format(self.sentences_table_name_formatstring.format(lang)))
+
+    def _read_links_data(self) -> Iterable[Tuple[int, int]]:
+        #  each link is guaranteed to be in the file going both directions, so no special logic is necessary
+        with InDataDir():
+            line_count = fast_linecount(self.links_file)
+            log(self, 'Reading Tatoeba link data into database')
+            with open(self.links_file, 'r') as f:
+                reader = csv.reader(f, delimiter='\t')
+                for source_id, target_id in loading_bar(reader, 'reading links.csv', line_count):
+                    yield int(source_id), int(target_id)
+
+    def _read_language_sents(self, lang) -> Iterable[Tuple[int, str]]:
+        filename = self.sentences_filename_template.format(lang)
         line_count = fast_linecount(filename)
-        results = []
         with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
             for ident, _, sentence in loading_bar(reader, 'reading {}'.format(filename), line_count):
-                results.append((ident, sentence))
+                yield int(ident), sentence
 
-        return results
+    def _compute_and_yield_index_data(self, id_sent_data: List[Tuple[int, str]]) -> Iterable[Tuple[str, str]]:
+        # the word index would certainly take up less memory as a trie, but it's probably not worth the trouble
+        results = defaultdict(set)
+        for ident, sent in loading_bar(id_sent_data, 'indexing sentences'):
+            words = self._split_sentence(sent)
+            for word in words:
+                results[word].add(ident)
 
-    def _read_data(self) -> Any:
-        pass  # not used because we override get_data()
+        for word, identity_set in results.items():
+            yield word, str(list(identity_set))
 
-    def get_data(self) -> Any:
-        # we need different data depending on the languages this instance was initialized with
-        # the info we need is also different form the links file depending on what languages we're using
-        # so we just read that every time. could be avoided, but probably not worth the work
-        self.download_if_necessary()
-
+    def __init__(self, source_lang: str, target_lang: str):
+        self.source_lang = source_lang
+        self.target_lang = target_lang
+        # intentionally don't call parent init; tatoeba doesn't use default sql table
         with InDataDir():
-            for langname in (self.source_lang, self.target_lang):
-                if langname not in self.data_dict:
-                    log(self, 'Loading external Tatoeba data for language {}...'.format(langname))
-                    self.data_dict[langname] = self._load_language_sents(langname)
+            self.conn = sqlite3.connect('cardbuilder.db')
+            self._fetch_remote_files_if_necessary()
 
-        return self.data_dict[self.source_lang], self.data_dict[self.target_lang]
+        self._create_tables()
+        self._load_data_into_database(self.links_table_name, self._read_links_data)
+        for lang in (self.source_lang, self.target_lang):
+            self._load_data_into_database(self.sentences_table_name_formatstring.format(lang),
+                                          lambda: self._read_language_sents(lang))
+
+        if source_lang == JAPANESE:
+            self.tagger = Tagger('-Owakati')
+            self._split_sentence = self._split_japanese_sentence
+        elif source_lang == ENGLISH:
+            self._split_sentence = self._split_english_sentence
+        else:
+            raise CardBuilderException('No sentence splitting implemented for source language {}'.format(source_lang))
+
+        cursor = self.conn.execute('SELECT content FROM {}'.format(
+            self.sentences_table_name_formatstring.format(self.source_lang)))
+        source_lang_data = cursor.fetchall()
+        self._load_data_into_database(self.index_table_name_formatstring.format(self.source_lang),
+                                      lambda: self._compute_and_yield_index_data(source_lang_data))
 
     def _fetch_remote_files_if_necessary(self):
         url_template = 'https://downloads.tatoeba.org/exports/per_language/{}/{}_sentences.tsv.bz2'
@@ -82,7 +157,6 @@ class TatoebaExampleSentences(DataSource):
                 else:
                     raise CardBuilderException('Retrieved unexpected file format from Tatoeba: {}'.format(url))
 
-
     def _split_japanese_sentence(self, sentence: str) -> List[str]:
         # hacky and only accommodates  exact matches (I.E. conjugated verbs are shot), could probably be done better
         split_words_generator = (str(x) for x in self.tagger(sentence))
@@ -93,60 +167,11 @@ class TatoebaExampleSentences(DataSource):
         cleaned_sentence = self.en_punctuation_regex.sub(' ', sentence.lower())
         return cleaned_sentence.split()
 
-    def __init__(self, source_lang: str, target_lang: str):
-        self.source_lang = source_lang
-        self.target_lang = target_lang
-        source_lang_data, target_lang_data = self.get_data()
+    def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
+        pass  # don't use this because we have functions for reading from several different tables
 
-        if source_lang == JAPANESE:
-            self.tagger = Tagger('-Owakati')
-            self._split_sentence = self._split_japanese_sentence
-        elif source_lang == ENGLISH:
-            self._split_sentence = self._split_english_sentence
-        else:
-            raise CardBuilderException('No sentence splitting implemented for source language {}'.format(source_lang))
-
-        self.source_index = self._build_word_index(source_lang_data)
-        self.source_lang_data = dict(source_lang_data)
-        self.target_lang_data = dict(target_lang_data)
-
-        self.source_target_links = {}
-        with InDataDir():
-            line_count = fast_linecount(self.links_file)
-            log(self, 'Loading external Tatoeba link data for languages {} -> {}'.format(self.source_lang,
-                                                                                         self.target_lang))
-            with open(self.links_file, 'r') as f:
-                reader = csv.reader(f, delimiter='\t')
-                for source_id, target_id in loading_bar(reader, 'reading links.csv', line_count):
-                    if source_id in self.source_lang_data and target_id in self.target_lang_data:
-                        self.source_target_links[source_id] = target_id
-
-    def _build_word_index(self, id_sent_data):
-        # the word index would certainly take up less memory as a trie, but it's probably not worth the trouble
-        results = defaultdict(set)
-        for ident, sent in loading_bar(id_sent_data, 'indexing sentences'):
-            words = self._split_sentence(sent)
-            for word in words:
-                results[word].add(ident)
-
-        return results
-
-    def lookup_word(self, word: str) -> Dict[str, Value]:
-        if word not in self.source_index:
-            raise WordLookupException('Could not find {} in Tatoeba example sentences for {}'.
-                                      format(word, self.source_lang))
-
-        source_idents = [ident for ident in self.source_index[word]]
-        example_sentence_pairs = [(self.source_lang_data[ident],
-                                   self.target_lang_data[self.source_target_links[ident]]
-                                   if ident in self.source_target_links else None)
-                                  for ident in source_idents]
-
-        example_sentences_value = TatoebaExampleSentencesValue(example_sentence_pairs)
-
-        return {
-            EXAMPLE_SENTENCES: example_sentences_value
-        }
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        pass  # don't need this because we override #lookup_word
 
 
 class TatoebaExampleSentencesValue(Value):
