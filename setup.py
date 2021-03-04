@@ -9,7 +9,7 @@ setuptools.setup(
     author="Joshua Tanner",
     author_email="mindful.jt@gmail.com",
     description="A package for programmatically generating language learning flashcards",
-    keywords="flashcards anki language learning",
+    keywords=['flashcards',  'anki' 'language learning'],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Mindful/cardbuilder",

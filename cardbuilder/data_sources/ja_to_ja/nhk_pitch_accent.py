@@ -1,10 +1,11 @@
 from _csv import reader
 from collections import defaultdict
-from typing import Any, Dict, Union, List
+from typing import Dict, Iterable, Tuple
+from json import dumps, loads
 
-from cardbuilder.common import ExternalDataDependent
-from cardbuilder.common.fieldnames import PITCH_ACCENT, WORD
-from cardbuilder.data_sources import DataSource, Value
+from cardbuilder.common.fieldnames import PITCH_ACCENT
+from cardbuilder.data_sources import Value
+from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
 
 
@@ -12,16 +13,8 @@ from cardbuilder.data_sources.ja_to_ja._build_nhk import accent_database, build_
 #            "class=\"nopron\"": "style=\"color: royalblue;\"",
 #            "class=\"nasal\"": "style=\"color: red;\"",
 #            "&#42780;": "&#42780;"},
-class NhkPitchAccent(DataSource, ExternalDataDependent):
-    url = 'https://raw.githubusercontent.com/javdejong/nhk-pronunciation/master/ACCDB_unicode.csv'
-    filename = accent_database
-
-    def _fetch_remote_files_if_necessary(self):
-        super(NhkPitchAccent, self)._fetch_remote_files_if_necessary()
-        build_database()
-
-    @staticmethod
-    def _read_data() -> Any:
+class NhkPitchAccent(ExternalDataDataSource):
+    def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         pitch_accents = defaultdict(dict)
         with open(derivative_database, 'r') as f:
             rows = reader(f, delimiter='\t')
@@ -29,17 +22,20 @@ class NhkPitchAccent(DataSource, ExternalDataDependent):
                 # there are sometimes multiple pitch accents for the same word/reading pair; we'll lose those
                 pitch_accents[word][reading] = pitch_accent
 
-        return pitch_accents
+        for word, pitch_dict in pitch_accents.items():
+            yield word, dumps(pitch_dict)
 
-    def __init__(self):
-        self.pitch_accents = self.get_data()
-
-    def lookup_word(self, word: str) -> Dict[str, Value]:
-        pitch_accent_by_reading = self.pitch_accents[word]
-        # naively choosing the first option isn't great, but we can't do better without using the reading
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         return {
-            PITCH_ACCENT: NhkPitchAccentValue(pitch_accent_by_reading)
+            PITCH_ACCENT: NhkPitchAccentValue(loads(content))
         }
+
+    url = 'https://raw.githubusercontent.com/javdejong/nhk-pronunciation/master/ACCDB_unicode.csv'
+    filename = accent_database
+
+    def _fetch_remote_files_if_necessary(self):
+        super(NhkPitchAccent, self)._fetch_remote_files_if_necessary()
+        build_database()
 
 
 class NhkPitchAccentValue(Value):

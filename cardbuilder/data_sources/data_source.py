@@ -60,7 +60,7 @@ class WebApiDataSource(DataSource, ABC):
 
     def lookup_word(self, word: str) -> Dict[str, Value]:
         cached_content = None
-        if not self.enable_cache_retrieval:
+        if self.enable_cache_retrieval:
             cached_content = self._query_cached_api_results(word)
 
         if cached_content is not None:
@@ -90,6 +90,7 @@ class ExternalDataDataSource(DataSource, ABC):
 
     def __init__(self):
         super().__init__()
+        self._fetch_remote_files_if_necessary()
         self._load_data_into_database()
 
     def lookup_word(self, word: str) -> Dict[str, Value]:

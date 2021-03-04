@@ -9,7 +9,7 @@ import re
 from string import digits
 digitset = set(digits)
 
-
+#TODO: rewrite with ExternalDataDataSource and finish
 class Eijiro(DataSource, ExternalDataDependent):
 
     uses_data_dir = False

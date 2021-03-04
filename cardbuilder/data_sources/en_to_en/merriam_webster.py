@@ -1,30 +1,35 @@
 # https://dictionaryapi.com/products/json
 import re
-from typing import Dict, Union, List, Optional
+from typing import Dict
 
 import requests
+from json import loads
 
 from cardbuilder.common import fieldnames
-from cardbuilder.data_sources import DataSource, Value, StringListValue, StringValue
+from cardbuilder.common.util import log
+from cardbuilder.data_sources import DataSource, Value, StringListValue
+from cardbuilder.data_sources.data_source import WebApiDataSource
 from cardbuilder.data_sources.value import StringListsWithPOSValue, StringListsWithPrimaryPOSValue, RawDataValue, \
     StringsWithPosValue
 from cardbuilder.exceptions import WordLookupException
 
 WORD_ID = 'wid'
 
+
 # https://dictionaryapi.com/products/api-collegiate-thesaurus
-class CollegiateThesaurus(DataSource):
+class CollegiateThesaurus(WebApiDataSource):
     def __init__(self, api_key):
+        super().__init__()
         self.api_key = api_key
 
-    def _query_api(self, word):
+    def _query_api(self, word) -> str:
         url = 'https://www.dictionaryapi.com/api/v3/references/thesaurus/json/{word}?key={api_key}'.format(
             word=word, api_key=self.api_key
         )
-        return requests.get(url).json()
+        return requests.get(url).text
 
-    def lookup_word(self, word: str) -> Dict[str, Value]:
-        raw_json = self._query_api(word)
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        raw_json = loads(content)
 
         target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
         if len(target_words) == 0:
@@ -50,36 +55,22 @@ class CollegiateThesaurus(DataSource):
 
 
 # https://dictionaryapi.com/products/api-learners-dictionary
-class LearnerDictionary(DataSource):
+class LearnerDictionary(WebApiDataSource):
     audio_file_format = 'ogg'
     number_subdir_regex = re.compile(r'^[^a-zA-Z]+')
     formatting_marker_regex = re.compile(r'{.*}')
 
     def __init__(self, api_key):
+        super().__init__()
         self.api_key = api_key
 
-    def _query_api(self, word):
+    def _query_api(self, word) -> str:
         url = 'https://www.dictionaryapi.com/api/v3/references/learners/json/{word}?key={api_key}'.format(
             word=word, api_key=self.api_key)
-        return requests.get(url).json()
+        return requests.get(url).text
 
-    def _get_word_pronunciation_url(self, filename) -> str:
-        if filename.startswith('bix'):
-            subdir = 'bix'
-        elif filename.startswith('gg'):
-            subdir = 'gg'
-        elif self.number_subdir_regex.match(filename):
-            subdir = 'number'
-        else:
-            subdir = filename[0]
-        url = 'https://media.merriam-webster.com/audio/prons/en/us/{format}/{subdir}/{filename}.{format}'.format(
-            format=self.audio_file_format, subdir=subdir, filename=filename
-        )
-
-        return url
-
-    def lookup_word(self, word: str) -> Dict[str, Value]:
-        raw_json = self._query_api(word)
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        raw_json = loads(content)
 
         target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
         if len(target_words) == 0:
@@ -116,22 +107,47 @@ class LearnerDictionary(DataSource):
             word_id_list.append(word_id)
 
         return {
-                fieldnames.PART_OF_SPEECH: StringListValue(pos_list),
-                fieldnames.DEFINITIONS: StringListsWithPOSValue(definitions_with_pos),
-                fieldnames.PRONUNCIATION_IPA: StringsWithPosValue(ipa_with_pos),
-                fieldnames.INFLECTIONS: StringListsWithPOSValue(inflections_with_pos),
-                fieldnames.AUDIO: StringsWithPosValue(audio_with_pos),
-                WORD_ID: StringListValue(word_id_list),
-                fieldnames.RAW_DATA: RawDataValue(raw_json)
-            }
+            fieldnames.PART_OF_SPEECH: StringListValue(pos_list),
+            fieldnames.DEFINITIONS: StringListsWithPOSValue(definitions_with_pos),
+            fieldnames.PRONUNCIATION_IPA: StringsWithPosValue(ipa_with_pos),
+            fieldnames.INFLECTIONS: StringListsWithPOSValue(inflections_with_pos),
+            fieldnames.AUDIO: StringsWithPosValue(audio_with_pos),
+            WORD_ID: StringListValue(word_id_list),
+            fieldnames.RAW_DATA: RawDataValue(raw_json)
+        }
+
+    def _get_word_pronunciation_url(self, filename) -> str:
+        if filename.startswith('bix'):
+            subdir = 'bix'
+        elif filename.startswith('gg'):
+            subdir = 'gg'
+        elif self.number_subdir_regex.match(filename):
+            subdir = 'number'
+        else:
+            subdir = filename[0]
+        url = 'https://media.merriam-webster.com/audio/prons/en/us/{format}/{subdir}/{filename}.{format}'.format(
+            format=self.audio_file_format, subdir=subdir, filename=filename
+        )
+
+        return url
 
 
 # Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
 class MerriamWebster(DataSource):
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        pass
+
     def __init__(self, learners_api_key, thesaurus_api_key, pos_in_definitions=False):
+        # deliberately don't call super().__init__() because MW doesn't need an sqlite table
+        # the learners dict and thesaurus have their own tables
+        log(self, 'Instantiating {} dictionary with owernship of {} and {}'.format(
+            *(x.__name__ for x in (MerriamWebster, LearnerDictionary, CollegiateThesaurus))))
         self.learners_dict = LearnerDictionary(learners_api_key)
         self.thesaurus = CollegiateThesaurus(thesaurus_api_key)
         self.pos_in_definitions = pos_in_definitions
+
+    def __del__(self):
+        pass  # no need to close any database connections like DataSource does
 
     @staticmethod
     def _add_primary_pos_value_if_present(val: StringListsWithPOSValue, pos: str,

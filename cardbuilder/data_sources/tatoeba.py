@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Tuple
 import requests
 from fugashi import Tagger
 
-from cardbuilder.common import ExternalDataDependent, InDataDir
+from cardbuilder.common import InDataDir
 from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log
 from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES
 from cardbuilder.common.languages import JAPANESE, ENGLISH
@@ -19,7 +19,10 @@ from cardbuilder.data_sources import DataSource, Value
 from cardbuilder import CardBuilderException, WordLookupException
 
 
-class TatoebaExampleSentences(DataSource, ExternalDataDependent):
+class TatoebaExampleSentences(DataSource):
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        pass #TODO: we can actually use this method
+
     en_punctuation_regex = re.compile('[{}]'.format(re.escape(punctuation)))
     links_file = 'links.csv'
     links_url = 'https://downloads.tatoeba.org/exports/links.tar.bz2'
