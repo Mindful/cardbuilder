@@ -1,23 +1,24 @@
 from collections import defaultdict
-from typing import Any, Dict, List, Tuple, Optional
+from os.path import abspath
+from typing import Any, Dict, List, Tuple, Optional, Iterable
 
 from cardbuilder import CardBuilderException
-from cardbuilder.common import ExternalDataDependent, fieldnames
-from cardbuilder.data_sources import DataSource, Value
+from cardbuilder.common import fieldnames
+from cardbuilder.data_sources import Value
 from cardbuilder.common.util import fast_linecount, loading_bar
 import re
 from string import digits
+
+from cardbuilder.data_sources.data_source import ExternalDataDataSource
+
 digitset = set(digits)
 
-#TODO: rewrite with ExternalDataDataSource and finish
-class Eijiro(DataSource, ExternalDataDependent):
 
-    uses_data_dir = False
-
+class Eijiro(ExternalDataDataSource):
     # https://www.eijiro.jp/spec.htm
 
     line_head_symbol = '■'
-    entry_delimiter = ':'  # also splits english/japanese in example sentences
+    entry_delimiter = ' : ' #TODO: : also splits JP/Eng example sentences, but not sure if that case has spaces
 
     example_sentence_symbol = '■・'
     additional_explanation_symbol = '◆'
@@ -91,38 +92,51 @@ class Eijiro(DataSource, ExternalDataDependent):
         '〈米海軍俗〉': '米海軍で使われる俗語'
     }.items()}
 
-    def _fetch_remote_files_if_necessary(self):
-        pass  # No remote files to fetch, takes an explicit file location
+    header_data_delimiter = '⦀'
+    line_data_delimiter = '⚬'
 
-    def __init__(self, eijiro_location: str):
-        self.file_loc = eijiro_location
-        self.dict_data = self.get_data()
+    def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
+        lines = fast_linecount(self.file_loc)
+        prev_word = None
+        prev_content = None
+        for line in loading_bar(open(self.file_loc, 'r'), 'reading eijiro', lines):
+            header_end = line.index(Eijiro.entry_delimiter)
+            header = line[1:header_end].strip()  # start at 1 to drop the ■
+            content = line[header_end + 1:].strip()
 
-    def lookup_word(self, word: str) -> Dict[str, Value]:
-        return self.dict_data[word]
-
-    @staticmethod
-    def parse_line(line: str) -> Tuple[str, Optional[str], Dict[str, List[str]]]:
-        results = defaultdict(list)
-        header_end = line.index(Eijiro.entry_delimiter)
-        header = line[1:header_end].strip()  # start at 1 to drop the ■
-        content = line[header_end+1:].strip()
-
-        if content.startswith(Eijiro.line_head_symbol):
-            pass #TODO: this is a link to another entry - use it?
-
-        pos_marking_match = next(Eijiro.header_pos_regex.finditer(header), None)
-        if pos_marking_match is not None:
-            pos_content = pos_marking_match.group(0)[1:-1]
-            word = header[:pos_marking_match.start()].strip()
-            if '-' in pos_content:
-                pos = next(x.strip() for x in pos_content.split('-') if x.strip() not in digitset)
-                pos = Eijiro.pos_dictionary.get(pos, pos)
+            pos_marking_match = next(Eijiro.header_pos_regex.finditer(header), None)
+            if pos_marking_match is not None:
+                pos_content = pos_marking_match.group(0)[1:-1]
+                word = header[:pos_marking_match.start()].strip()
+                if '-' in pos_content:
+                    pos = next(x.strip() for x in pos_content.split('-') if x.strip() not in digitset)
+                    pos = Eijiro.pos_dictionary.get(pos, pos)
+                else:
+                    pos = pos_content.strip()
             else:
-                pos = pos_content.strip()
-        else:
-            word = header.strip()
-            pos = None
+                word = header.strip()
+                pos = None
+
+            if pos is not None:
+                content = self.header_data_delimiter.join((pos, content))
+
+            if prev_word is not None and prev_content is not None:
+                # the .lower() here is necessary because sometimes there are sequential entries that go back and forth
+                # on case, like "the" -> "The" -> "the". As is, we end up using the case attached to the last entry
+                if word.lower() == prev_word.lower():
+                    content = self.line_data_delimiter.join((content, prev_content))
+                else:
+                    yield prev_word, prev_content
+
+            prev_word = word
+            prev_content = content
+
+        yield prev_word, prev_content
+
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        results = defaultdict(list)
+        if content.startswith(Eijiro.line_head_symbol):
+            pass  # TODO: this is a link - just query for the linked word instead
 
         content_sections = Eijiro.content_sectioning_regex.split(content)
         if content_sections[0] not in Eijiro.content_sectioning_symbols:
@@ -139,18 +153,14 @@ class Eijiro(DataSource, ExternalDataDependent):
             else:
                 raise CardBuilderException('Unexpected sectioning sequence in Eijiro dictionary')
 
-        return word, pos, results
+        return results #TODO: this is strings, should be Values
 
-    def _read_data(self) -> Any:
-        results = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-        lines = fast_linecount(self.file_loc)
-        for line in loading_bar(open(self.file_loc, 'r'), 'parsing eijiro', lines):
-            word, pos, data_dict = self.parse_line(line)
-            for key, value in data_dict.items():
-                results[word][pos][key].extend(value)
+    def _fetch_remote_files_if_necessary(self):
+        pass  # No remote files to fetch, takes an explicit file location
 
-        return results
-
+    def __init__(self, eijiro_location: str):
+        self.file_loc = abspath(eijiro_location)
+        super().__init__()
 
 
 

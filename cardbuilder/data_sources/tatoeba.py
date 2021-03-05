@@ -5,18 +5,19 @@ import tarfile
 from bz2 import BZ2Decompressor
 from collections import defaultdict
 from io import BytesIO
+from json import loads
 from os.path import exists
 from string import punctuation
-from typing import Dict, List, Any, Tuple, Iterable
+from typing import Dict, List, Tuple, Iterable
 
 import requests
 from fugashi import Tagger
 
 from cardbuilder.common import InDataDir
 from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log
-from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES
+from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES, WORD
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.data_sources import DataSource, Value
+from cardbuilder.data_sources import Value, StringValue
 from cardbuilder import CardBuilderException, WordLookupException
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
@@ -33,35 +34,42 @@ class TatoebaExampleSentences(ExternalDataDataSource):
     data_dict = {}
 
     def lookup_word(self, word: str) -> Dict[str, Value]:
-        #TODO: rewrite this
-        # 1. query index table, get list of appropriate source sentence IDs
-        # 2. query links table, get list of acceptable target ids
-        # 3. query sentence tables for each language...
-        # probably can just do this with a join, and will be faster/cleaner
+        c = self.conn.execute("select sent_id_list from tatoeba_{}_index where word=?;".format(self.source_lang), (word,))
+        index_result = c.fetchone()
+        if index_result is None:
+            raise WordLookupException('Word "{}" not found in the Tatoeba index for language {}'.format(word,
+                                                                                                        self.source_lang))
+        else:
+            index_ids = loads(index_result[0])
 
+        c = self.conn.execute('''
+        select tatoeba_{0}_sentences.sentence as {0}_sentence, tatoeba_{1}_sentences.sentence as {1}_sentence
+        from tatoeba_{0}_sentences 
+        inner join tatoeba_links on tatoeba_{0}_sentences.sent_id=src_sent_id
+        inner join tatoeba_{1}_sentences on tatoeba_{1}_sentences.sent_id=target_sent_id
+        where tatoeba_{0}_sentences.sent_id in ({2});
+        '''.format(self.source_lang, self.target_lang, ','.join(str(x) for x in index_ids)))
 
-        if word not in self.source_index:
-            raise WordLookupException('Could not find {} in Tatoeba example sentences for {}'.
-                                      format(word, self.source_lang))
-
-        source_idents = [ident for ident in self.source_index[word]]
-        example_sentence_pairs = [(self.source_lang_data[ident],
-                                   self.target_lang_data[self.source_target_links[ident]]
-                                   if ident in self.source_target_links else None)
-                                  for ident in source_idents]
+        example_sentence_pairs = c.fetchall()
+        if len(example_sentence_pairs) == 0:
+            raise WordLookupException('Found no corresponding example sentences for word {} in'
+                                      ' Tatoeba data for language {}'.format(word, self.target_lang))
 
         example_sentences_value = TatoebaExampleSentencesValue(example_sentence_pairs)
 
         return {
+            WORD: StringValue(word),
             EXAMPLE_SENTENCES: example_sentences_value
         }
 
     def _create_tables(self):
         # links table
         self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
-             src_sent_id INT PRIMARY KEY,
+             src_sent_id INT,
              target_sent_id INT
          );'''.format(self.links_table_name))
+        self.conn.execute('''CREATE INDEX IF NOT EXISTS links_source_sentence
+            ON {} (src_sent_id);'''.format(self.links_table_name))
 
         # index of words to sentence IDs table
         self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
@@ -75,6 +83,8 @@ class TatoebaExampleSentences(ExternalDataDataSource):
                  sent_id INT PRIMARY KEY,
                  sentence TEXT
              );'''.format(self.sentences_table_name_formatstring.format(lang)))
+
+        self.conn.commit()
 
     def _read_links_data(self) -> Iterable[Tuple[int, int]]:
         #  each link is guaranteed to be in the file going both directions, so no special logic is necessary
@@ -99,7 +109,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
         results = defaultdict(set)
         for ident, sent in loading_bar(id_sent_data, 'indexing sentences'):
             words = self._split_sentence(sent)
-            for word in words:
+            for word in (w for w in words if not w.isnumeric() and w not in punctuation):
                 results[word].add(ident)
 
         for word, identity_set in results.items():
@@ -127,7 +137,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
         else:
             raise CardBuilderException('No sentence splitting implemented for source language {}'.format(source_lang))
 
-        cursor = self.conn.execute('SELECT content FROM {}'.format(
+        cursor = self.conn.execute('SELECT sent_id, sentence FROM {}'.format(
             self.sentences_table_name_formatstring.format(self.source_lang)))
         source_lang_data = cursor.fetchall()
         self._load_data_into_database(self.index_table_name_formatstring.format(self.source_lang),

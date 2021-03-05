@@ -10,6 +10,7 @@ EXAMPLE_SENTENCES = 'exst'
 AUDIO = 'aud'
 RAW_DATA = 'raw'
 SUPPLEMENTAL = 'supp'
+WORD_FREQ = 'freq'
 
 # Japanese specific
 PITCH_ACCENT = 'acnt'

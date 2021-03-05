@@ -10,7 +10,7 @@ from cardbuilder.common.util import log
 from cardbuilder.data_sources import DataSource, Value, StringListValue
 from cardbuilder.data_sources.data_source import WebApiDataSource
 from cardbuilder.data_sources.value import StringListsWithPOSValue, StringListsWithPrimaryPOSValue, RawDataValue, \
-    StringsWithPosValue
+    StringsWithPosValue, StringValue
 from cardbuilder.exceptions import WordLookupException
 
 WORD_ID = 'wid'
@@ -170,7 +170,8 @@ class MerriamWebster(DataSource):
             fieldnames.RAW_DATA: RawDataValue({
                 'thesaurus': thesaurus_data[fieldnames.RAW_DATA].data,
                 'dictionary': dictionary_data[fieldnames.RAW_DATA].data
-            })
+            }),
+            fieldnames.WORD: StringValue(word)
         }
 
         self._add_primary_pos_value_if_present(dictionary_data[fieldnames.INFLECTIONS], primary_pos,
