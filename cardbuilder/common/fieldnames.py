@@ -11,6 +11,7 @@ AUDIO = 'aud'
 RAW_DATA = 'raw'
 SUPPLEMENTAL = 'supp'
 WORD_FREQ = 'freq'
+LINKS = 'link'
 
 # Japanese specific
 PITCH_ACCENT = 'acnt'

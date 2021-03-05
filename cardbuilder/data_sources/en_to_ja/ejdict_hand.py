@@ -41,6 +41,8 @@ class EJDictHand(ExternalDataDataSource):
                     pending_links[word].extend(link for link in definitions if link.startswith(self.link_symbol))
                     definition_map[word].extend(dfn for dfn in definitions if not dfn.startswith(self.link_symbol))
 
+        # TODO: just append the link indicators to the content that gets stored for the word, and when we parse it
+        # use them to return LinkValues
         for word, link_targets in pending_links.items():
             # assume no links length >1, that would just be excessive
             for link in link_targets:

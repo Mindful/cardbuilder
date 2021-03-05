@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple, Optional, Iterable
 
 from cardbuilder import CardBuilderException
 from cardbuilder.common import fieldnames
-from cardbuilder.data_sources import Value
+from cardbuilder.data_sources import Value, StringValue
 from cardbuilder.common.util import fast_linecount, loading_bar
 import re
 from string import digits
@@ -28,6 +28,7 @@ class Eijiro(ExternalDataDataSource):
     inflections_symbol = '【変化】'
     level_symbol = '【レベル】'
     word_split_symbol = '【分節】'
+    link_symbol = '<→'
 
     content_sectioning_symbol_map = {
         example_sentence_symbol: fieldnames.EXAMPLE_SENTENCES,
@@ -37,14 +38,15 @@ class Eijiro(ExternalDataDataSource):
         katakana_reading_symbol: fieldnames.KATAKANA,
         inflections_symbol: fieldnames.INFLECTIONS,
         level_symbol: 'level',
-        word_split_symbol: 'split'
+        word_split_symbol: 'split',
+        link_symbol: fieldnames.LINKS
     }
 
     content_sectioning_symbols = set(content_sectioning_symbol_map.keys())
 
     content_sectioning_regex = re.compile(r'({})'.format('|'.join(re.escape(x) for x in content_sectioning_symbols)))
 
-    link_symbol = '<→'
+    # we don't currently use these two, but they're present in many headers
     blank_indirect_obj = '__'
     blank_direct_obj = '‾'
 
@@ -134,26 +136,42 @@ class Eijiro(ExternalDataDataSource):
         yield prev_word, prev_content
 
     def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        results = defaultdict(list)
-        if content.startswith(Eijiro.line_head_symbol):
-            pass  # TODO: this is a link - just query for the linked word instead
+        lines = content.split(self.line_data_delimiter)
+        line_parses = []
+        for line in lines:
+            line_attrs = defaultdict(list)
 
-        content_sections = Eijiro.content_sectioning_regex.split(content)
-        if content_sections[0] not in Eijiro.content_sectioning_symbols:
-            results[fieldnames.DEFINITIONS].append(content_sections.pop(0))
+            if self.header_data_delimiter in line:
+                header_data, line = line.split(self.header_data_delimiter)
+                # only data in the header seems to be the POS
+                line_attrs[fieldnames.PART_OF_SPEECH] = header_data
 
-        section_header = None
-        for section in content_sections:
-            if section_header is None and section in Eijiro.content_sectioning_symbols:
-                section_header = section
-            elif section_header is not None and section not in Eijiro.content_sectioning_symbols:
-                key = Eijiro.content_sectioning_symbol_map[section_header]
-                results[key].append(section)
-                section_header = None
-            else:
-                raise CardBuilderException('Unexpected sectioning sequence in Eijiro dictionary')
+            content_sections = Eijiro.content_sectioning_regex.split(line)
+            if content_sections[0] not in Eijiro.content_sectioning_symbols:
+                line_attrs[fieldnames.DEFINITIONS].append(content_sections.pop(0))
 
-        return results #TODO: this is strings, should be Values
+            section_header = None
+            for section in content_sections:
+                if section_header is None and section in Eijiro.content_sectioning_symbols:
+                    section_header = section
+                elif section_header is not None and section not in Eijiro.content_sectioning_symbols:
+                    key = Eijiro.content_sectioning_symbol_map[section_header]
+                    if key == fieldnames.LINKS:
+                        linked_word = section[2:-1]
+                        line_attrs[fieldnames.LINKS].append(self.lookup_word(linked_word))
+                    else:
+                        line_attrs[key].append(section.strip('、'))
+
+                    section_header = None
+                else:
+                    raise CardBuilderException('Unexpected sectioning sequence in Eijiro dictionary')
+
+            line_parses.append(line_attrs)
+
+        for val_map in line_parses:
+            print('w')
+
+        return line_parses #TODO: this is strings, should be Values
 
     def _fetch_remote_files_if_necessary(self):
         pass  # No remote files to fetch, takes an explicit file location

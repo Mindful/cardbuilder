@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import List, Tuple, Optional, Any, Callable
+from typing import List, Tuple, Optional, Any, Callable, Dict
 
 from cardbuilder import CardBuilderException
+from cardbuilder.common.fieldnames import WORD
 
 
 def _format_string_list(strings: List[str], value_format_string: str, number: bool,
@@ -137,3 +138,15 @@ class RawDataValue(Value):
 
     def to_output_string(self):
         raise CardBuilderException('Raw data cannot be used directly for output')
+
+
+class LinksValue(Value):
+    def __init__(self, data_list: List[Dict[str, Value]]):
+        for data in data_list:
+            if WORD not in data:
+                raise CardBuilderException("LinksValue data must include the word")
+        self.data_list = data_list
+
+    def to_output_string(self, description_string: str =' See also: ', join_words_with: str = ', ') -> str:
+        return '{} {}'.format(description_string, join_words_with.join(data[WORD].to_output_string()
+                                                                       for data in self.data_list))
