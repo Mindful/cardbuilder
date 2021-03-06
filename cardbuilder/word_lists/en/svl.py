@@ -1,27 +1,34 @@
+import sqlite3
 from glob import glob
 from os.path import exists
-from typing import Any
+from typing import Any, Dict, Iterable, Tuple
 
 import requests
 from lxml import html
 
-from cardbuilder.common.util import log
+from cardbuilder.common.fieldnames import SUPPLEMENTAL
+from cardbuilder.common.util import log, InDataDir
+from cardbuilder.data_sources import Value, StringValue
+from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.en_to_en import WordFrequency
 from cardbuilder.word_lists import WordList
 
-
-class SvlWords(WordList):
-    def _read_data(self) -> Any:
-        level_wordlist_tuples = []
-        filenames = glob('svl_*')
-        for name in filenames:
-            level = int(name.split('.')[0].split('_')[-1])
+# TODO: maybe shouldn't be a data source, but we need all the same sqlite methods as the ExternalDataDataSource
+class SvlWords(WordList, ExternalDataDataSource):
+    def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
+        filenames_with_level = sorted(((fname, int(fname.split('.')[0].split('_')[-1:][0])) for fname in glob('svl_*')),
+                                      key=lambda x: x[1])
+        for name, level in filenames_with_level:
             with open(name, 'r') as f:
-                words = [x.strip().lower() for x in f.readlines()]
+                words = [x.strip() for x in f.readlines()]
 
-                level_wordlist_tuples.append((level, words))
+                for word in words:
+                    yield word, level
 
-        return sorted(level_wordlist_tuples, key=lambda tupl: tupl[0])
+    def _parse_word_content(self, word: str, content: int) -> Dict[int, Value]:
+        return {
+            SUPPLEMENTAL: StringValue(str(content))
+        }
 
     def _fetch_remote_files_if_necessary(self):
         for i in range(1, 13):
@@ -42,19 +49,21 @@ class SvlWords(WordList):
                     f.writelines(x + '\n' for x in entries)
 
     def __init__(self, word_freq: WordFrequency):
-        self.level_wordlist_tuples = self.get_data()
-        self.level_wordlist_tuples = [
-            (level, word_freq.sort_by_freq(words)) for level, words in self.level_wordlist_tuples
-        ]
-        self.all_words = []
-        self.word_level = {}
-        for level, wordlist in self.level_wordlist_tuples:
-            for word in wordlist:
-                self.word_level[word] = level
-            self.all_words.extend(wordlist)
+        with InDataDir():
+            self.conn = sqlite3.connect('cardbuilder.db')
 
-    def get_word_level(self, word: str) -> int:
-        return self.word_level[word]
+            self.default_table = type(self).__name__.lower()
+            self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
+                word TEXT PRIMARY KEY,
+                level INT
+            );'''.format(self.default_table))
+            self.conn.commit()
+
+            self._fetch_remote_files_if_necessary()
+            self._load_data_into_database()
+
+        c = self.conn.execute('SELECT word, level from {}'.format(self.default_table))
+        self.all_words = sorted(c.fetchall(), key=lambda tpl: (tpl[1], -word_freq[tpl[0]]))
 
     def __getitem__(self, index: int) -> str:
         return self.all_words[index]

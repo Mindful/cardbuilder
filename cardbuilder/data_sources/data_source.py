@@ -126,10 +126,6 @@ class ExternalDataDataSource(DataSource, ABC):
             log(self, 'sqlite table {} appears to be empty, and will be populated'.format(table_name))
             with InDataDir():
                 for batch_iter in grouper(self.batch_size, iter_func()):
-                    from collections import Counter
-                    batch_iter = list(batch_iter)
-                    a = Counter(x[0] for x in batch_iter)
-
                     self.conn.executemany(sql, batch_iter)
                     self.conn.commit()
 
