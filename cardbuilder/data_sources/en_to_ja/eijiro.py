@@ -1,16 +1,17 @@
 from collections import defaultdict
+from logging import WARNING
 from os.path import abspath
 from typing import Any, Dict, List, Tuple, Optional, Iterable
 
-from cardbuilder import CardBuilderException
+from cardbuilder import CardBuilderException, WordLookupException
 from cardbuilder.common import fieldnames
 from cardbuilder.data_sources import Value, StringValue
-from cardbuilder.common.util import fast_linecount, loading_bar
+from cardbuilder.common.util import fast_linecount, loading_bar, log
 import re
 from string import digits
 
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
-from cardbuilder.data_sources.value import StringListsWithPOSValue
+from cardbuilder.data_sources.value import StringListsWithPOSValue, LinksValue
 
 digitset = set(digits)
 
@@ -20,7 +21,7 @@ class Eijiro(ExternalDataDataSource):
     # https://www.eijiro.jp/spec.htm
 
     line_head_symbol = '■'
-    entry_delimiter = ' : ' #TODO: : also splits JP/Eng example sentences, but not sure if that case has spaces
+    entry_delimiter = ' : '  # TODO: : also splits JP/Eng example sentences, but not sure if that case has spaces
 
     example_sentence_symbol = '■・'
     additional_explanation_symbol = '◆'
@@ -129,10 +130,14 @@ class Eijiro(ExternalDataDataSource):
                 # on case, like "the" -> "The" -> "the". As is, we end up using the case attached to the last entry
                 if word.lower() == prev_word.lower():
                     content = self.line_data_delimiter.join((prev_content, content))
+                    # if we've ever seen a lowercase form, hold onto it for lookup
+                    prev_word = word if word.islower() else prev_word
                 else:
                     yield prev_word, prev_content
+                    prev_word = word
+            else:
+                prev_word = word
 
-            prev_word = word
             prev_content = content
 
         yield prev_word, prev_content
@@ -159,8 +164,13 @@ class Eijiro(ExternalDataDataSource):
                 elif section_header is not None and section not in Eijiro.content_sectioning_symbols:
                     key = Eijiro.content_sectioning_symbol_map[section_header]
                     if key == fieldnames.LINKS:
-                        linked_word = section[2:-1]
-                        line_attrs[fieldnames.LINKS].append(self.lookup_word(linked_word))
+                        linked_word = section[:-1]
+                        try:
+                            line_attrs[fieldnames.LINKS].append(self.lookup_word(linked_word))
+                        except WordLookupException:
+                            log(self, 'Found link to apparently missing word "{}" in definition of word "{}"'.format(
+                                word, linked_word
+                            ), WARNING)
                     else:
                         line_attrs[key].append(section.strip('、'))
 
@@ -171,12 +181,18 @@ class Eijiro(ExternalDataDataSource):
             line_parses.append(line_attrs)
 
         aggregated_parse = defaultdict(lambda: defaultdict(list))
+        links = []
         for val_map in line_parses:
             pos = val_map.get(fieldnames.PART_OF_SPEECH, None)
-            for key, val in ((k, v) for k, v in val_map.items() if k != fieldnames.PART_OF_SPEECH):
+            if fieldnames.LINKS in val_map:
+                links.extend(val_map[fieldnames.LINKS])
+            for key, val in ((k, v) for k, v in val_map.items() if k != fieldnames.PART_OF_SPEECH
+                                                                   and k != fieldnames.LINKS):
                 aggregated_parse[key][pos].extend(val)
 
         output = {}
+        if links:
+            output[fieldnames.LINKS] = LinksValue(links)
         for val_key, val_dict in aggregated_parse.items():
             if sum(1 for key in val_dict if key is not None) > 0:
                 output[val_key] = StringListsWithPOSValue([([val for val in vals if val], pos)
@@ -192,7 +208,3 @@ class Eijiro(ExternalDataDataSource):
     def __init__(self, eijiro_location: str):
         self.file_loc = abspath(eijiro_location)
         super().__init__()
-
-
-
-

@@ -6,14 +6,14 @@ from typing import List, Union, Tuple, Dict, Callable
 from cardbuilder.card_resolvers.field import Field, ResolvedField
 from cardbuilder.common.fieldnames import WORD
 from cardbuilder.common.util import loading_bar, log
-from cardbuilder.data_sources import DataSource, StringValue
+from cardbuilder.data_sources import DataSource, StringValue, Value
 from cardbuilder.exceptions import CardResolutionException, CardBuilderException, WordLookupException
 from cardbuilder.word_lists import WordList
 
 
 class Resolver(ABC):
     def __init__(self, fields: List[Field],
-                mutator: Callable[[Dict[DataSource, Dict[str, Union[str, List]]], Dict[str, DataSource]], None] = None):
+                mutator: Callable[[Dict[DataSource, Dict[str, Value]], Dict[str, DataSource]], None] = None):
         self.mutator = self.default_mutator if mutator is None else mutator
         self.fields = fields
         if len(set(x.target_field_name for x in self.fields)) != len(self.fields):
@@ -54,7 +54,7 @@ class Resolver(ABC):
         return results
 
     @staticmethod
-    def default_mutator(data_by_source: Dict[DataSource, Dict[str, Union[str, List]]],
+    def default_mutator(data_by_source: Dict[DataSource, Dict[str, Value]],
                         datasource_by_name: Dict[str, DataSource]) -> None:
         pass
 

@@ -63,13 +63,15 @@ class AkpgResolver(Resolver):
         hashval = int(h.hexdigest(), 16)
         return (1 << 30) + (hashval % (1 << 30))
 
-    def set_card_templates(self, templates: List[Dict[str, str]]):
+    def set_card_templates(self, templates: List[Dict[str, str]], css: str = ''):
         for template in templates:
             for attr in ['name', 'qfmt', 'afmt']:
                 if attr not in template:
                     raise CardBuilderException('Template missing required field {}'.format(attr))
 
         self.templates = templates
+        self.css = css
+
 
     def _output_file(self, rows: List[List[ResolvedField]], name: str):
         sample_row = rows[0]
@@ -77,12 +79,14 @@ class AkpgResolver(Resolver):
         model_name = output_filename + '_model'
 
         templates = self.templates if hasattr(self, 'templates') else self.default_templates
+        css = self.css if hasattr(self, 'css') else ''
 
         model = genanki.Model(self._str_to_id(model_name), model_name,
                               fields=[
                                   {'name': f.name} for f in sample_row
                               ],
-                              templates=templates)
+                              templates=templates,
+                              css=css)
 
         deck = genanki.Deck(self._str_to_id(name), name)
         for row in rows:

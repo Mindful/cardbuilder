@@ -43,6 +43,8 @@ class EJDictHand(ExternalDataDataSource):
 
         # TODO: just append the link indicators to the content that gets stored for the word, and when we parse it
         # use them to return LinkValues
+        # TODO: when we update link handling, keep in mind that links are sometimes jammed inside other definitions
+        # (I.E. the definition won't start with the link symbol)
         for word, link_targets in pending_links.items():
             # assume no links length >1, that would just be excessive
             for link in link_targets:

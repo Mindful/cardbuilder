@@ -31,6 +31,10 @@ class CollegiateThesaurus(WebApiDataSource):
     def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         raw_json = loads(content)
 
+        # thesaurus sometimes returns invalid data, such as for "percent", which returns a list like
+        # ["perching","decent","percentage","descent","parchment","recent"]
+        if not all(isinstance(x, dict) for x in raw_json):
+            raise WordLookupException('Collegeiate Thesaurus returned invalid data for word "{}"'.format(word))
         target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
         if len(target_words) == 0:
             raise WordLookupException('Merriam Webster collegiate thesaurus had no exact matches for {}'.format(word))
@@ -56,7 +60,7 @@ class CollegiateThesaurus(WebApiDataSource):
 
 # https://dictionaryapi.com/products/api-learners-dictionary
 class LearnerDictionary(WebApiDataSource):
-    audio_file_format = 'ogg'
+    audio_file_format = 'mp3'
     number_subdir_regex = re.compile(r'^[^a-zA-Z]+')
     formatting_marker_regex = re.compile(r'{.*}')
 
@@ -85,6 +89,8 @@ class LearnerDictionary(WebApiDataSource):
         for word_data in target_words:
             metadata = word_data['meta']
             shortdef = metadata['app-shortdef']
+            if not shortdef:
+                continue
             pos_label = shortdef['fl']
             word_id = word_data['meta']['id'].split(':')[0] + '_' + pos_label
             try:
@@ -106,15 +112,19 @@ class LearnerDictionary(WebApiDataSource):
             pos_list.append(pos_label)
             word_id_list.append(word_id)
 
-        return {
+        out = {
             fieldnames.PART_OF_SPEECH: StringListValue(pos_list),
             fieldnames.DEFINITIONS: StringListsWithPOSValue(definitions_with_pos),
             fieldnames.PRONUNCIATION_IPA: StringsWithPosValue(ipa_with_pos),
             fieldnames.INFLECTIONS: StringListsWithPOSValue(inflections_with_pos),
-            fieldnames.AUDIO: StringsWithPosValue(audio_with_pos),
             WORD_ID: StringListValue(word_id_list),
             fieldnames.RAW_DATA: RawDataValue(raw_json)
         }
+
+        if len(audio_with_pos) > 0:
+            out[fieldnames.AUDIO] = StringsWithPosValue(audio_with_pos)
+
+        return out
 
     def _get_word_pronunciation_url(self, filename) -> str:
         if filename.startswith('bix'):
@@ -158,28 +168,44 @@ class MerriamWebster(DataSource):
 
     def lookup_word(self, word: str) -> Dict[str, Value]:
         dictionary_data = self.learners_dict.lookup_word(word)
-        thesaurus_data = self.thesaurus.lookup_word(word)
-
         primary_pos = dictionary_data[fieldnames.PART_OF_SPEECH].val_list[0]
 
-        output = {
-            fieldnames.PART_OF_SPEECH: dictionary_data[fieldnames.PART_OF_SPEECH],
-            fieldnames.DEFINITIONS: dictionary_data[fieldnames.DEFINITIONS],
-            fieldnames.PRONUNCIATION_IPA: dictionary_data[fieldnames.PRONUNCIATION_IPA],
-            fieldnames.AUDIO: dictionary_data[fieldnames.AUDIO],
-            fieldnames.RAW_DATA: RawDataValue({
-                'thesaurus': thesaurus_data[fieldnames.RAW_DATA].data,
-                'dictionary': dictionary_data[fieldnames.RAW_DATA].data
-            }),
-            fieldnames.WORD: StringValue(word)
-        }
+        try:  # thesaurus gags an awful lot
+            thesaurus_data = self.thesaurus.lookup_word(word)
+            output = {
+                fieldnames.PART_OF_SPEECH: dictionary_data[fieldnames.PART_OF_SPEECH],
+                fieldnames.DEFINITIONS: dictionary_data[fieldnames.DEFINITIONS],
+                fieldnames.PRONUNCIATION_IPA: dictionary_data[fieldnames.PRONUNCIATION_IPA],
+                fieldnames.RAW_DATA: RawDataValue({
+                    'thesaurus': thesaurus_data[fieldnames.RAW_DATA].data,
+                    'dictionary': dictionary_data[fieldnames.RAW_DATA].data
+                }),
+                fieldnames.WORD: StringValue(word)
+            }
+            thesaurus = True
+        except WordLookupException:
+            output = {
+                fieldnames.PART_OF_SPEECH: dictionary_data[fieldnames.PART_OF_SPEECH],
+                fieldnames.DEFINITIONS: dictionary_data[fieldnames.DEFINITIONS],
+                fieldnames.PRONUNCIATION_IPA: dictionary_data[fieldnames.PRONUNCIATION_IPA],
+                fieldnames.RAW_DATA: RawDataValue({
+                    'dictionary': dictionary_data[fieldnames.RAW_DATA].data
+                }),
+                fieldnames.WORD: StringValue(word)
+            }
+            thesaurus = False
+
+        if fieldnames.AUDIO in dictionary_data:
+            output[fieldnames.AUDIO] = dictionary_data[fieldnames.AUDIO]
 
         self._add_primary_pos_value_if_present(dictionary_data[fieldnames.INFLECTIONS], primary_pos,
                                                fieldnames.INFLECTIONS, output)
-        self._add_primary_pos_value_if_present(thesaurus_data[fieldnames.SYNONYMS], primary_pos,
-                                               fieldnames.SYNONYMS, output)
-        self._add_primary_pos_value_if_present(thesaurus_data[fieldnames.ANTONYMS], primary_pos,
-                                               fieldnames.ANTONYMS, output)
+
+        if thesaurus:
+            self._add_primary_pos_value_if_present(thesaurus_data[fieldnames.SYNONYMS], primary_pos,
+                                                   fieldnames.SYNONYMS, output)
+            self._add_primary_pos_value_if_present(thesaurus_data[fieldnames.ANTONYMS], primary_pos,
+                                                   fieldnames.ANTONYMS, output)
 
         return output
 

@@ -11,7 +11,7 @@ def _format_string_list(strings: List[str], value_format_string: str, join_value
     if sort_key is not None:
         strings = sorted(strings, key=sort_key)
     return join_values_with.join([
-        number_format_string.format(index, value_format_string.format(val)) if number
+        number_format_string.format(index + 1, value_format_string.format(val)) if number
         else value_format_string.format(val) for
         index, val in enumerate(strings[:max_vals])
     ])
@@ -90,14 +90,16 @@ class StringListsWithPOSValue(ListConvertibleValue):
     def to_list(self) -> List[str]:
         return [val for val_list, pos in self.values_with_pos for val in val_list]
 
-    def to_output_string(self, group_by_pos: bool = True, number: bool = True, value_format_string: str = '{}',
-                         pos_group_format_string: str = '({})\n{}', number_format_string: str = '{}. {}',
-                         sort_key: Callable[[str], int] = None, join_vals_with: str = '\n', max_vals:int = 100) -> str:
+    def to_output_string(self, group_by_pos: bool = True, number: bool = False, value_format_string: str = '{}',
+                         pos_group_format_string: str = '\n({})\n{}', number_format_string: str = '{}. {}',
+                         sort_key: Callable[[str], int] = None, join_vals_with: str = '\n', max_vals: int = 100,
+                         max_pos: int = 100) -> str:
 
         if group_by_pos:
             values_by_pos = defaultdict(list)
             for values, pos in self.values_with_pos:
-                values_by_pos[pos].extend(values)
+                if len(values_by_pos) < max_pos or pos in values_by_pos:
+                    values_by_pos[pos].extend(values)
 
             return ''.join([
                 pos_group_format_string.format(pos, _format_string_list(values_by_pos[pos], value_format_string,
@@ -129,7 +131,7 @@ class StringListsWithPrimaryPOSValue(StringListsWithPOSValue):
     def to_list(self) -> List[str]:
         return self.get_primary_list()
 
-    def to_output_string(self, number: bool = True, value_format_string: str = '{}', join_vals_with: str = '\n',
+    def to_output_string(self, number: bool = False, value_format_string: str = '{}', join_vals_with: str = '\n',
                          number_format_string: str = '{}. {}', sort_key: Callable[[str], int] = None,
                          max_vals: int = 100) -> str:
         return _format_string_list(self.get_primary_list(), value_format_string, join_vals_with,
