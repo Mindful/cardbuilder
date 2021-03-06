@@ -63,16 +63,21 @@ class SvlWords(WordList, ExternalDataDataSource):
             self._load_data_into_database()
 
         c = self.conn.execute('SELECT word, level from {}'.format(self.default_table))
-        self.all_words = sorted(c.fetchall(), key=lambda tpl: (tpl[1], -word_freq[tpl[0]]))
+        self.all_words_with_level = sorted(c.fetchall(), key=lambda tpl: (tpl[1], -word_freq[tpl[0]]))
 
-    def __getitem__(self, index: int) -> str:
-        return self.all_words[index]
+    def __getitem__(self, index: int):
+        results = self.all_words_with_level[index]
+        if len(results) == 1:
+            return results[0][0]
+        else:
+            # the slice case
+            return [tpl[0] for tpl in results]
 
     def __iter__(self):
-        return iter(self.all_words)
+        return iter(word for word, level in self.all_words_with_level)
 
     def __len__(self):
-        return len(self.all_words)
+        return len(self.all_words_with_level)
 
 
 

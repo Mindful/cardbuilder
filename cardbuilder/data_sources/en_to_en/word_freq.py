@@ -19,6 +19,7 @@ class WordFrequency(ExternalDataDataSource):
         # deliberately don't call super().__init__() because we have a custom table schema
         with InDataDir():
             self.conn = sqlite3.connect('cardbuilder.db')
+            self._fetch_remote_files_if_necessary()
 
         self.default_table = type(self).__name__.lower()
         self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
@@ -27,7 +28,6 @@ class WordFrequency(ExternalDataDataSource):
         );'''.format(self.default_table))
         self.conn.commit()
 
-        self._fetch_remote_files_if_necessary()
         self._load_data_into_database()
 
         log(self, 'Loading word frequency data from table...')

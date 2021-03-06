@@ -92,7 +92,8 @@ class ExternalDataDataSource(DataSource, ABC):
 
     def __init__(self):
         super().__init__()
-        self._fetch_remote_files_if_necessary()
+        with InDataDir():
+            self._fetch_remote_files_if_necessary()
         self._load_data_into_database()
 
     def lookup_word(self, word: str) -> Dict[str, Value]:

@@ -3,12 +3,11 @@
 from argparse import ArgumentParser
 
 from cardbuilder.card_resolvers import AkpgResolver, Field
-from cardbuilder.common import WordFrequency
 from cardbuilder.common.fieldnames import *
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import enable_console_reporting, log
 from cardbuilder.data_sources import Value
-from cardbuilder.data_sources.en_to_en import MerriamWebster
+from cardbuilder.data_sources.en_to_en import MerriamWebster, WordFrequency
 from cardbuilder.data_sources.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
 from cardbuilder.word_lists.en import SvlWords
@@ -22,7 +21,7 @@ def main():
     parser.add_argument('--learner_key', help="Location of a text file containing a "
                                               "Merriam-Webster's Learner's Dictionary api key", required=True)
     parser.add_argument('--thesaurus_key', help="Location of a text file containing a "
-                                                "Merriam-Webster's Collegiate Thesaurus api key")
+                                                "Merriam-Webster's Collegiate Thesaurus api key", required=True)
     args = parser.parse_args()
 
     start = args.start
@@ -39,7 +38,8 @@ def main():
     ejdict = EJDictHand()
     tatoeba = TatoebaExampleSentences(ENGLISH, JAPANESE)
     wf = WordFrequency()
-    words = SvlWords(word_freq=wf)[start:stop]
+    svl_wordlist = SvlWords(word_freq=wf)
+    words = svl_wordlist[start:stop]
 
     def word_freq_comma_postprocessing(value: Value) -> str:
         return value.to_output_string(value_format_string='{}, ', sort_key=wf.get_sort_key())
