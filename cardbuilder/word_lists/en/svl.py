@@ -5,12 +5,12 @@ from typing import Any
 import requests
 from lxml import html
 
-from cardbuilder.common import ExternalDataDependent, WordFrequency
 from cardbuilder.common.util import log
+from cardbuilder.data_sources.en_to_en import WordFrequency
 from cardbuilder.word_lists import WordList
 
 
-class SvlWords(WordList, ExternalDataDependent):
+class SvlWords(WordList):
     def _read_data(self) -> Any:
         level_wordlist_tuples = []
         filenames = glob('svl_*')

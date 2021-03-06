@@ -47,7 +47,7 @@ def main():
     fields = [
         Field(mw, WORD, '英単語'),
         Field(mw, PRONUNCIATION_IPA, '国際音声記号', stringifier=lambda x: x.to_output_string(group_by_pos=False)),
-        Field(mw, INFLECTIONS, '活用形', stringifier=lambda x: x.to_output_string(value_format_string='{}, '),
+        Field(mw, INFLECTIONS, '活用形', stringifier=lambda x: x.to_output_string(join_values_with=', '),
               optional=True),
         Field(mw, AUDIO, '音声', stringifier=AkpgResolver.media_download_postprocessor),
         Field(mw, DEFINITIONS, '英語での定義', stringifier=AkpgResolver.linebreak_postprocessing),

@@ -6,14 +6,14 @@ from cardbuilder import CardBuilderException
 from cardbuilder.common.fieldnames import WORD
 
 
-def _format_string_list(strings: List[str], value_format_string: str, number: bool,
-                        number_format_string: str, sort_key: Callable[[str], int]) -> str:
+def _format_string_list(strings: List[str], value_format_string: str, join_values_with: str, number: bool,
+                        number_format_string: str, sort_key: Callable[[str], int], max_vals: int) -> str:
     if sort_key is not None:
         strings = sorted(strings, key=sort_key)
-    return ''.join([
+    return join_values_with.join([
         number_format_string.format(index, value_format_string.format(val)) if number
         else value_format_string.format(val) for
-        index, val in enumerate(strings)
+        index, val in enumerate(strings[:max_vals])
     ])
 
 
@@ -45,9 +45,11 @@ class StringListValue(ListConvertibleValue):
         # TODO: optional deuping
         self.val_list = val_list
 
-    def to_output_string(self, value_format_string: str = '{}\n', number: bool = False,
-                         number_format_string: str = '{}. {}', sort_key: Callable[[str], int] = None) -> str:
-        return _format_string_list(self.val_list, value_format_string, number, number_format_string, sort_key)
+    def to_output_string(self, value_format_string: str = '{}', join_vals_with: str = '\n', number: bool = False,
+                         number_format_string: str = '{}. {}', sort_key: Callable[[str], int] = None,
+                         max_vals: int = 100) -> str:
+        return _format_string_list(self.val_list, value_format_string, join_vals_with,
+                                   number, number_format_string, sort_key, max_vals)
 
     def to_list(self) -> List[str]:
         return self.val_list
@@ -88,9 +90,9 @@ class StringListsWithPOSValue(ListConvertibleValue):
     def to_list(self) -> List[str]:
         return [val for val_list, pos in self.values_with_pos for val in val_list]
 
-    def to_output_string(self, group_by_pos: bool = True, number: bool = True, value_format_string: str = '{}\n',
+    def to_output_string(self, group_by_pos: bool = True, number: bool = True, value_format_string: str = '{}',
                          pos_group_format_string: str = '({})\n{}', number_format_string: str = '{}. {}',
-                         sort_key: Callable[[str], int] = None) -> str:
+                         sort_key: Callable[[str], int] = None, join_vals_with: str = '\n', max_vals:int = 100) -> str:
 
         if group_by_pos:
             values_by_pos = defaultdict(list)
@@ -99,15 +101,17 @@ class StringListsWithPOSValue(ListConvertibleValue):
 
             return ''.join([
                 pos_group_format_string.format(pos, _format_string_list(values_by_pos[pos], value_format_string,
-                                                            number, number_format_string, sort_key)) for pos in
-                values_by_pos.keys()
+                                                                        join_vals_with, number, number_format_string,
+                                                                        sort_key, max_vals))
+                for pos in values_by_pos.keys()
             ])
         else:
             all_values = []
             for values in self.values_with_pos:
                 all_values.extend(values)
 
-            return _format_string_list(all_values, value_format_string, number, number_format_string, sort_key)
+            return _format_string_list(all_values, value_format_string, join_vals_with,
+                                       number, number_format_string, sort_key, max_vals)
 
 
 # This class holds data for more than one part of speech, but by default only outputs for its primary part of speech
@@ -125,9 +129,11 @@ class StringListsWithPrimaryPOSValue(StringListsWithPOSValue):
     def to_list(self) -> List[str]:
         return self.get_primary_list()
 
-    def to_output_string(self, number: bool = True, value_format_string: str = '{}\n',
-                         number_format_string: str = '{}. {}', sort_key: Callable[[str], int] = None) -> str:
-        return _format_string_list(self.get_primary_list(), value_format_string, number, number_format_string, sort_key)
+    def to_output_string(self, number: bool = True, value_format_string: str = '{}', join_vals_with: str = '\n',
+                         number_format_string: str = '{}. {}', sort_key: Callable[[str], int] = None,
+                         max_vals: int = 100) -> str:
+        return _format_string_list(self.get_primary_list(), value_format_string, join_vals_with,
+                                   number, number_format_string, sort_key, max_vals)
 
 
 # Class for making raw data (such as API call responses) available. No gaurantees are made about the structure of
@@ -147,6 +153,6 @@ class LinksValue(Value):
                 raise CardBuilderException("LinksValue data must include the word")
         self.data_list = data_list
 
-    def to_output_string(self, description_string: str =' See also: ', join_words_with: str = ', ') -> str:
+    def to_output_string(self, description_string: str = 'See also: ', join_words_with: str = ', ') -> str:
         return '{} {}'.format(description_string, join_words_with.join(data[WORD].to_output_string()
                                                                        for data in self.data_list))

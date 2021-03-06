@@ -10,11 +10,13 @@ import re
 from string import digits
 
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
+from cardbuilder.data_sources.value import StringListsWithPOSValue
 
 digitset = set(digits)
 
 
 class Eijiro(ExternalDataDataSource):
+    # http://www.eijiro.jp/get-144.htm
     # https://www.eijiro.jp/spec.htm
 
     line_head_symbol = '■'
@@ -101,10 +103,10 @@ class Eijiro(ExternalDataDataSource):
         lines = fast_linecount(self.file_loc)
         prev_word = None
         prev_content = None
-        for line in loading_bar(open(self.file_loc, 'r'), 'reading eijiro', lines):
+        for line in loading_bar(open(self.file_loc, 'r', encoding='shift_jisx0213'), 'reading eijiro', lines):
             header_end = line.index(Eijiro.entry_delimiter)
             header = line[1:header_end].strip()  # start at 1 to drop the ■
-            content = line[header_end + 1:].strip()
+            content = line[header_end + len(Eijiro.entry_delimiter):].strip()
 
             pos_marking_match = next(Eijiro.header_pos_regex.finditer(header), None)
             if pos_marking_match is not None:
@@ -126,7 +128,7 @@ class Eijiro(ExternalDataDataSource):
                 # the .lower() here is necessary because sometimes there are sequential entries that go back and forth
                 # on case, like "the" -> "The" -> "the". As is, we end up using the case attached to the last entry
                 if word.lower() == prev_word.lower():
-                    content = self.line_data_delimiter.join((content, prev_content))
+                    content = self.line_data_delimiter.join((prev_content, content))
                 else:
                     yield prev_word, prev_content
 
@@ -168,10 +170,21 @@ class Eijiro(ExternalDataDataSource):
 
             line_parses.append(line_attrs)
 
+        aggregated_parse = defaultdict(lambda: defaultdict(list))
         for val_map in line_parses:
-            print('w')
+            pos = val_map.get(fieldnames.PART_OF_SPEECH, None)
+            for key, val in ((k, v) for k, v in val_map.items() if k != fieldnames.PART_OF_SPEECH):
+                aggregated_parse[key][pos].extend(val)
 
-        return line_parses #TODO: this is strings, should be Values
+        output = {}
+        for val_key, val_dict in aggregated_parse.items():
+            if sum(1 for key in val_dict if key is not None) > 0:
+                output[val_key] = StringListsWithPOSValue([([val for val in vals if val], pos)
+                                                           for pos, vals in val_dict.items()])
+            else:
+                output[val_key] = StringValue(val_dict[None][0])
+
+        return output
 
     def _fetch_remote_files_if_necessary(self):
         pass  # No remote files to fetch, takes an explicit file location
