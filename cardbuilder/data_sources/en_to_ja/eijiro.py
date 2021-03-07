@@ -169,7 +169,7 @@ class Eijiro(ExternalDataDataSource):
                             line_attrs[fieldnames.LINKS].append(self.lookup_word(linked_word))
                         except WordLookupException:
                             log(self, 'Found link to apparently missing word "{}" in definition of word "{}"'.format(
-                                word, linked_word
+                                linked_word, word
                             ), WARNING)
                     else:
                         line_attrs[key].append(section.strip('、'))
