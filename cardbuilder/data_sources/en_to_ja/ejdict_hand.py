@@ -7,7 +7,7 @@ from typing import Dict, Tuple, Iterable
 import requests
 
 from cardbuilder.common.fieldnames import DEFINITIONS
-from cardbuilder.common.util import log
+from cardbuilder.common.util import log, loading_bar
 from cardbuilder.data_sources import Value, StringListValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
@@ -22,7 +22,7 @@ class EJDictHand(ExternalDataDataSource):
         if not exists(EJDictHand.filename):
             log(self, '{} not found - downloading and assembling file pieces...'.format(self.filename))
             all_content = bytes()
-            for letter in ascii_lowercase:
+            for letter in loading_bar(ascii_lowercase, 'downloading EJDict-hand files'):
                 url = 'https://raw.githubusercontent.com/kujirahand/EJDict/master/src/{}.txt'.format(letter)
                 request = requests.get(url)
                 all_content = all_content + request.content

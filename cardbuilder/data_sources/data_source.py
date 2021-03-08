@@ -8,7 +8,7 @@ import requests
 from cardbuilder import WordLookupException
 from cardbuilder.common import InDataDir
 from cardbuilder.common.fieldnames import WORD
-from cardbuilder.common.util import log, grouper
+from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar
 from cardbuilder.data_sources.value import Value, StringValue
 
 
@@ -110,9 +110,7 @@ class ExternalDataDataSource(DataSource, ABC):
                                       'implement _fetch_remote_files_if_necessary()')
         if not exists(self.filename):
             log(self, '{} not found - downloading...'.format(self.filename))
-            data = requests.get(self.url)
-            with open(self.filename, 'wb+') as f:
-                f.write(data.content)
+            download_to_file_with_loading_bar(self.url, self.filename)
 
     def _load_data_into_database(self, table_name: str = None, iter_func: Callable[[], Iterable] = None,
                                  sql: str = None):

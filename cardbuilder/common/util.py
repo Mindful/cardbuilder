@@ -1,12 +1,16 @@
 import logging
 import sys
 import os
+from io import BytesIO
 from itertools import takewhile, repeat
 from pathlib import Path
 from typing import Iterable, Optional, Any
 from itertools import zip_longest
 
 from tqdm import tqdm
+import requests
+
+from cardbuilder import CardBuilderException
 
 
 class InDataDir:
@@ -73,6 +77,37 @@ def loading_bar(iterable: Iterable, description: str, total: Optional[int] = Non
         return tqdm(iterable=iterable, desc=description, total=total)
     else:
         return iterable
+
+
+def download_to_file_with_loading_bar(url: str, filename: str):
+    # https://stackoverflow.com/questions/37573483/progress-bar-while-download-file-over-http-with-requests
+    response = requests.get(url, stream=True)
+    total_size_in_bytes = int(response.headers.get('content-length', 0))
+    block_size = 1024
+    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, disable= not LOADING_BARS_ENABLED)
+    with open(filename, 'wb') as file:
+        for data in response.iter_content(block_size):
+            progress_bar.update(len(data))
+            file.write(data)
+    progress_bar.close()
+    if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
+        raise CardBuilderException('Failed to download file {} from URL {}'.format(filename, url))
+
+
+def download_to_stream_with_loading_bar(url: str) -> BytesIO:
+    response = requests.get(url, stream=True)
+    total_size_in_bytes = int(response.headers.get('content-length', 0))
+    block_size = 1024
+    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, disable=not LOADING_BARS_ENABLED)
+    stream = BytesIO()
+    for data in response.iter_content(block_size):
+        progress_bar.update(len(data))
+        stream.write(data)
+    progress_bar.close()
+    if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
+        raise CardBuilderException('Failed to download file from URL {}'.format(url))
+
+    return stream
 
 
 def grouper(n, iterable):

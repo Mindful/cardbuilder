@@ -7,7 +7,7 @@ import requests
 from lxml import html
 
 from cardbuilder.common.fieldnames import SUPPLEMENTAL
-from cardbuilder.common.util import log, InDataDir
+from cardbuilder.common.util import log, InDataDir, loading_bar
 from cardbuilder.data_sources import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.en_to_en import WordFrequency
@@ -31,7 +31,7 @@ class SvlWords(WordList, ExternalDataDataSource):
         }
 
     def _fetch_remote_files_if_necessary(self):
-        for i in range(1, 13):
+        for i in loading_bar(range(1, 13), 'downloading svl files'):
             filename = 'svl_lvl_{}.txt'.format(i)
             if not exists(filename):
                 log(self, '{} not found - downloading...'.format(filename))

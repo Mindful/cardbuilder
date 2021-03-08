@@ -6,7 +6,7 @@ from json import dumps, loads
 
 import requests
 
-from cardbuilder.common.util import log
+from cardbuilder.common.util import log, download_to_stream_with_loading_bar
 from cardbuilder.common.fieldnames import DEFINITIONS, SUPPLEMENTAL, EXAMPLE_SENTENCES
 from cardbuilder.data_sources import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
@@ -60,9 +60,8 @@ class GeneDict(ExternalDataDataSource):
     def _fetch_remote_files_if_necessary(self):
         if not exists(self.filename):
             log(self, '{} not found - downloading and extracting...'.format(self.filename))
-            data = requests.get(self.url)
-            filelike = BytesIO(data.content)
-            tar = tarfile.open(fileobj=filelike, mode='r:gz')
+            stream = download_to_stream_with_loading_bar(self.url)
+            tar = tarfile.open(fileobj=stream, mode='r:gz')
             gene_data = tar.extractfile('gene.txt').read().decode('shift_jisx0213')
             with open(self.filename, 'w+') as f:
                 f.write(gene_data)

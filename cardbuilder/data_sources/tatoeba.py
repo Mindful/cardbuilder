@@ -14,7 +14,7 @@ import requests
 from fugashi import Tagger
 
 from cardbuilder.common import InDataDir
-from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log
+from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar
 from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES, WORD
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.data_sources import Value, StringValue
@@ -156,14 +156,16 @@ class TatoebaExampleSentences(ExternalDataDataSource):
         for filename, url in filenames_and_urls:
             if not exists(filename):
                 log(self, '{} not found - downloading and extracting...'.format(filename))
+
                 data = requests.get(url)
+                filelike = BytesIO(data.content)
+                data = download_to_stream_with_loading_bar(url)
                 if url[-8:] == '.tar.bz2':
-                    filelike = BytesIO(data.content)
-                    tar = tarfile.open(fileobj=filelike, mode='r:bz2')
+                    tar = tarfile.open(fileobj=data, mode='r:bz2')
                     tar.extract(filename)
                 elif url[-4:] == '.bz2':
                     with open(filename, 'wb+') as f:
-                        f.write(BZ2Decompressor().decompress(data.content))
+                        f.write(BZ2Decompressor().decompress(data.read()))
                 else:
                     raise CardBuilderException('Retrieved unexpected file format from Tatoeba: {}'.format(url))
 
