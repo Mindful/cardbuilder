@@ -107,6 +107,7 @@ def download_to_stream_with_loading_bar(url: str) -> BytesIO:
     if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
         raise CardBuilderException('Failed to download file from URL {}'.format(url))
 
+    stream.seek(0)
     return stream
 
 

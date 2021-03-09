@@ -157,15 +157,13 @@ class TatoebaExampleSentences(ExternalDataDataSource):
             if not exists(filename):
                 log(self, '{} not found - downloading and extracting...'.format(filename))
 
-                data = requests.get(url)
-                filelike = BytesIO(data.content)
-                data = download_to_stream_with_loading_bar(url)
+                stream_data = download_to_stream_with_loading_bar(url)
                 if url[-8:] == '.tar.bz2':
-                    tar = tarfile.open(fileobj=data, mode='r:bz2')
+                    tar = tarfile.open(fileobj=stream_data, mode='r:bz2')
                     tar.extract(filename)
                 elif url[-4:] == '.bz2':
                     with open(filename, 'wb+') as f:
-                        f.write(BZ2Decompressor().decompress(data.read()))
+                        f.write(BZ2Decompressor().decompress(stream_data.read()))
                 else:
                     raise CardBuilderException('Retrieved unexpected file format from Tatoeba: {}'.format(url))
 

@@ -31,22 +31,24 @@ class SvlWords(WordList, ExternalDataDataSource):
         }
 
     def _fetch_remote_files_if_necessary(self):
-        for i in loading_bar(range(1, 13), 'downloading svl files'):
-            filename = 'svl_lvl_{}.txt'.format(i)
-            if not exists(filename):
-                log(self, '{} not found - downloading...'.format(filename))
-                numstring = '0{}'.format(i) if i < 10 else str(i)
-                url = 'http://web.archive.org/web/20081219085635/http://www.alc.co.jp/goi/svl_l{}_list.htm'.format(
-                    numstring)
-                page = requests.get(url)
-                tree = html.fromstring(page.content)
-                containing_element = next(x for x in tree.xpath('//font') if len(x) > 900)
-                entries = {x.tail.strip() for x in containing_element if x.tag == 'br'}
-                if containing_element.text is not None:
-                    entries.add(containing_element.text.strip())
-                assert (len(entries) == 1000)
-                with open(filename, 'w+') as f:
-                    f.writelines(x + '\n' for x in entries)
+        files_with_index = [('svl_lvl_{}.txt'.format(i), i) for i in range(1, 13)]
+        download_targets = [(filename, index) for filename, index in files_with_index if not exists(filename)]
+        if len(download_targets) > 0:
+            log(self, 'Some SVL files not found - downloading...')
+            for filename, index in loading_bar(download_targets, 'downloading svl files'):
+                if not exists(filename):
+                    numstring = '0{}'.format(index) if index < 10 else str(index)
+                    url = 'http://web.archive.org/web/20081219085635/http://www.alc.co.jp/goi/svl_l{}_list.htm'.format(
+                        numstring)
+                    page = requests.get(url)
+                    tree = html.fromstring(page.content)
+                    containing_element = next(x for x in tree.xpath('//font') if len(x) > 900)
+                    entries = {x.tail.strip() for x in containing_element if x.tag == 'br'}
+                    if containing_element.text is not None:
+                        entries.add(containing_element.text.strip())
+                    assert (len(entries) == 1000)
+                    with open(filename, 'w+') as f:
+                        f.writelines(x + '\n' for x in entries)
 
     def __init__(self, word_freq: WordFrequency):
         with InDataDir():
