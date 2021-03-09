@@ -4,8 +4,7 @@ import requests
 from pykakasi import kakasi
 from json import dumps, loads
 
-from cardbuilder.common.fieldnames import PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, DEFINITIONS, \
-    RAW_DATA
+from cardbuilder.common.fieldnames import PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, DEFINITIONS
 from cardbuilder.common.util import is_hiragana
 from cardbuilder.data_sources import Value, StringValue, StringListValue
 from cardbuilder import WordLookupException
@@ -112,6 +111,5 @@ class Jisho(WebApiDataSource):
             READING: StringValue(reading),
             WRITINGS: StringListValue(writing_candidates),
             DETAILED_READING: StringValue(detailed_reading),
-            RAW_DATA: RawDataValue(match)
         }
 

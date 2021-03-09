@@ -2,10 +2,10 @@
 from argparse import ArgumentParser
 from time import time
 import csv
-from typing import Dict, Union, List
+from typing import Dict
 
 from cardbuilder import CardBuilderException
-from cardbuilder.card_resolvers import CsvResolver, Field
+from cardbuilder.card_resolvers import CsvResolver, Field, AkpgResolver
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING, PITCH_ACCENT, WRITINGS
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import enable_console_reporting, log
@@ -18,11 +18,11 @@ from pykakasi import kakasi
 
 
 def main():
-    #TODO: support CSV or anki deck output
-    # in the case of anki deck output, directly add the pitch accent css
     enable_console_reporting()
     parser = ArgumentParser()
     parser.add_argument('--input_file', required=True, help='Input file of words, one word per line')
+    parser.add_argument('--output_type', choices=['anki', 'csv'], help='The format the cards will be output in',
+                        default='csv')
     args = parser.parse_args()
     run_time = int(time())
     output_filename = 'cardlist_additions_{}'.format(run_time)
@@ -64,7 +64,18 @@ def main():
         except KeyError:
             pass
 
-    resolver = CsvResolver(fields)
+    css = '''.overline {text-decoration:overline;}
+.nopron {color: royalblue;}
+.nasal{color: red;}'''
+    if args.output_type == 'csv':
+        resolver = CsvResolver(fields)
+    elif args.output_type == 'anki':
+        resolver = AkpgResolver(fields)
+        #TODO: add proper default cards like in the SVL deck so people don't have to make their own
+        resolver.set_card_templates(None, css=css)
+    else:
+        raise CardBuilderException('Unknown output type')
+
     resolver.mutator = disambiguate_pitch_accent
     failed_resolutions = resolver.resolve_to_file(words, output_filename)
     if len(failed_resolutions) > 0:
@@ -74,9 +85,10 @@ def main():
             writer = csv.writer(error_file, delimiter='\t')
             writer.writerows(failed_resolutions)
 
-    #TODO: in the case of CSV output, remind people that
-    #1. they need to allow html imports for the pitch accent
-    #2 they need to add css to cards for the pitch accent
+    if args.output_type == 'csv':
+        log(None, 'If you are importing a CSV to Anki, remember to enable HTML imports')
+        log(None, 'Also, the below CSS is required to display the NHK pitch accent data')
+        print(css)
 
 
 if __name__ == '__main__':

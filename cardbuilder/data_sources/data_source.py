@@ -7,9 +7,9 @@ import requests
 
 from cardbuilder import WordLookupException
 from cardbuilder.common import InDataDir
-from cardbuilder.common.fieldnames import WORD
+from cardbuilder.common.fieldnames import WORD, RAW_DATA
 from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar
-from cardbuilder.data_sources.value import Value, StringValue
+from cardbuilder.data_sources.value import Value, StringValue, RawDataValue
 
 
 class DataSource(ABC):
@@ -25,6 +25,7 @@ class DataSource(ABC):
     def parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         parsed_content = self._parse_word_content(word, content)
         parsed_content[WORD] = StringValue(word)
+        parsed_content[RAW_DATA] = RawDataValue(content)
         return parsed_content
 
     def __init__(self):

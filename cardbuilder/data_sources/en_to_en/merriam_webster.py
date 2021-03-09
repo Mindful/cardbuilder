@@ -54,7 +54,6 @@ class CollegiateThesaurus(WebApiDataSource):
             fieldnames.SYNONYMS: StringListsWithPOSValue(syns_with_pos),
             fieldnames.ANTONYMS: StringListsWithPOSValue(ants_with_pos),
             WORD_ID: StringListValue(word_ids),
-            fieldnames.RAW_DATA: RawDataValue(raw_json)
         }
 
 
@@ -118,7 +117,6 @@ class LearnerDictionary(WebApiDataSource):
             fieldnames.PRONUNCIATION_IPA: StringsWithPosValue(ipa_with_pos),
             fieldnames.INFLECTIONS: StringListsWithPOSValue(inflections_with_pos),
             WORD_ID: StringListValue(word_id_list),
-            fieldnames.RAW_DATA: RawDataValue(raw_json)
         }
 
         if len(audio_with_pos) > 0:

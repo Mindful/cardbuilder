@@ -2,7 +2,7 @@ from hashlib import sha256
 from os import mkdir, remove
 from os.path import exists, join
 from shutil import rmtree
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Optional
 
 import genanki
 import requests
@@ -63,13 +63,16 @@ class AkpgResolver(Resolver):
         hashval = int(h.hexdigest(), 16)
         return (1 << 30) + (hashval % (1 << 30))
 
-    def set_card_templates(self, templates: List[Dict[str, str]], css: str = ''):
-        for template in templates:
-            for attr in ['name', 'qfmt', 'afmt']:
-                if attr not in template:
-                    raise CardBuilderException('Template missing required field {}'.format(attr))
+    def set_card_templates(self, templates: Optional[List[Dict[str, str]]], css: str = ''):
+        if templates is not None:
+            for template in templates:
+                for attr in ['name', 'qfmt', 'afmt']:
+                    if attr not in template:
+                        raise CardBuilderException('Template missing required field {}'.format(attr))
+            self.templates = templates
+        else:
+            self.templates = self.default_templates
 
-        self.templates = templates
         self.css = css
 
 
