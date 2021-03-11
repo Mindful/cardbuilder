@@ -166,7 +166,10 @@ class MerriamWebster(DataSource):
 
     def lookup_word(self, word: str) -> Dict[str, Value]:
         dictionary_data = self.learners_dict.lookup_word(word)
-        primary_pos = dictionary_data[fieldnames.PART_OF_SPEECH].val_list[0]
+        if len(dictionary_data[fieldnames.PART_OF_SPEECH].val_list) > 0:
+            primary_pos = dictionary_data[fieldnames.PART_OF_SPEECH].val_list[0]
+        else:
+            raise WordLookupException('No parts of speech found in MerriamWebster for {}'.format(word))
 
         try:  # thesaurus gags an awful lot
             thesaurus_data = self.thesaurus.lookup_word(word)
