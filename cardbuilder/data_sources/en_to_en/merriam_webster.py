@@ -107,7 +107,8 @@ class LearnerDictionary(WebApiDataSource):
 
             inflections_with_pos.append(([x['if'].replace('*', '') for x in word_data['ins']
                                           if 'if' in x] if 'ins' in word_data else [], pos_label))
-            definitions_with_pos.append(([self.formatting_marker_regex.sub('', x) for x in shortdef['def']], pos_label))
+            definitions_with_pos.append(([self.formatting_marker_regex.sub('', x) for x in shortdef['def'] if x],
+                                         pos_label))
             pos_list.append(pos_label)
             word_id_list.append(word_id)
 

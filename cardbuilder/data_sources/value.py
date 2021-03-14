@@ -75,7 +75,7 @@ class StringsWithPosValue(ListConvertibleValue):
 # because there are sometimes duplicates
 class StringListsWithPOSValue(ListConvertibleValue):
     def __init__(self, values_with_pos: List[Tuple[List[str], Optional[str]]]):
-        # TODO: make deduping optional
+        # TODO: move deduping logic into to_output_string() and make it optional
         seen_values = set()
         # simple dedupe
         self.values_with_pos = []

@@ -41,6 +41,7 @@ class ESPDIC(ExternalDataDataSource):
 
     def _infer_pos(self, word: str):
         #TODO: this probably needs to be smarter than it is
+        # possibly look at https://github.com/fidelisrafael/esperanto-analyzer ?
         last_char = word[-1]
 
         if word in {"mi", "vi", "li", "ŝi", "ĝi", "si", "ni", "vi", "ili", "oni"}:

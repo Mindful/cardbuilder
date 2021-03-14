@@ -14,7 +14,8 @@ import requests
 from fugashi import Tagger
 
 from cardbuilder.common import InDataDir
-from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar
+from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar, \
+    dedup_by
 from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES, WORD
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.data_sources import Value, StringValue
@@ -188,6 +189,13 @@ class TatoebaExampleSentencesValue(Value):
     def __init__(self, example_sentence_pairs: List[Tuple[str, str]]):
         self.sentence_pairs = sorted(example_sentence_pairs, key=lambda x: 1 if x[1] is None else 0)
 
-    def to_output_string(self, pair_format_string: str = '{}\n{}\n', max_sentences: int = 10) -> str:
-        sentence_pairs = self.sentence_pairs[:max_sentences] if max_sentences is not None else self.sentence_pairs
+    def to_output_string(self, pair_format_string: str = '{}\n{}\n', max_sentences: int = 10,
+                         dedup: bool = True) -> str:
+        sentence_pairs = self.sentence_pairs
+        if dedup:
+            sentence_pairs = dedup_by(dedup_by(sentence_pairs, lambda x: x[0]), lambda x: x[1])
+
+        if max_sentences is not None:
+            sentence_pairs = sentence_pairs[:max_sentences]
+
         return ''.join([pair_format_string.format(*pair) for pair in sentence_pairs])

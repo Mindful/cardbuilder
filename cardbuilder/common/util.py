@@ -4,7 +4,7 @@ import os
 from io import BytesIO
 from itertools import takewhile, repeat
 from pathlib import Path
-from typing import Iterable, Optional, Any
+from typing import Iterable, Optional, Any, List, Callable
 from itertools import zip_longest
 
 from tqdm import tqdm
@@ -114,4 +114,10 @@ def download_to_stream_with_loading_bar(url: str) -> BytesIO:
 def grouper(n, iterable):
     args = [iter(iterable)] * n
     return ((x for x in group if x is not None) for group in zip_longest(fillvalue=None, *args))
+
+
+def dedup_by(input_list: List, key: Callable) -> List:
+    seen_set = set()
+    return [x for x in input_list if key(x) not in seen_set and not seen_set.add(key(x))]
+
 
