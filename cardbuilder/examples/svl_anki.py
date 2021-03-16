@@ -12,6 +12,7 @@ from cardbuilder.data_sources.en_to_en import MerriamWebster, WordFrequency
 from cardbuilder.data_sources.en_to_ja.eijiro import Eijiro
 from cardbuilder.data_sources.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
+from cardbuilder.word_lists import InputList
 from cardbuilder.word_lists.en import SvlWords
 
 
@@ -26,12 +27,12 @@ def main():
                                                 "Merriam-Webster's Collegiate Thesaurus api key", required=True)
     parser.add_argument('--eijiro_location', help="The location of a dictionary containing the Eijiro data. If present,"
                                                   "Eijiro will be used instead of EJDictHand")
+    parser.add_argument('--raw_input', help='The location of a raw input file to be used for card generation. If '
+                                            'not provided, SVL wordlist will be used.', default=None)
     args = parser.parse_args()
 
     start = args.start
     stop = args.stop
-    #output_filename = 'svl_{}_to_{}'.format(start, stop)
-    output_filename = 'svl_anki'
 
     with open(args.learner_key) as f:
         learner_key = f.readlines()[0]
@@ -47,20 +48,28 @@ def main():
 
     tatoeba = TatoebaExampleSentences(ENGLISH, JAPANESE)
     wf = WordFrequency()
-    svl_wordlist = SvlWords(word_freq=wf)
-    words = svl_wordlist[start:stop]
+
+    if args.raw_input is not None:
+        output_filename = 'jp_anki'
+        input_wordlist = InputList(args.raw_input)
+        words = input_wordlist[start:stop]
+    else:
+        output_filename = 'svl_anki'
+        svl_wordlist = SvlWords(word_freq=wf)
+        words = svl_wordlist[start:stop]
 
     def word_freq_comma_postprocessing(value: Value) -> str:
         return value.to_output_string(value_format_string='{}, ', sort_key=wf.get_sort_key())
 
     fields = [
-        Field(mw, WORD, '英単語'),
-        Field(mw, PRONUNCIATION_IPA, '国際音声記号', stringifier=lambda x: x.to_output_string(group_by_pos=False)),
+        Field(jp_dictionary, WORD, '英単語'),
+        Field(mw, PRONUNCIATION_IPA, '国際音声記号', stringifier=lambda x: x.to_output_string(group_by_pos=False),
+              optional=True),
         Field(mw, INFLECTIONS, '活用形', stringifier=lambda x: x.to_output_string(join_vals_with=', '),
               optional=True),
         Field(mw, AUDIO, '音声', stringifier=AkpgResolver.media_download_postprocessor, optional=True),
         Field(mw, DEFINITIONS, '英語での定義', stringifier=lambda x: AkpgResolver.linebreak_postprocessing(
-                  x.to_output_string(number=True, max_pos=1, max_vals=2))),
+                  x.to_output_string(number=True, max_pos=1, max_vals=2)), optional=True),
         Field(jp_dictionary, DEFINITIONS, '日本語での定義', stringifier=lambda x: AkpgResolver.linebreak_postprocessing(
                   x.to_output_string(number=True, max_vals=5))),
         Field(mw, SYNONYMS, '類義語', stringifier=word_freq_comma_postprocessing, optional=True),
@@ -95,7 +104,9 @@ def main():
                 'afmt': reduce_whitespace('''
                     <div style="text-align: center;">
                         <h1>{{英単語}}</h1>
-                        [ &nbsp; {{国際音声記号}} &nbsp; ]
+                        {{#国際音声記号}}
+                            [ &nbsp; {{国際音声記号}} &nbsp; ]
+                        {{/国際音声記号}}
                     </div>
                     <br/>
                     {{音声}}
@@ -114,7 +125,9 @@ def main():
                 'afmt': reduce_whitespace('''
                     <div style="text-align: center;">
                         <h1>{{英単語}}</h1>
-                        [ &nbsp; {{国際音声記号}} &nbsp; ]
+                        {{#国際音声記号}}
+                            [ &nbsp; {{国際音声記号}} &nbsp; ]
+                        {{/国際音声記号}}
                     </div>
                     <br/>
                     {{音声}}

@@ -30,7 +30,7 @@ class StringValue(Value):
     def __init__(self, val: str):
         self.val = val
 
-    def to_output_string(self) -> str:
+    def to_output_string(self, **kwargs) -> str:
         return self.val
 
 

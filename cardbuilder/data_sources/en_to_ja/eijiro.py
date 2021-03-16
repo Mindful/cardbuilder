@@ -31,7 +31,7 @@ class Eijiro(ExternalDataDataSource):
     inflections_symbol = '【変化】'
     level_symbol = '【レベル】'
     word_split_symbol = '【分節】'
-    link_symbol = '<→'
+    link_symbol = '＝<→'
 
     content_sectioning_symbol_map = {
         example_sentence_symbol: fieldnames.EXAMPLE_SENTENCES,
@@ -199,6 +199,15 @@ class Eijiro(ExternalDataDataSource):
                                                            for pos, vals in val_dict.items()])
             else:
                 output[val_key] = StringValue(val_dict[None][0])
+
+        #TODO: we may want to be more selective with which fields we take here
+        # if we take a pronunciation-related field from a different word for example, it could just be wrong
+        if fieldnames.LINKS in output:
+            for linked_word_dict in output[fieldnames.LINKS].data_list:
+                for key, value in linked_word_dict.items():
+                    if (key not in output or not output[key].to_output_string()) \
+                            and key != fieldnames.WORD and key != fieldnames.RAW_DATA:
+                        output[key] = value
 
         return output
 

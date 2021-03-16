@@ -61,6 +61,7 @@ class CollegiateThesaurus(WebApiDataSource):
 class LearnerDictionary(WebApiDataSource):
     audio_file_format = 'mp3'
     number_subdir_regex = re.compile(r'^[^a-zA-Z]+')
+    # TODO: this might be too aggressive - for example it entirely erases "{it} chiefly US {/it}"
     formatting_marker_regex = re.compile(r'{.*}')
 
     def __init__(self, api_key):
@@ -75,7 +76,12 @@ class LearnerDictionary(WebApiDataSource):
     def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         raw_json = loads(content)
 
-        target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
+        # MW occasionally just returns a list of words, not actual data...
+        if any(not isinstance(val, dict) for val in raw_json):
+            raise WordLookupException('Learner\'s Dictionary returned invalid data for word "{}"'.format(word))
+        else:
+            target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
+
         if len(target_words) == 0:
             raise WordLookupException('Merriam Webster learner\'s dictionary had no exact matches for {}'.format(word))
 
@@ -107,7 +113,8 @@ class LearnerDictionary(WebApiDataSource):
 
             inflections_with_pos.append(([x['if'].replace('*', '') for x in word_data['ins']
                                           if 'if' in x] if 'ins' in word_data else [], pos_label))
-            definitions_with_pos.append(([self.formatting_marker_regex.sub('', x) for x in shortdef['def'] if x],
+            definitions_with_pos.append(([d for d in (self.formatting_marker_regex.sub('', x)
+                                                      for x in shortdef['def']) if d],
                                          pos_label))
             pos_list.append(pos_label)
             word_id_list.append(word_id)
