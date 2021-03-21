@@ -66,7 +66,7 @@ class Resolver(ABC):
             except WordLookupException as ex:
                 for field in fields:
                     if not field.optional:
-                        raise CardResolutionException('Could not look up word "{}" from {} due to lookup excetion: {}'.
+                        raise CardResolutionException('Could not look up word "{}" from {} due to lookup exception: {}'.
                                                       format(word, type(datasource).__name__, ex))
 
         self.mutator(data_by_source, self.datasource_by_name.copy())

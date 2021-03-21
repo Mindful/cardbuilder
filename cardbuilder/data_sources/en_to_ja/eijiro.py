@@ -21,7 +21,7 @@ class Eijiro(ExternalDataDataSource):
     # https://www.eijiro.jp/spec.htm
 
     line_head_symbol = '■'
-    entry_delimiter = ' : '  # TODO: : also splits JP/Eng example sentences, but not sure if that case has spaces
+    entry_delimiter = ' : '
 
     example_sentence_symbol = '■・'
     additional_explanation_symbol = '◆'
@@ -200,13 +200,11 @@ class Eijiro(ExternalDataDataSource):
             else:
                 output[val_key] = StringValue(val_dict[None][0])
 
-        #TODO: we may want to be more selective with which fields we take here
-        # if we take a pronunciation-related field from a different word for example, it could just be wrong
         if fieldnames.LINKS in output:
             for linked_word_dict in output[fieldnames.LINKS].data_list:
                 for key, value in linked_word_dict.items():
                     if (key not in output or not output[key].to_output_string()) \
-                            and key != fieldnames.WORD and key != fieldnames.RAW_DATA:
+                            and key in fieldnames.LINK_FRIENDLY_FIELDS:
                         output[key] = value
 
         return output

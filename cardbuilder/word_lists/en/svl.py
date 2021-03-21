@@ -13,7 +13,7 @@ from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.en_to_en import WordFrequency
 from cardbuilder.word_lists import WordList
 
-# TODO: maybe shouldn't be a data source, but we need all the same sqlite methods as the ExternalDataDataSource
+
 class SvlWords(WordList, ExternalDataDataSource):
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         filenames_with_level = sorted(((fname, int(fname.split('.')[0].split('_')[-1:][0])) for fname in glob('svl_*')),

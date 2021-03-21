@@ -6,10 +6,12 @@ from typing import Dict, Tuple, Iterable
 
 import requests
 
-from cardbuilder.common.fieldnames import DEFINITIONS
+from cardbuilder import WordLookupException
+from cardbuilder.common.fieldnames import DEFINITIONS, LINKS
 from cardbuilder.common.util import log, loading_bar
 from cardbuilder.data_sources import Value, StringListValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
+from cardbuilder.data_sources.value import LinksValue
 
 
 class EJDictHand(ExternalDataDataSource):
@@ -32,27 +34,33 @@ class EJDictHand(ExternalDataDataSource):
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         definition_map = defaultdict(list)
-        pending_links = defaultdict(list)
         with open(self.filename, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
             for word_entry, definition in reader:
                 for word in word_entry.split(','):
                     definitions = definition.split(self.definition_delim)
-                    pending_links[word].extend(link for link in definitions if link.startswith(self.link_symbol))
-                    definition_map[word].extend(dfn for dfn in definitions if not dfn.startswith(self.link_symbol))
-
-        # TODO: just append the link indicators to the content that gets stored for the word, and when we parse it
-        # use them to return LinkValues
-        # TODO: when we update link handling, keep in mind that links are sometimes jammed inside other definitions
-        # (I.E. the definition won't start with the link symbol)
-        for word, link_targets in pending_links.items():
-            # assume no links length >1, that would just be excessive
-            for link in link_targets:
-                definition_map[word].extend(definition_map[link[1:]])
+                    definition_map[word].extend(dfn for dfn in definitions)
 
         return ((word, self.definition_delim.join(defs)) for word, defs in definition_map.items())
 
     def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        return {
-            DEFINITIONS: StringListValue(content.split(self.definition_delim))
-        }
+        content_items = content.split(self.definition_delim)
+        definitions = [c for c in content_items if not c.startswith(self.link_symbol)]
+        links = [c[1:] for c in content_items if c.startswith(self.link_symbol)]
+        if len(definitions) == 0:
+            if len(links) > 0:
+                first_link = links[0]
+                remaining_links = links[1:]
+                output = self.lookup_word(first_link)
+                if len(remaining_links) > 0:
+                    output[LINKS] = LinksValue([self.lookup_word(linked_word) for linked_word in remaining_links])
+            else:
+                raise WordLookupException('Empty entry found for word {} in EJDictHand'.format(word))
+        else:
+            output = {
+                DEFINITIONS: StringListValue(definitions),
+            }
+            if len(links) > 0:
+                output[LINKS] = LinksValue([self.lookup_word(linked_word) for linked_word in links])
+
+        return output

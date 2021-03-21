@@ -83,6 +83,29 @@ class LearnerDictionary(WebApiDataSource):
             target_words = [x for x in raw_json if x['meta']['id'].split(':')[0] == word]
 
         if len(target_words) == 0:
+            # If we can find the target word as an "undefined run-on" of one of the results, use that data instead
+            for word_json in raw_json:
+                if 'uros' in word_json:
+                    target_word = next((json for json in word_json['uros'] if json['ure'].replace('*', '') == word),
+                                       None)
+                    if target_word is not None:
+                        output = {}
+                        if 'prs' in target_word:
+                            pronunciation_data = target_word['prs'][0]
+                            if 'ipa' in pronunciation_data:
+                                output[fieldnames.PRONUNCIATION_IPA] = StringValue(pronunciation_data['ipa'])
+                            if 'sound' in pronunciation_data:
+                                output[fieldnames.AUDIO] = StringValue(self._get_word_pronunciation_url(
+                                    pronunciation_data['sound']['audio']))
+
+                        if 'fl' in target_word:
+                            # There's only going to be one POS, but we expect this to be a StringListValue
+                            # in the MerriamWebster data source
+                            output[fieldnames.PART_OF_SPEECH] = StringListValue([target_word['fl']])
+
+                        if len(output) > 0:
+                            return output
+
             raise WordLookupException('Merriam Webster learner\'s dictionary had no exact matches for {}'.format(word))
 
         pos_list = []
@@ -179,35 +202,23 @@ class MerriamWebster(DataSource):
         else:
             raise WordLookupException('No parts of speech found in MerriamWebster for {}'.format(word))
 
+        output = dictionary_data
+        output[fieldnames.WORD] = StringValue(word)
         try:  # thesaurus gags an awful lot
             thesaurus_data = self.thesaurus.lookup_word(word)
-            output = {
-                fieldnames.PART_OF_SPEECH: dictionary_data[fieldnames.PART_OF_SPEECH],
-                fieldnames.DEFINITIONS: dictionary_data[fieldnames.DEFINITIONS],
-                fieldnames.PRONUNCIATION_IPA: dictionary_data[fieldnames.PRONUNCIATION_IPA],
-                fieldnames.RAW_DATA: RawDataValue({
+            output[fieldnames.RAW_DATA] = RawDataValue({
                     'thesaurus': thesaurus_data[fieldnames.RAW_DATA].data,
                     'dictionary': dictionary_data[fieldnames.RAW_DATA].data
-                }),
-                fieldnames.WORD: StringValue(word)
-            }
+                })
             thesaurus = True
         except WordLookupException:
-            output = {
-                fieldnames.PART_OF_SPEECH: dictionary_data[fieldnames.PART_OF_SPEECH],
-                fieldnames.DEFINITIONS: dictionary_data[fieldnames.DEFINITIONS],
-                fieldnames.PRONUNCIATION_IPA: dictionary_data[fieldnames.PRONUNCIATION_IPA],
-                fieldnames.RAW_DATA: RawDataValue({
+            output[fieldnames.RAW_DATA] = RawDataValue({
                     'dictionary': dictionary_data[fieldnames.RAW_DATA].data
-                }),
-                fieldnames.WORD: StringValue(word)
-            }
+                })
             thesaurus = False
 
-        if fieldnames.AUDIO in dictionary_data:
-            output[fieldnames.AUDIO] = dictionary_data[fieldnames.AUDIO]
-
-        self._add_primary_pos_value_if_present(dictionary_data[fieldnames.INFLECTIONS], primary_pos,
+        if fieldnames.INFLECTIONS in dictionary_data:
+            self._add_primary_pos_value_if_present(dictionary_data[fieldnames.INFLECTIONS], primary_pos,
                                                fieldnames.INFLECTIONS, output)
 
         if thesaurus:

@@ -39,6 +39,9 @@ class ListConvertibleValue(Value, ABC):
     def to_list(self) -> List[str]:
         raise NotImplementedError()
 
+    def __iter__(self):
+        return self.to_list()
+
 
 class StringListValue(ListConvertibleValue):
     def __init__(self, val_list: List[str]):
