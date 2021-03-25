@@ -20,7 +20,7 @@ def main():
     enable_console_reporting()
     parser = ArgumentParser()
     parser.add_argument('--start', help='Index of first word to include', required=True, type=int)
-    parser.add_argument('--stop', help='Index of last word to include + 1', required=True, type=int)
+    parser.add_argument('--stop', help='Index of last word to include', required=True, type=int)
     parser.add_argument('--learner_key', help="Location of a text file containing a "
                                               "Merriam-Webster's Learner's Dictionary api key", required=True)
     parser.add_argument('--thesaurus_key', help="Location of a text file containing a "

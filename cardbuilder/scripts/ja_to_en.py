@@ -1,4 +1,3 @@
-# Takes a raw input list of Japanese words and outputs a flashcard csv
 from argparse import ArgumentParser
 from time import time
 import csv

@@ -121,3 +121,24 @@ def dedup_by(input_list: List, key: Callable) -> List:
     return [x for x in input_list if key(x) not in seen_set and not seen_set.add(key(x))]
 
 
+def build_instantiable_decorator(parent: type) -> type:
+    if not hasattr(parent, 'instantiable') and type(parent.instantiable, dict):
+        raise CardBuilderException('Cannot build instantiable decorator for parent without instantiable dict')
+
+    class InstantiableDecorator:
+        parent_class = parent
+
+        def __init__(self, instantiation_name):
+            self.instantiation_name = instantiation_name
+
+        def __call__(self, clazz):
+            self.parent_class.instantiable[self.instantiation_name] = clazz
+
+    return InstantiableDecorator
+
+
+
+
+
+
+

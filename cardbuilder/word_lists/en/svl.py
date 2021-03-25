@@ -12,8 +12,10 @@ from cardbuilder.data_sources import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.en_to_en import WordFrequency
 from cardbuilder.word_lists import WordList
+from cardbuilder.word_lists.word_list import instantiable_word_list
 
 
+@instantiable_word_list('svl')
 class SvlWords(WordList, ExternalDataDataSource):
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         filenames_with_level = sorted(((fname, int(fname.split('.')[0].split('_')[-1:][0])) for fname in glob('svl_*')),
@@ -50,7 +52,8 @@ class SvlWords(WordList, ExternalDataDataSource):
                     with open(filename, 'w+') as f:
                         f.writelines(x + '\n' for x in entries)
 
-    def __init__(self, word_freq: WordFrequency):
+    def __init__(self):
+        word_freq = WordFrequency()
         with InDataDir():
             self.conn = sqlite3.connect('cardbuilder.db')
 
