@@ -1,6 +1,5 @@
 import logging
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from typing import List, Union, Tuple, Dict, Callable
 
 from cardbuilder.card_resolvers.field import Field, ResolvedField
@@ -18,17 +17,16 @@ class Resolver(ABC):
         if len(set(x.target_field_name for x in self.fields)) != len(self.fields):
             raise CardBuilderException('Duplicate target field name in fields list')
 
-        self.fields_by_datasource = defaultdict(list)
         self.datasource_by_name = {}
         for field in fields:
-            name = type(field.data_source).__name__
-            if name in self.datasource_by_name:
-                if field.data_source != self.datasource_by_name[name]:
-                    raise CardBuilderException('Attempting to construct a resolver with duplicate '
-                                               'data sources of type {}'.format(name))
-            else:
-                self.datasource_by_name[name] = field.data_source
-            self.fields_by_datasource[field.data_source].append(field)
+            for data_source in field.data_sources:
+                name = type(data_source).__name__
+                if name in self.datasource_by_name:
+                    if data_source != self.datasource_by_name[name]:
+                        raise CardBuilderException('Attempting to construct a resolver with duplicate '
+                                                   'data sources of type {}'.format(name))
+                else:
+                    self.datasource_by_name[name] = data_source
 
         self.field_order_by_target_name = {}
         self.set_field_order(fields)
@@ -59,25 +57,23 @@ class Resolver(ABC):
 
     def _resolve_fieldlist(self, word: str) -> List[ResolvedField]:
         data_by_source = {}
-        for datasource, fields in self.fields_by_datasource.items():
+        failures_by_source = {}
+        for datasource in self.datasource_by_name.values():
             try:
                 data_by_source[datasource] = datasource.lookup_word(word)
             except WordLookupException as ex:
-                for field in fields:
-                    if not field.optional:
-                        raise CardResolutionException('Could not look up word "{}" from {} due to lookup exception: {}'.
-                                                      format(word, type(datasource).__name__, ex))
+                failures_by_source[datasource] = ex
 
         self.mutator(data_by_source, self.datasource_by_name.copy())
         result = []
-        for datasource, fields in self.fields_by_datasource.items():
-            for field in fields:
-                if datasource in data_by_source:
-                    result.append(field.resolve(data_by_source[datasource]))
-                elif field.optional:
-                    result.append(field.blank())
-                else:
-                    raise CardBuilderException('Found no data for non-optional field, this should never happen')
+
+        for field in self.fields:
+            field_data = [data_by_source[source] for source in field.data_sources if source in data_by_source]
+            resolved_field = field.resolve(field_data)
+            if resolved_field is None:
+                raise CardResolutionException('Failed to resolve non-optional field {} due to {}'.format(
+                    field.target_field_name, ', '.join(['{}:{}'.format(type(source).__name__, failure) for source, failure
+                                              in failures_by_source.items()])))
 
         return sorted(result, key=lambda x: (self.field_order_by_target_name.get(x.name, 100), x.name))
 
