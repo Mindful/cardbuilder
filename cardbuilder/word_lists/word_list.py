@@ -3,9 +3,6 @@ from cardbuilder.common.util import build_instantiable_decorator
 
 
 class WordList(ABC):
-
-    instantiable = {}
-
     @abstractmethod
     def __getitem__(self, index: int) -> str:
         raise NotImplementedError('Word sources must implement __getitem__')

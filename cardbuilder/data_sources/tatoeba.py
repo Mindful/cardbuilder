@@ -15,7 +15,7 @@ from fugashi import Tagger
 
 from cardbuilder.common import InDataDir
 from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar, \
-    dedup_by
+    dedup_by, DATABASE_NAME
 from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES, WORD
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.data_sources import Value, StringValue
@@ -121,7 +121,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
         self.target_lang = target_lang
         # intentionally don't call parent init; tatoeba doesn't use default sql table
         with InDataDir():
-            self.conn = sqlite3.connect('cardbuilder.db')
+            self.conn = sqlite3.connect(DATABASE_NAME)
             self._fetch_remote_files_if_necessary()
 
         self._create_tables()

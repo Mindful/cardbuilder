@@ -1,32 +1,30 @@
-from argparse import ArgumentParser
-from time import time
-import csv
 from typing import Dict
 
-from cardbuilder import CardBuilderException
-from cardbuilder.card_resolvers import CsvResolver, Field, AkpgResolver
+from cardbuilder.card_resolvers import Field
+from cardbuilder.card_resolvers.resolver import Resolver
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING, PITCH_ACCENT, WRITINGS
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.common.util import enable_console_reporting, log
+from cardbuilder.common.util import log
 from cardbuilder.data_sources import DataSource, StringValue, Value
 from cardbuilder.data_sources.ja_to_en import Jisho
 from cardbuilder.data_sources.ja_to_ja import NhkPitchAccent
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
-from cardbuilder.word_lists import InputList
+from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
+    log_failed_resolutions, trim_whitespace
+from cardbuilder.scripts.router import command
 from pykakasi import kakasi
 
 
-def main():
-    enable_console_reporting()
-    parser = ArgumentParser()
-    parser.add_argument('--input_file', required=True, help='Input file of words, one word per line')
-    parser.add_argument('--output_type', choices=['anki', 'csv'], help='The format the cards will be output in',
-                        default='csv')
-    args = parser.parse_args()
-    run_time = int(time())
-    output_filename = 'cardlist_additions_{}'.format(run_time)
+default_css = trim_whitespace('''.overline {text-decoration:overline;}
+                                .nopron {color: royalblue;}
+                                .nasal{color: red;}''')
 
-    words = InputList(args.input_file)
+
+@command('ja_to_en')
+def main():
+    parser = build_parser_with_common_args()
+    args, input_words = get_args_and_input_from_parser(parser)
+
     dictionary = Jisho()
     nhk = NhkPitchAccent()
     example_sentences = TatoebaExampleSentences(source_lang=JAPANESE, target_lang=ENGLISH)
@@ -36,7 +34,7 @@ def main():
         Field(dictionary, DEFINITIONS, 'definitions', lambda v: v.to_output_string(number=True)),
         Field(dictionary, DETAILED_READING, 'reading'),
         Field(nhk, PITCH_ACCENT, 'pitch_accent', optional=True),
-        Field(example_sentences, EXAMPLE_SENTENCES, 'example sentence')
+        Field(example_sentences, EXAMPLE_SENTENCES, 'example sentence', optional=True)
     ]
 
     converter = kakasi()
@@ -63,31 +61,19 @@ def main():
         except KeyError:
             pass
 
-    css = '''.overline {text-decoration:overline;}
-.nopron {color: royalblue;}
-.nasal{color: red;}'''
-    if args.output_type == 'csv':
-        resolver = CsvResolver(fields)
-    elif args.output_type == 'anki':
-        resolver = AkpgResolver(fields)
+    resolver = Resolver.instantiable[args.output_format](fields)
+    if args.output_format == 'anki':
+        resolver.set_card_templates(None, css=default_css)
         #TODO: add proper default cards like in the SVL deck so people don't have to make their own
-        resolver.set_card_templates(None, css=css)
-    else:
-        raise CardBuilderException('Unknown output type')
 
     resolver.mutator = disambiguate_pitch_accent
-    failed_resolutions = resolver.resolve_to_file(words, output_filename)
-    if len(failed_resolutions) > 0:
-        res_failures_filename = 'resolution_failures_{}.tsv'.format(run_time)
-        with open(res_failures_filename, 'w+') as error_file:
-            log(None, 'Resolution failures written to file {}'.format(res_failures_filename))
-            writer = csv.writer(error_file, delimiter='\t')
-            writer.writerows(failed_resolutions)
+    failed_resolutions = resolver.resolve_to_file(input_words, args.output)
+    log_failed_resolutions(failed_resolutions)
 
-    if args.output_type == 'csv':
+    if args.output_format != 'anki':
         log(None, 'If you are importing a CSV to Anki, remember to enable HTML imports')
         log(None, 'Also, the below CSS is required to display the NHK pitch accent data')
-        print(css)
+        print(default_css)
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ import requests
 from lxml import html
 
 from cardbuilder.common.fieldnames import SUPPLEMENTAL
-from cardbuilder.common.util import log, InDataDir, loading_bar
+from cardbuilder.common.util import log, InDataDir, loading_bar, DATABASE_NAME
 from cardbuilder.data_sources import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.en_to_en import WordFrequency
@@ -55,7 +55,7 @@ class SvlWords(WordList, ExternalDataDataSource):
     def __init__(self):
         word_freq = WordFrequency()
         with InDataDir():
-            self.conn = sqlite3.connect('cardbuilder.db')
+            self.conn = sqlite3.connect(DATABASE_NAME)
 
             self.default_table = type(self).__name__.lower()
             self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(

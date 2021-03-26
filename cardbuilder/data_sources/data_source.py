@@ -8,7 +8,7 @@ import requests
 from cardbuilder import WordLookupException
 from cardbuilder.common import InDataDir
 from cardbuilder.common.fieldnames import WORD, RAW_DATA
-from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar
+from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME
 from cardbuilder.data_sources.value import Value, StringValue, RawDataValue
 
 
@@ -30,7 +30,7 @@ class DataSource(ABC):
 
     def __init__(self):
         with InDataDir():
-            self.conn = sqlite3.connect('cardbuilder.db')
+            self.conn = sqlite3.connect(DATABASE_NAME)
 
         self.default_table = type(self).__name__.lower()
         self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
@@ -70,12 +70,16 @@ class WebApiDataSource(DataSource, ABC):
             return self.parse_word_content(word, cached_content)
         else:
             content = self._query_api(word)
+
+            # parse it first so we don't save it if we can't parse it
+            parsed_content = self.parse_word_content(word, content)
+
             # update cache
             self.conn.execute('INSERT OR REPLACE INTO {} VALUES (?, ?)'.format(self.default_table),
                               (word, content))
             self.conn.commit()
 
-            return self.parse_word_content(word, content)
+            return parsed_content
 
     def _query_cached_api_results(self, word: str) -> Optional[str]:
         cursor = self.conn.execute('SELECT content FROM {} WHERE word=?'.format(self.default_table), (word,))

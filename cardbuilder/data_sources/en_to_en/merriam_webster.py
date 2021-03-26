@@ -20,6 +20,7 @@ WORD_ID = 'wid'
 class CollegiateThesaurus(WebApiDataSource):
     def __init__(self, api_key):
         super().__init__()
+        log(self, 'initializing Collegiate Thesaurus with api key {}'.format(api_key))
         self.api_key = api_key
 
     def _query_api(self, word) -> str:
@@ -66,6 +67,7 @@ class LearnerDictionary(WebApiDataSource):
 
     def __init__(self, api_key):
         super().__init__()
+        log(self, 'initializing Learner\'s Dictionary with api key {}'.format(api_key))
         self.api_key = api_key
 
     def _query_api(self, word) -> str:
@@ -173,16 +175,31 @@ class LearnerDictionary(WebApiDataSource):
 
 # Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
 class MerriamWebster(DataSource):
+
+    keylike = re.compile(r'.+-.+-.+-.+')
+
     def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         pass
 
-    def __init__(self, learners_api_key, thesaurus_api_key, pos_in_definitions=False):
+    def __init__(self, learners_api_key: str, thesaurus_api_key: str, pos_in_definitions=False):
+        api_keys = []
+        for key in [learners_api_key, thesaurus_api_key]:
+            if self.keylike.match(key) and '.' not in key:
+                log(self, '{} looks like API key - using it'.format(key))
+                api_key = key
+            else:
+                with open(key) as f:
+                    api_key = f.readlines()[0]
+                log(self, 'read API key {} from file {} - using it'.format(api_key, key))
+
+            api_keys.append(api_key)
+
         # deliberately don't call super().__init__() because MW doesn't need an sqlite table
         # the learners dict and thesaurus have their own tables
         log(self, 'Instantiating {} dictionary with owernship of {} and {}'.format(
             *(x.__name__ for x in (MerriamWebster, LearnerDictionary, CollegiateThesaurus))))
-        self.learners_dict = LearnerDictionary(learners_api_key)
-        self.thesaurus = CollegiateThesaurus(thesaurus_api_key)
+        self.learners_dict = LearnerDictionary(api_keys[0])
+        self.thesaurus = CollegiateThesaurus(api_keys[1])
         self.pos_in_definitions = pos_in_definitions
 
     def __del__(self):

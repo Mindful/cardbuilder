@@ -12,9 +12,10 @@ import requests
 
 from cardbuilder import CardBuilderException
 
+DATABASE_NAME = 'cardbuilder.db'
+
 
 class InDataDir:
-
     directory = Path(__file__).parent.parent.absolute() / 'data'
     if not directory.exists():
         directory.mkdir()
@@ -122,8 +123,7 @@ def dedup_by(input_list: List, key: Callable) -> List:
 
 
 def build_instantiable_decorator(parent: type) -> type:
-    if not hasattr(parent, 'instantiable') and type(parent.instantiable, dict):
-        raise CardBuilderException('Cannot build instantiable decorator for parent without instantiable dict')
+    parent.instantiable = {}
 
     class InstantiableDecorator:
         parent_class = parent
@@ -133,6 +133,7 @@ def build_instantiable_decorator(parent: type) -> type:
 
         def __call__(self, clazz):
             self.parent_class.instantiable[self.instantiation_name] = clazz
+            return clazz
 
     return InstantiableDecorator
 

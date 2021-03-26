@@ -8,13 +8,14 @@ import genanki
 import requests
 
 from cardbuilder.card_resolvers.field import ResolvedField
-from cardbuilder.card_resolvers.resolver import Resolver
+from cardbuilder.card_resolvers.resolver import Resolver, instantiable_resovler
 from cardbuilder.common.fieldnames import AUDIO
-from cardbuilder.data_sources import Value, StringValue, StringListValue
-from cardbuilder.data_sources.value import StringListsWithPrimaryPOSValue, ListConvertibleValue
+from cardbuilder.data_sources import Value, StringValue
+from cardbuilder.data_sources.value import ListConvertibleValue
 from cardbuilder.exceptions import CardBuilderException
 
 
+@instantiable_resovler('anki')
 class AkpgResolver(Resolver):
 
     media_temp_directory = 'ankitemp'
@@ -74,7 +75,6 @@ class AkpgResolver(Resolver):
             self.templates = self.default_templates
 
         self.css = css
-
 
     def _output_file(self, rows: List[List[ResolvedField]], name: str):
         sample_row = rows[0]
