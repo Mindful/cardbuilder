@@ -73,7 +73,9 @@ class Resolver(ABC):
             if resolved_field is None:
                 raise CardResolutionException('Failed to resolve non-optional field {} due to {}'.format(
                     field.target_field_name, ', '.join(['{}:{}'.format(type(source).__name__, failure) for source, failure
-                                              in failures_by_source.items()])))
+                                              in failures_by_source.items() if source in field.data_sources])))
+            else:
+                result.append(resolved_field)
 
         return sorted(result, key=lambda x: (self.field_order_by_target_name.get(x.name, 100), x.name))
 

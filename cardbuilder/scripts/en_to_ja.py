@@ -109,7 +109,7 @@ def main():
         Field(jp_dictionary, WORD, '英単語'),
         Field(mw, PRONUNCIATION_IPA, '国際音声記号', stringifier=lambda x: x.to_output_string(group_by_pos=False),
               optional=True),
-        Field(mw, INFLECTIONS, '活用形', stringifier=lambda x: x.to_output_string(join_vals_with=', '),
+        Field([mw, jp_dictionary], INFLECTIONS, '活用形', stringifier=lambda x: x.to_output_string(join_vals_with=', '),
               optional=True),
         Field(mw, AUDIO, '音声', stringifier=AkpgResolver.media_download_postprocessor, optional=True),
         Field(mw, DEFINITIONS, '英語での定義', stringifier=lambda x: AkpgResolver.linebreak_postprocessing(
