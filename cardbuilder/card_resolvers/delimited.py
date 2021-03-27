@@ -2,10 +2,9 @@ import csv
 from typing import List
 
 from cardbuilder.card_resolvers.field import ResolvedField
-from cardbuilder.card_resolvers.resolver import Resolver, instantiable_resovler
+from cardbuilder.card_resolvers.resolver import Resolver
 
 
-@instantiable_resovler('csv')
 class CsvResolver(Resolver):
     def _output_file(self, rows: List[List[ResolvedField]], filename: str) -> str:
         final_out_name = '{}.csv'.format(filename.lower().replace(' ', '_'))

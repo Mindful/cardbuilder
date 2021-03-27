@@ -1,7 +1,7 @@
 from typing import Callable, Dict, Union, List, Optional
 
-from cardbuilder import CardBuilderException
-from cardbuilder.data_sources import DataSource, Value
+from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources.value import Value
 
 
 def default_stringify(value: Value) -> str:

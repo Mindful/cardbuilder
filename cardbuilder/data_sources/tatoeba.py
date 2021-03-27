@@ -18,7 +18,7 @@ from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, lo
     dedup_by, DATABASE_NAME
 from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES, WORD
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.data_sources import Value, StringValue
+from cardbuilder.data_sources.value import Value, StringValue
 from cardbuilder import CardBuilderException, WordLookupException
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 

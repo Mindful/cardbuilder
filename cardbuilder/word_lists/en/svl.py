@@ -8,14 +8,12 @@ from lxml import html
 
 from cardbuilder.common.fieldnames import SUPPLEMENTAL
 from cardbuilder.common.util import log, InDataDir, loading_bar, DATABASE_NAME
-from cardbuilder.data_sources import Value, StringValue
+from cardbuilder.data_sources.value import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.en_to_en import WordFrequency
 from cardbuilder.word_lists import WordList
-from cardbuilder.word_lists.word_list import instantiable_word_list
 
 
-@instantiable_word_list('svl')
 class SvlWords(WordList, ExternalDataDataSource):
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         filenames_with_level = sorted(((fname, int(fname.split('.')[0].split('_')[-1:][0])) for fname in glob('svl_*')),

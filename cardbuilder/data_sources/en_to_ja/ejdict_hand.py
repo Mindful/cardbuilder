@@ -9,7 +9,7 @@ import requests
 from cardbuilder import WordLookupException
 from cardbuilder.common.fieldnames import DEFINITIONS, LINKS
 from cardbuilder.common.util import log, loading_bar
-from cardbuilder.data_sources import Value, StringListValue
+from cardbuilder.data_sources.value import Value, StringListValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.value import LinksValue
 

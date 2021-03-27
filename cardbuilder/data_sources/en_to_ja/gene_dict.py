@@ -1,14 +1,11 @@
 import tarfile
-from io import BytesIO
 from os.path import exists
 from typing import Dict, Iterable, Tuple
 from json import dumps, loads
 
-import requests
-
 from cardbuilder.common.util import log, download_to_stream_with_loading_bar
 from cardbuilder.common.fieldnames import DEFINITIONS, SUPPLEMENTAL, EXAMPLE_SENTENCES
-from cardbuilder.data_sources import Value, StringValue
+from cardbuilder.data_sources.value import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
 

@@ -8,6 +8,7 @@ from typing import Iterable, Optional, Any, List, Callable
 from itertools import zip_longest
 
 from tqdm import tqdm
+from retry.api import retry_call
 import requests
 
 from cardbuilder import CardBuilderException
@@ -35,6 +36,10 @@ class InDataDir:
 LOGGER = logging.getLogger('cardbuilder')
 LOGGER.addHandler(logging.NullHandler())
 LOADING_BARS_ENABLED = False
+
+
+def retry_with_logging(func: Callable, tries: int, delay: int, fargs=None, fkwargs=None):
+    return retry_call(func, tries=tries, delay=delay, fargs=fargs, fkwargs=fkwargs, logger=LOGGER)
 
 
 def log(obj: Any, text: str, level: int = logging.INFO):
@@ -121,21 +126,6 @@ def dedup_by(input_list: List, key: Callable) -> List:
     seen_set = set()
     return [x for x in input_list if key(x) not in seen_set and not seen_set.add(key(x))]
 
-
-def build_instantiable_decorator(parent: type) -> type:
-    parent.instantiable = {}
-
-    class InstantiableDecorator:
-        parent_class = parent
-
-        def __init__(self, instantiation_name):
-            self.instantiation_name = instantiation_name
-
-        def __call__(self, clazz):
-            self.parent_class.instantiable[self.instantiation_name] = clazz
-            return clazz
-
-    return InstantiableDecorator
 
 
 

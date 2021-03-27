@@ -4,9 +4,9 @@ from typing import Any, List, Dict, Iterable, Tuple
 
 from cardbuilder import WordLookupException
 from cardbuilder.common.fieldnames import WORD_FREQ, WORD
-from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar, log, DATABASE_NAME
+from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar, log, DATABASE_NAME, retry_with_logging
 
-from cardbuilder.data_sources import Value, StringValue
+from cardbuilder.data_sources.value import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
 
@@ -19,7 +19,7 @@ class WordFrequency(ExternalDataDataSource):
         # deliberately don't call super().__init__() because we have a custom table schema
         with InDataDir():
             self.conn = sqlite3.connect(DATABASE_NAME)
-            self._fetch_remote_files_if_necessary()
+            retry_with_logging(self._fetch_remote_files_if_necessary, tries=2, delay=1)
 
         self.default_table = type(self).__name__.lower()
         self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(

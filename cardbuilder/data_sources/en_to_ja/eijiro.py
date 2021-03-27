@@ -1,17 +1,16 @@
 from collections import defaultdict
 from logging import WARNING
 from os.path import abspath
-from typing import Any, Dict, List, Tuple, Optional, Iterable
+from typing import Dict, Tuple, Iterable
 
 from cardbuilder import CardBuilderException, WordLookupException
 from cardbuilder.common import fieldnames
-from cardbuilder.data_sources import Value, StringValue
 from cardbuilder.common.util import fast_linecount, loading_bar, log
 import re
 from string import digits
 
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
-from cardbuilder.data_sources.value import StringListsWithPOSValue, LinksValue
+from cardbuilder.data_sources.value import StringListsWithPOSValue, LinksValue, Value, StringValue
 
 digitset = set(digits)
 

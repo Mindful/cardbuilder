@@ -7,10 +7,10 @@ from json import loads
 
 from cardbuilder.common import fieldnames
 from cardbuilder.common.util import log
-from cardbuilder.data_sources import DataSource, Value, StringListValue
+from cardbuilder.data_sources import DataSource
 from cardbuilder.data_sources.data_source import WebApiDataSource
 from cardbuilder.data_sources.value import StringListsWithPOSValue, StringListsWithPrimaryPOSValue, RawDataValue, \
-    StringsWithPosValue, StringValue
+    StringsWithPosValue, StringValue,  Value, StringListValue
 from cardbuilder.exceptions import WordLookupException
 
 WORD_ID = 'wid'

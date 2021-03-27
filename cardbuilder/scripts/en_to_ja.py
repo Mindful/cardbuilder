@@ -2,7 +2,7 @@ from cardbuilder.card_resolvers import AkpgResolver, Field
 from cardbuilder.card_resolvers.resolver import Resolver
 from cardbuilder.common.fieldnames import *
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.data_sources import Value
+from cardbuilder.data_sources.value import Value
 from cardbuilder.data_sources.en_to_en import MerriamWebster, WordFrequency
 from cardbuilder.data_sources.en_to_ja.eijiro import Eijiro
 from cardbuilder.data_sources.en_to_ja.ejdict_hand import EJDictHand
@@ -10,6 +10,7 @@ from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions, trim_whitespace
 from cardbuilder.scripts.router import command
+from cardbuilder import card_resolvers
 
 default_eng_card_front = trim_whitespace('''
                     <div style="text-align: center;"><h1>{{英単語}}</h1></div>
@@ -123,7 +124,7 @@ def main():
               optional=True)
     ]
 
-    resolver = Resolver.instantiable[args.output_format](fields)
+    resolver = card_resolvers.instantiable[args.output_format](fields)
     if args.output_format == 'anki':
         resolver.set_card_templates([{'name': '英語->日本語', 'qfmt': default_eng_card_front, 'afmt': default_eng_card_back},
                                      {'name': '日本語->英語', 'qfmt': default_jp_card_front, 'afmt': default_eng_card_back}],

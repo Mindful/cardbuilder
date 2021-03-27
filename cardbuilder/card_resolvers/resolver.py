@@ -3,8 +3,9 @@ from abc import ABC, abstractmethod
 from typing import List, Union, Tuple, Dict, Callable
 
 from cardbuilder.card_resolvers.field import Field, ResolvedField
-from cardbuilder.common.util import loading_bar, log, build_instantiable_decorator
-from cardbuilder.data_sources import DataSource, Value
+from cardbuilder.common.util import loading_bar, log
+from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources.value import Value
 from cardbuilder.exceptions import CardResolutionException, CardBuilderException, WordLookupException
 from cardbuilder.word_lists import WordList
 
@@ -93,7 +94,3 @@ class Resolver(ABC):
             log(self, 'Failed to resolve {} cards'.format(len(self.failed_resolutions)), level=logging.WARNING)
 
         return self.failed_resolutions
-
-
-instantiable_resovler = build_instantiable_decorator(Resolver)
-

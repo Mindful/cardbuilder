@@ -6,10 +6,9 @@ from json import dumps, loads
 
 from cardbuilder.common.fieldnames import PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, DEFINITIONS
 from cardbuilder.common.util import is_hiragana
-from cardbuilder.data_sources import Value, StringValue, StringListValue
 from cardbuilder import WordLookupException
 from cardbuilder.data_sources.data_source import WebApiDataSource
-from cardbuilder.data_sources.value import StringListsWithPOSValue, RawDataValue
+from cardbuilder.data_sources.value import StringListsWithPOSValue, Value, StringValue, StringListValue
 
 
 class Jisho(WebApiDataSource):

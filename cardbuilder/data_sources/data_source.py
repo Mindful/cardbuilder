@@ -1,14 +1,13 @@
 from abc import ABC, abstractmethod
 from os.path import exists
-from typing import Dict, Optional, Any, Iterable, Tuple, Callable
+from typing import Dict, Optional, Iterable, Tuple, Callable
 import sqlite3
 
-import requests
 
 from cardbuilder import WordLookupException
 from cardbuilder.common import InDataDir
 from cardbuilder.common.fieldnames import WORD, RAW_DATA
-from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME
+from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME, retry_with_logging
 from cardbuilder.data_sources.value import Value, StringValue, RawDataValue
 
 
@@ -98,7 +97,7 @@ class ExternalDataDataSource(DataSource, ABC):
     def __init__(self):
         super().__init__()
         with InDataDir():
-            self._fetch_remote_files_if_necessary()
+            retry_with_logging(self._fetch_remote_files_if_necessary, tries=2, delay=1)
         self._load_data_into_database()
 
     def lookup_word(self, word: str) -> Dict[str, Value]:

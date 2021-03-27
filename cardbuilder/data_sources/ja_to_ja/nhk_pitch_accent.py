@@ -4,7 +4,7 @@ from typing import Dict, Iterable, Tuple
 from json import dumps, loads
 
 from cardbuilder.common.fieldnames import PITCH_ACCENT
-from cardbuilder.data_sources import Value
+from cardbuilder.data_sources.value import Value
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
 

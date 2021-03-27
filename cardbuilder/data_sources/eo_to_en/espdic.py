@@ -1,7 +1,7 @@
-from typing import Any, Dict, Iterable, Tuple
+from typing import Dict, Iterable, Tuple
 from collections import defaultdict
 
-from cardbuilder.data_sources import Value, StringValue, StringListValue
+from cardbuilder.data_sources.value import Value, StringValue, StringListValue
 from cardbuilder.common.fieldnames import DEFINITIONS, PART_OF_SPEECH
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 

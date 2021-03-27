@@ -1,11 +1,13 @@
 from typing import Dict
 
+from cardbuilder import card_resolvers
 from cardbuilder.card_resolvers import Field
 from cardbuilder.card_resolvers.resolver import Resolver
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING, PITCH_ACCENT, WRITINGS
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import log
-from cardbuilder.data_sources import DataSource, StringValue, Value
+from cardbuilder.data_sources import DataSource
+from cardbuilder.data_sources.value import StringValue, Value
 from cardbuilder.data_sources.ja_to_en import Jisho
 from cardbuilder.data_sources.ja_to_ja import NhkPitchAccent
 from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
@@ -61,7 +63,7 @@ def main():
         except KeyError:
             pass
 
-    resolver = Resolver.instantiable[args.output_format](fields)
+    resolver = card_resolvers.instantiable[args.output_format](fields)
     if args.output_format == 'anki':
         resolver.set_card_templates(None, css=default_css)
         #TODO: add proper default cards like in the SVL deck so people don't have to make their own
