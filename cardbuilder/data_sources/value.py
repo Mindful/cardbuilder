@@ -26,6 +26,16 @@ class Value(ABC):
         return str(self.__dict__)
 
 
+class ExternalMediaValue(Value):
+    #TODO: use this for MerriamWebster, and potentially give it its own sqlite3 db table for caching
+    # have special logic in resolvers to handle media - also potentially include media type (image vs sound, etc.)
+    def __init__(self, val: str):
+        self.val = val
+
+    def to_output_string(self, **kwargs) -> str:
+        return self.val
+
+
 class StringValue(Value):
     def __init__(self, val: str):
         self.val = val

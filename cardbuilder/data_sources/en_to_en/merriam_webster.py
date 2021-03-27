@@ -7,8 +7,7 @@ from json import loads
 
 from cardbuilder.common import fieldnames
 from cardbuilder.common.util import log
-from cardbuilder.data_sources import DataSource
-from cardbuilder.data_sources.data_source import WebApiDataSource
+from cardbuilder.data_sources.data_source import WebApiDataSource, AggregatingDataSource
 from cardbuilder.data_sources.value import StringListsWithPOSValue, StringListsWithPrimaryPOSValue, RawDataValue, \
     StringsWithPosValue, StringValue,  Value, StringListValue
 from cardbuilder.exceptions import WordLookupException
@@ -174,12 +173,9 @@ class LearnerDictionary(WebApiDataSource):
 
 
 # Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
-class MerriamWebster(DataSource):
+class MerriamWebster(AggregatingDataSource):
 
     keylike = re.compile(r'.+-.+-.+-.+')
-
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        pass
 
     def __init__(self, learners_api_key: str, thesaurus_api_key: str, pos_in_definitions=False):
         api_keys = []

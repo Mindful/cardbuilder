@@ -2,7 +2,6 @@ from typing import Dict
 
 from cardbuilder import card_resolvers
 from cardbuilder.card_resolvers import Field
-from cardbuilder.card_resolvers.resolver import Resolver
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING, PITCH_ACCENT, WRITINGS
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import log

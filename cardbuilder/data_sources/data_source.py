@@ -47,6 +47,25 @@ class DataSource(ABC):
         return c.fetchone()[0]
 
 
+"""For data sources that own other data sources and don't have a sqlite table of their own"""
+class AggregatingDataSource(DataSource, ABC):
+
+    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        raise NotImplementedError()
+
+    def __init__(self):
+        pass
+
+    def __del__(self):
+        pass
+
+    def get_table_rowcount(self, table_name: str = None):
+        raise NotImplementedError()
+
+    def parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+        raise NotImplementedError()
+
+
 class WebApiDataSource(DataSource, ABC):
     @abstractmethod
     def _query_api(self, word: str) -> str:
