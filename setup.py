@@ -33,6 +33,7 @@ setuptools.setup(
         "pykakasi ~= 2.0.6",
         "unidic-lite ~= 1.0.8",
         "fugashi ~= 1.1.0",
-        "retry ~= 0.9.2"
+        "retry ~= 0.9.2",
+        "spacy ~= 3.0.5"
     ]
 )

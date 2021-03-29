@@ -10,9 +10,12 @@ from itertools import zip_longest
 from tqdm import tqdm
 from retry.api import retry_call
 from pykakasi import kakasi as kakasi_state
+import spacy
+from spacy.cli.download import download as spacy_download
 import requests
 
 from cardbuilder import CardBuilderException
+from cardbuilder.common.languages import ENGLISH, JAPANESE
 
 DATABASE_NAME = 'cardbuilder.db'
 
@@ -20,12 +23,39 @@ DATABASE_NAME = 'cardbuilder.db'
 class Shared:
     kakasi = None
 
+    spacy_models = {}
+
+    spacy_model_names = {
+        ENGLISH: 'en_core_web_sm',
+        JAPANESE: 'ja_core_news_sm'
+    }
+
     @classmethod
     def get_kakasi(cls) -> kakasi_state:
         if cls.kakasi is None:
             cls.kakasi = kakasi_state()
 
         return cls.kakasi
+
+    @classmethod
+    def get_spacy(cls, language: str):
+        if language not in cls.spacy_models:
+            if language not in cls.spacy_model_names:
+                raise CardBuilderException('No spacy model for language {}'.format(language))
+
+            model_name = cls.spacy_model_names[language]
+            try:
+                # tok2vec seems to matter for lemmatization, so we include it
+                cls.spacy_models[language] = spacy.load(model_name, exclude=['parser', 'senter', 'ner'])
+            except OSError:
+                # this used to require explicit linking as per https://github.com/explosion/spaCy/issues/3435
+                # it seems it doesn't anymore though, and just the download function is fine
+                spacy_download(model_name)
+
+        return cls.spacy_models[language]
+
+
+
 
 
 class InDataDir:

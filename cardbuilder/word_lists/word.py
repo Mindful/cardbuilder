@@ -19,7 +19,8 @@ class Word:
             languages.JAPANESE: lambda input_form: ''.join(x['hira'] for x in Shared.get_kakasi().convert(input_form))
         },
         WordForm.LEMMA: {
-            #TODO: lemmatization for various languages
+            languages.ENGLISH: lambda input_form: Shared.get_spacy(languages.ENGLISH)(input_form)[0].lemma_,
+            languages.JAPANESE: lambda input_form: Shared.get_spacy(languages.JAPANESE)(input_form)[0].lemma_,
         }
     }
 
@@ -28,6 +29,9 @@ class Word:
         self.lang = lang
         if additional_forms is not None:
             self.additional_forms = additional_forms
+
+    def get_form_set(self):
+        return set(self)
 
     def __iter__(self) -> Iterable:
         yield self.input_form
