@@ -1,16 +1,17 @@
 from typing import Dict, Set
 
 import requests
-from pykakasi import kakasi
 from json import dumps, loads
 
 from cardbuilder.common.fieldnames import PART_OF_SPEECH, READING, WRITINGS, DETAILED_READING, DEFINITIONS
-from cardbuilder.common.util import is_hiragana
+from cardbuilder.common.util import is_hiragana, Shared
 from cardbuilder import WordLookupException
 from cardbuilder.data_sources.data_source import WebApiDataSource
 from cardbuilder.data_sources.value import StringListsWithPOSValue, Value, StringValue, StringListValue
 
 
+#TODO: now that words automatically yield multiple forms for themselves, jisho should just use that, instead of
+# having custom configs for which matches to accept
 class Jisho(WebApiDataSource):
 
     def __init__(self, accept_reading_match=True, accept_non_match=False, enable_cache_retrieval=True):
@@ -18,7 +19,7 @@ class Jisho(WebApiDataSource):
         self._exact_matched = set()
         self._reading_matched = set()
         self._non_matched = set()
-        self.readings = kakasi()
+        self.readings = Shared.get_kakasi()
         self.accept_reading_match = accept_reading_match
         self.accept_non_match = accept_non_match
 

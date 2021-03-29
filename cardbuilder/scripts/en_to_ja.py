@@ -1,5 +1,4 @@
 from cardbuilder.card_resolvers import AkpgResolver, Field
-from cardbuilder.card_resolvers.resolver import Resolver
 from cardbuilder.common.fieldnames import *
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.data_sources.value import Value

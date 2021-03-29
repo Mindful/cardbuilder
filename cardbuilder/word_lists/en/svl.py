@@ -1,17 +1,19 @@
 import sqlite3
 from glob import glob
 from os.path import exists
-from typing import Any, Dict, Iterable, Tuple
+from typing import Dict, Iterable, Tuple, List, Optional
 
 import requests
 from lxml import html
 
 from cardbuilder.common.fieldnames import SUPPLEMENTAL
+from cardbuilder.common.languages import ENGLISH
 from cardbuilder.common.util import log, InDataDir, loading_bar, DATABASE_NAME
 from cardbuilder.data_sources.value import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.en_to_en import WordFrequency
 from cardbuilder.word_lists import WordList
+from cardbuilder.word_lists.word import WordForm
 
 
 class SvlWords(WordList, ExternalDataDataSource):
@@ -50,38 +52,28 @@ class SvlWords(WordList, ExternalDataDataSource):
                     with open(filename, 'w+') as f:
                         f.writelines(x + '\n' for x in entries)
 
-    def __init__(self):
-        word_freq = WordFrequency()
+    def __init__(self, order_by_wordfreq: bool = True, additional_forms: Optional[List[WordForm]] = None):
         with InDataDir():
             self.conn = sqlite3.connect(DATABASE_NAME)
 
             self.default_table = type(self).__name__.lower()
             self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
                 word TEXT PRIMARY KEY,
-                level INT
+                content INT
             );'''.format(self.default_table))
             self.conn.commit()
 
             self._fetch_remote_files_if_necessary()
             self._load_data_into_database()
 
-        c = self.conn.execute('SELECT word, level from {}'.format(self.default_table))
-        self.all_words_with_level = sorted(c.fetchall(), key=lambda tpl: (tpl[1], -word_freq[tpl[0]]))
+        c = self.conn.execute('SELECT word, content from {}'.format(self.default_table))
 
-    def __getitem__(self, index: int):
-        results = self.all_words_with_level[index]
-        if len(results) == 1:
-            return results[0][0]
-        else:
-            # the slice case
-            return [tpl[0] for tpl in results]
-
-    def __iter__(self):
-        return iter(word for word, level in self.all_words_with_level)
-
-    def __len__(self):
-        return len(self.all_words_with_level)
-
+        all_words_with_level = list(c.fetchall())
+        if order_by_wordfreq:
+            word_freq = WordFrequency()
+            all_words_with_level = sorted(all_words_with_level, key=lambda tpl: (tpl[1], -word_freq[tpl[0]]))
+        ordered_input_forms = [word for word, level in all_words_with_level]
+        super().__init__(ordered_input_forms, ENGLISH, additional_forms)
 
 
 

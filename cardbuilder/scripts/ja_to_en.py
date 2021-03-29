@@ -4,7 +4,7 @@ from cardbuilder import card_resolvers
 from cardbuilder.card_resolvers import Field
 from cardbuilder.common.fieldnames import WORD, DEFINITIONS, EXAMPLE_SENTENCES, DETAILED_READING, PITCH_ACCENT, WRITINGS
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.common.util import log
+from cardbuilder.common.util import log, Shared
 from cardbuilder.data_sources import DataSource
 from cardbuilder.data_sources.value import StringValue, Value
 from cardbuilder.data_sources.ja_to_en import Jisho
@@ -13,7 +13,6 @@ from cardbuilder.data_sources.tatoeba import TatoebaExampleSentences
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions, trim_whitespace
 from cardbuilder.scripts.router import command
-from pykakasi import kakasi
 
 
 default_css = trim_whitespace('''.overline {text-decoration:overline;}
@@ -38,7 +37,7 @@ def main():
         Field(example_sentences, EXAMPLE_SENTENCES, 'example sentence', optional=True)
     ]
 
-    converter = kakasi()
+    converter = Shared.get_kakasi()
 
     # an example of how to use arbitrary mutators with resolvers
     # this one in particular accomplishes two things:

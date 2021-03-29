@@ -9,11 +9,23 @@ from itertools import zip_longest
 
 from tqdm import tqdm
 from retry.api import retry_call
+from pykakasi import kakasi as kakasi_state
 import requests
 
 from cardbuilder import CardBuilderException
 
 DATABASE_NAME = 'cardbuilder.db'
+
+
+class Shared:
+    kakasi = None
+
+    @classmethod
+    def get_kakasi(cls) -> kakasi_state:
+        if cls.kakasi is None:
+            cls.kakasi = kakasi_state()
+
+        return cls.kakasi
 
 
 class InDataDir:
