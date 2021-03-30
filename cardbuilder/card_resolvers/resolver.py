@@ -7,7 +7,8 @@ from cardbuilder.common.util import loading_bar, log
 from cardbuilder.data_sources import DataSource
 from cardbuilder.data_sources.value import Value
 from cardbuilder.exceptions import CardResolutionException, CardBuilderException, WordLookupException
-from cardbuilder.word_lists import WordList
+from cardbuilder.word_lists.word_list import WordList
+from cardbuilder.word_lists.word import Word
 
 
 class Resolver(ABC):
@@ -56,14 +57,17 @@ class Resolver(ABC):
                         datasource_by_name: Dict[str, DataSource]) -> None:
         pass
 
-    def _resolve_fieldlist(self, word: str) -> List[ResolvedField]:
+    def _resolve_fieldlist(self, word: Word) -> List[ResolvedField]:
         data_by_source = {}
         failures_by_source = {}
         for datasource in self.datasource_by_name.values():
-            try:
-                data_by_source[datasource] = datasource.lookup_word(word)
-            except WordLookupException as ex:
-                failures_by_source[datasource] = ex
+            for form in word:
+                try:
+                    data_by_source[datasource] = datasource.lookup_word(word, form)
+                    break  # if we find something, we're done
+                except WordLookupException as ex:
+                    if datasource not in failures_by_source:  # record the first failure
+                        failures_by_source[datasource] = ex
 
         self.mutator(data_by_source, self.datasource_by_name.copy())
         result = []

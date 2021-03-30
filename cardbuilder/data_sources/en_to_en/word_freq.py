@@ -2,12 +2,14 @@ import csv
 import sqlite3
 from typing import Any, List, Dict, Iterable, Tuple
 
-from cardbuilder import WordLookupException
-from cardbuilder.common.fieldnames import WORD_FREQ, WORD
+from cardbuilder.data_sources.word_data import WordData
+from cardbuilder.exceptions import WordLookupException
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar, log, DATABASE_NAME, retry_with_logging
 
 from cardbuilder.data_sources.value import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
+from cardbuilder.word_lists.word import Word
 
 
 class WordFrequency(ExternalDataDataSource):
@@ -39,8 +41,8 @@ class WordFrequency(ExternalDataDataSource):
             raise WordLookupException('No frequency information for {}'.format(word))
 
         return {
-            WORD_FREQ: StringValue(str(self[word])),
-            WORD: word
+            Fieldname.WORD_FREQ: StringValue(str(self[word])),
+            Fieldname.WORD: word
         }
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, int]]:
@@ -54,7 +56,7 @@ class WordFrequency(ExternalDataDataSource):
 
         return frequency.items()
 
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+    def parse_word_content(self, word: Word, form: str, content: str) -> WordData:
         pass
 
     def __getitem__(self, word: str) -> int:

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional, List, Iterable
 
-from cardbuilder import CardBuilderException
+from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.common import languages
 from cardbuilder.common.util import Shared
 
@@ -29,6 +29,8 @@ class Word:
         self.lang = lang
         if additional_forms is not None:
             self.additional_forms = additional_forms
+        else:
+            self.additional_forms = []
 
     def get_form_set(self):
         return set(self)
@@ -38,7 +40,7 @@ class Word:
 
         for form in self.additional_forms:
             if self.lang not in self.form_map[form]:
-                raise CardBuilderException('Unsupported form {} for language {}'.format(form.name, self.lang))
+                raise CardBuilderUsageException('Unsupported form {} for language {}'.format(form.name, self.lang))
 
             other_form = self.form_map[form][self.lang](self.input_form)
             if other_form != self.input_form:

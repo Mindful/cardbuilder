@@ -4,7 +4,7 @@ from typing import Dict, Iterable, Tuple
 from json import dumps, loads
 
 from cardbuilder.common.util import log, download_to_stream_with_loading_bar
-from cardbuilder.common.fieldnames import DEFINITIONS, SUPPLEMENTAL, EXAMPLE_SENTENCES
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.data_sources.value import Value, StringValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
@@ -44,11 +44,11 @@ class GeneDict(ExternalDataDataSource):
                 reading_word = True
 
         for word in definitions:
-            data = {DEFINITIONS: definitions[word]}
+            data = {Fieldname.DEFINITIONS: definitions[word]}
             if word in supplemental:
-                data[SUPPLEMENTAL] = supplemental[word]
+                data[Fieldname.SUPPLEMENTAL] = supplemental[word]
             if word in examples:
-                data[EXAMPLE_SENTENCES] = examples[word]
+                data[Fieldname.EXAMPLE_SENTENCES] = examples[word]
             yield word, dumps(data)
 
     def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:

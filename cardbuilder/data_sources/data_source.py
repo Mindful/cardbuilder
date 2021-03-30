@@ -1,31 +1,25 @@
 from abc import ABC, abstractmethod
 from os.path import exists
-from typing import Dict, Optional, Iterable, Tuple, Callable
+from typing import Optional, Iterable, Tuple, Callable
 import sqlite3
 
 
-from cardbuilder import WordLookupException
-from cardbuilder.common import InDataDir
-from cardbuilder.common.fieldnames import WORD, RAW_DATA
-from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME, retry_with_logging
-from cardbuilder.data_sources.value import Value, StringValue, RawDataValue
+from cardbuilder.exceptions import WordLookupException
+from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME, retry_with_logging,\
+    InDataDir
+from cardbuilder.data_sources.word_data import WordData
+from cardbuilder.word_lists.word import Word
 
 
 class DataSource(ABC):
 
     @abstractmethod
-    def lookup_word(self, word: str) -> Dict[str, Value]:
+    def lookup_word(self, word: Word, form: str) -> WordData:
         raise NotImplementedError()
 
     @abstractmethod
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+    def parse_word_content(self, word: Word, form: str, content: str) -> WordData:
         raise NotImplementedError()
-
-    def parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        parsed_content = self._parse_word_content(word, content)
-        parsed_content[WORD] = StringValue(word)
-        parsed_content[RAW_DATA] = RawDataValue(content)
-        return parsed_content
 
     def __init__(self):
         with InDataDir():
@@ -47,11 +41,8 @@ class DataSource(ABC):
         return c.fetchone()[0]
 
 
-"""For data sources that own other data sources and don't have a sqlite table of their own"""
 class AggregatingDataSource(DataSource, ABC):
-
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        raise NotImplementedError()
+    """The base class for data sources that own other data sources and don't have a sqlite table of their own."""
 
     def __init__(self):
         pass
@@ -62,13 +53,14 @@ class AggregatingDataSource(DataSource, ABC):
     def get_table_rowcount(self, table_name: str = None):
         raise NotImplementedError()
 
-    def parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+    def parse_word_content(self, word: Word, form: str, content: str) -> WordData:
         raise NotImplementedError()
 
 
 class WebApiDataSource(DataSource, ABC):
+
     @abstractmethod
-    def _query_api(self, word: str) -> str:
+    def _query_api(self, form: str) -> str:
         raise NotImplementedError()
 
     def __init__(self, enable_cache_retrieval=True):
@@ -79,28 +71,31 @@ class WebApiDataSource(DataSource, ABC):
         else:
             log(self, 'Running with cache retrieval disabled (will still write to cache)')
 
-    def lookup_word(self, word: str) -> Dict[str, Value]:
+    def set_cache_retrieval(self, value: bool):
+        self.enable_cache_retrieval = value
+
+    def lookup_word(self, word: Word, form: str) -> WordData:
         cached_content = None
         if self.enable_cache_retrieval:
-            cached_content = self._query_cached_api_results(word)
+            cached_content = self._query_cached_api_results(form)
 
         if cached_content is not None:
-            return self.parse_word_content(word, cached_content)
+            return self.parse_word_content(word, form, cached_content)
         else:
-            content = self._query_api(word)
+            content = self._query_api(form)
 
             # parse it first so we don't save it if we can't parse it
-            parsed_content = self.parse_word_content(word, content)
+            parsed_content = self.parse_word_content(word, form, content)
 
             # update cache
             self.conn.execute('INSERT OR REPLACE INTO {} VALUES (?, ?)'.format(self.default_table),
-                              (word, content))
+                              (form, content))
             self.conn.commit()
 
             return parsed_content
 
-    def _query_cached_api_results(self, word: str) -> Optional[str]:
-        cursor = self.conn.execute('SELECT content FROM {} WHERE word=?'.format(self.default_table), (word,))
+    def _query_cached_api_results(self, form: str) -> Optional[str]:
+        cursor = self.conn.execute('SELECT content FROM {} WHERE word=?'.format(self.default_table), (form,))
         result = cursor.fetchone()
         return result[0] if result is not None else None
 
@@ -119,13 +114,13 @@ class ExternalDataDataSource(DataSource, ABC):
             retry_with_logging(self._fetch_remote_files_if_necessary, tries=2, delay=1)
         self._load_data_into_database()
 
-    def lookup_word(self, word: str) -> Dict[str, Value]:
-        cursor = self.conn.execute('SELECT content FROM {} WHERE word=?'.format(self.default_table), (word,))
+    def lookup_word(self, word: Word, form: str) -> WordData:
+        cursor = self.conn.execute('SELECT content FROM {} WHERE word=?'.format(self.default_table), (form,))
         result = cursor.fetchone()
         if result is None:
-            raise WordLookupException('word "{}" not found in data source table for {}'.format(word,
+            raise WordLookupException('form "{}" not found in data source table for {}'.format(form,
                                                                                                type(self).__name__))
-        return self.parse_word_content(word, result[0])
+        return self.parse_word_content(word, form, result[0])
 
     def _fetch_remote_files_if_necessary(self):
         if not hasattr(self, 'filename') or not hasattr(self, 'url'):

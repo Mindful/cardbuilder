@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from cardbuilder.word_lists import WordList
+from cardbuilder.word_lists.word_list import WordList
 from cardbuilder.word_lists.word import Word
 
 

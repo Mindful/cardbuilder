@@ -2,7 +2,7 @@ from typing import Dict, Iterable, Tuple
 from collections import defaultdict
 
 from cardbuilder.data_sources.value import Value, StringValue, StringListValue
-from cardbuilder.common.fieldnames import DEFINITIONS, PART_OF_SPEECH
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
 
@@ -34,8 +34,8 @@ class ESPDIC(ExternalDataDataSource):
 
     def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         return {
-            DEFINITIONS: StringListValue(content.split(self.definition_delimiter)),
-            PART_OF_SPEECH: StringValue(self._infer_pos(word))
+            Fieldname.DEFINITIONS: StringListValue(content.split(self.definition_delimiter)),
+            Fieldname.PART_OF_SPEECH: StringValue(self._infer_pos(word))
         }
 
 

@@ -3,8 +3,8 @@ from logging import WARNING
 from os.path import abspath
 from typing import Dict, Tuple, Iterable
 
-from cardbuilder import CardBuilderException, WordLookupException
-from cardbuilder.common import fieldnames
+from cardbuilder.exceptions import CardBuilderException, WordLookupException
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import fast_linecount, loading_bar, log
 import re
 from string import digits
@@ -33,15 +33,15 @@ class Eijiro(ExternalDataDataSource):
     link_symbol = '＝<→'
 
     content_sectioning_symbol_map = {
-        example_sentence_symbol: fieldnames.EXAMPLE_SENTENCES,
-        additional_explanation_symbol: fieldnames.SUPPLEMENTAL,
-        pronunciation_symbol: fieldnames.PRONUNCIATION_IPA,
-        pronunciation_important_symbol: fieldnames.PRONUNCIATION_IPA,
-        katakana_reading_symbol: fieldnames.KATAKANA,
-        inflections_symbol: fieldnames.INFLECTIONS,
+        example_sentence_symbol: Fieldname.EXAMPLE_SENTENCES,
+        additional_explanation_symbol: Fieldname.SUPPLEMENTAL,
+        pronunciation_symbol: Fieldname.PRONUNCIATION_IPA,
+        pronunciation_important_symbol: Fieldname.PRONUNCIATION_IPA,
+        katakana_reading_symbol: Fieldname.KATAKANA,
+        inflections_symbol: Fieldname.INFLECTIONS,
         level_symbol: 'level',
         word_split_symbol: 'split',
-        link_symbol: fieldnames.LINKS
+        link_symbol: Fieldname.LINKS
     }
 
     content_sectioning_symbols = set(content_sectioning_symbol_map.keys())

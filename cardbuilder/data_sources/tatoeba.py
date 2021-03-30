@@ -13,13 +13,12 @@ from typing import Dict, List, Tuple, Iterable
 import requests
 from fugashi import Tagger
 
-from cardbuilder.common import InDataDir
 from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar, \
-    dedup_by, DATABASE_NAME
-from cardbuilder.common.fieldnames import EXAMPLE_SENTENCES, WORD
+    dedup_by, DATABASE_NAME, InDataDir
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.data_sources.value import Value, StringValue
-from cardbuilder import CardBuilderException, WordLookupException
+from cardbuilder.exceptions import CardBuilderException, WordLookupException, CardBuilderUsageException
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 
 
@@ -59,8 +58,8 @@ class TatoebaExampleSentences(ExternalDataDataSource):
         example_sentences_value = TatoebaExampleSentencesValue(example_sentence_pairs)
 
         return {
-            WORD: StringValue(word),
-            EXAMPLE_SENTENCES: example_sentences_value
+            Fieldname.WORD: StringValue(word),
+            Fieldname.EXAMPLE_SENTENCES: example_sentences_value
         }
 
     def _create_tables(self):
@@ -166,7 +165,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
                     with open(filename, 'wb+') as f:
                         f.write(BZ2Decompressor().decompress(stream_data.read()))
                 else:
-                    raise CardBuilderException('Retrieved unexpected file format from Tatoeba: {}'.format(url))
+                    raise CardBuilderUsageException('Retrieved unexpected file format from Tatoeba: {}'.format(url))
 
     def _split_japanese_sentence(self, sentence: str) -> List[str]:
         # hacky and only accommodates  exact matches (I.E. conjugated verbs are shot), could probably be done better

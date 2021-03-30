@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Dict, Iterable, Tuple
 from json import dumps, loads
 
-from cardbuilder.common.fieldnames import PITCH_ACCENT
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.data_sources.value import Value
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
 from cardbuilder.data_sources.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
@@ -27,7 +27,7 @@ class NhkPitchAccent(ExternalDataDataSource):
 
     def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
         return {
-            PITCH_ACCENT: NhkPitchAccentValue(loads(content))
+            Fieldname.PITCH_ACCENT: NhkPitchAccentValue(loads(content))
         }
 
     url = 'https://raw.githubusercontent.com/javdejong/nhk-pronunciation/master/ACCDB_unicode.csv'

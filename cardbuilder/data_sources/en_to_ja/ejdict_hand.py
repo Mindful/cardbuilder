@@ -6,8 +6,8 @@ from typing import Dict, Tuple, Iterable
 
 import requests
 
-from cardbuilder import WordLookupException
-from cardbuilder.common.fieldnames import DEFINITIONS, LINKS
+from cardbuilder.exceptions import WordLookupException
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import log, loading_bar
 from cardbuilder.data_sources.value import Value, StringListValue
 from cardbuilder.data_sources.data_source import ExternalDataDataSource
@@ -53,14 +53,14 @@ class EJDictHand(ExternalDataDataSource):
                 remaining_links = links[1:]
                 output = self.lookup_word(first_link)
                 if len(remaining_links) > 0:
-                    output[LINKS] = LinksValue([self.lookup_word(linked_word) for linked_word in remaining_links])
+                    output[Fieldname.LINKS] = LinksValue([self.lookup_word(linked_word) for linked_word in remaining_links])
             else:
                 raise WordLookupException('Empty entry found for word {} in EJDictHand'.format(word))
         else:
             output = {
-                DEFINITIONS: StringListValue(definitions),
+                Fieldname.DEFINITIONS: StringListValue(definitions),
             }
             if len(links) > 0:
-                output[LINKS] = LinksValue([self.lookup_word(linked_word) for linked_word in links])
+                output[Fieldname.LINKS] = LinksValue([self.lookup_word(linked_word) for linked_word in links])
 
         return output

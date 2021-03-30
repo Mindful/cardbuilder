@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, FrozenSet, Dict, Optional
 
-from cardbuilder.common import Fieldname
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.data_sources.value import Value, StringValue
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.word_lists.word import Word
@@ -22,6 +22,10 @@ class WordData(ABC):
     def __getitem__(self, fieldname: Fieldname) -> Optional[Value]:
         raise NotImplementedError()
 
+    @abstractmethod
+    def __init__(self, word: Word, found_form: str, data: Dict[Fieldname, Value]):
+        raise NotImplementedError()
+
 
 def word_data_factory(name: str, input_required_fields: List[Fieldname],
                       input_optional_fields: List[Fieldname]) -> type:
@@ -29,6 +33,10 @@ def word_data_factory(name: str, input_required_fields: List[Fieldname],
     class GeneratedWordData(WordData):
         _required_fields = frozenset(input_required_fields)
         _optional_fields = frozenset(input_optional_fields)
+
+        if len(_required_fields & _optional_fields) > 0:
+            raise CardBuilderUsageException('{} WordData type cannot contain a field as both optional and required'.
+                                            format(name))
 
         @classmethod
         def required_fields(cls) -> FrozenSet[Fieldname]:

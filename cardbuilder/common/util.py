@@ -14,7 +14,7 @@ import spacy
 from spacy.cli.download import download as spacy_download
 import requests
 
-from cardbuilder import CardBuilderException
+from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.common.languages import ENGLISH, JAPANESE
 
 DATABASE_NAME = 'cardbuilder.db'
@@ -41,7 +41,7 @@ class Shared:
     def get_spacy(cls, language: str):
         if language not in cls.spacy_models:
             if language not in cls.spacy_model_names:
-                raise CardBuilderException('No spacy model for language {}'.format(language))
+                raise CardBuilderUsageException('No spacy model for language {}'.format(language))
 
             model_name = cls.spacy_model_names[language]
             try:
