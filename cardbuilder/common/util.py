@@ -21,6 +21,11 @@ DATABASE_NAME = 'cardbuilder.db'
 
 
 class Shared:
+    logger = logging.getLogger('cardbuilder')
+    logger.addHandler(logging.NullHandler())
+
+    loading_bars_enabled = False
+
     kakasi = None
 
     spacy_models = {}
@@ -55,9 +60,6 @@ class Shared:
         return cls.spacy_models[language]
 
 
-
-
-
 class InDataDir:
     directory = Path(__file__).parent.parent.absolute() / 'data'
     if not directory.exists():
@@ -75,19 +77,14 @@ class InDataDir:
         self.prev_dir = None
 
 
-LOGGER = logging.getLogger('cardbuilder')
-LOGGER.addHandler(logging.NullHandler())
-LOADING_BARS_ENABLED = False
-
-
 def retry_with_logging(func: Callable, tries: int, delay: int, fargs=None, fkwargs=None):
-    return retry_call(func, tries=tries, delay=delay, fargs=fargs, fkwargs=fkwargs, logger=LOGGER)
+    return retry_call(func, tries=tries, delay=delay, fargs=fargs, fkwargs=fkwargs, logger=Shared.logger)
 
 
 def log(obj: Any, text: str, level: int = logging.INFO):
     t = obj if type(obj) == type else type(obj)
     logmsg = '{}: {}'.format(t.__name__, text) if obj is not None else text
-    LOGGER.log(level, logmsg)
+    Shared.logger.log(level, logmsg)
 
 
 def enable_console_reporting():
@@ -95,18 +92,17 @@ def enable_console_reporting():
     Note that this changes the root logging level to DEBUG;  don't call it if you don't want that.
     """
 
-    global LOADING_BARS_ENABLED
-    LOADING_BARS_ENABLED = True
+    Shared.loading_bars_enabled = True
 
-    if any(not isinstance(x, logging.NullHandler) for x in LOGGER.handlers):
-        LOGGER.warning('enable_console_reporting() called but logger already has non-null handler')
+    if any(not isinstance(x, logging.NullHandler) for x in Shared.logger.handlers):
+        Shared.logger.warning('enable_console_reporting() called but logger already has non-null handler')
     else:
         logging.getLogger().setLevel(logging.DEBUG)
         streamhandler = logging.StreamHandler(sys.stdout)
         streamhandler.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', "%H:%M:%S")
         streamhandler.setFormatter(formatter)
-        LOGGER.addHandler(streamhandler)
+        Shared.logger.addHandler(streamhandler)
 
 
 # https://stackoverflow.com/a/27518377/4243650
@@ -121,7 +117,7 @@ def is_hiragana(char):
 
 
 def loading_bar(iterable: Iterable, description: str, total: Optional[int] = None):
-    if LOADING_BARS_ENABLED:
+    if Shared.loading_bars_enabled:
         return tqdm(iterable=iterable, desc=description, total=total)
     else:
         return iterable
@@ -132,7 +128,7 @@ def download_to_file_with_loading_bar(url: str, filename: str):
     response = requests.get(url, stream=True)
     total_size_in_bytes = int(response.headers.get('content-length', 0))
     block_size = 1024
-    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, disable= not LOADING_BARS_ENABLED)
+    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, disable= not Shared.loading_bars_enabled)
     with open(filename, 'wb') as file:
         for data in response.iter_content(block_size):
             progress_bar.update(len(data))
@@ -146,7 +142,7 @@ def download_to_stream_with_loading_bar(url: str) -> BytesIO:
     response = requests.get(url, stream=True)
     total_size_in_bytes = int(response.headers.get('content-length', 0))
     block_size = 1024
-    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, disable=not LOADING_BARS_ENABLED)
+    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, disable=not Shared.loading_bars_enabled)
     stream = BytesIO()
     for data in response.iter_content(block_size):
         progress_bar.update(len(data))
