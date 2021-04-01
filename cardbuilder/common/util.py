@@ -6,6 +6,7 @@ from itertools import takewhile, repeat
 from pathlib import Path
 from typing import Iterable, Optional, Any, List, Callable
 from itertools import zip_longest
+import re
 
 from tqdm import tqdm
 from retry.api import retry_call
@@ -16,6 +17,8 @@ import requests
 
 from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.common.languages import ENGLISH, JAPANESE
+
+whitespace_trim = re.compile(r'\n\s+')
 
 DATABASE_NAME = 'cardbuilder.db'
 
@@ -165,9 +168,5 @@ def dedup_by(input_list: List, key: Callable) -> List:
     return [x for x in input_list if key(x) not in seen_set and not seen_set.add(key(x))]
 
 
-
-
-
-
-
-
+def trim_whitespace(string: str) -> str:
+    return whitespace_trim.sub('\n', string)

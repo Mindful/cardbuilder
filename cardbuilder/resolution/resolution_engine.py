@@ -1,6 +1,6 @@
 from typing import Union, List, Iterable, Callable, Dict
 
-from cardbuilder.resolution import ResolvedField, Field
+from cardbuilder.resolution.field import Field
 from cardbuilder.common.util import loading_bar
 from cardbuilder.lookup import DataSource
 from cardbuilder.lookup.lookup_data import LookupData

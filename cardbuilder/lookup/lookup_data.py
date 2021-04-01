@@ -58,6 +58,12 @@ def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
 
             return self.data.get(fieldname, None)
 
+        def __contains__(self, fieldname: Fieldname):
+            if fieldname in {Fieldname.WORD, Fieldname.FOUND_FORM}:
+                return True
+            else:
+                return fieldname in self.data
+
         def __init__(self, word: Word, found_form: str, data: Dict[Fieldname, Value]):
             self.word = word
             self.found_form = found_form

@@ -1,9 +1,9 @@
 from typing import Dict
 
-from cardbuilder import resolution
+from cardbuilder.resolution.instantiable import instantiable_resolvers
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.lookup_data import LookupData
-from cardbuilder.resolution import Field
+from cardbuilder.resolution.field import Field
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import log, Shared
@@ -20,7 +20,7 @@ from cardbuilder.scripts.router import command
 @command('ja_to_en')
 def main():
     parser = build_parser_with_common_args()
-    args, input_words = get_args_and_input_from_parser(parser)
+    args, input_words = get_args_and_input_from_parser(parser, JAPANESE)
 
     dictionary = Jisho()
     nhk = NhkPitchAccent()
@@ -59,9 +59,9 @@ def main():
         except KeyError:
             return data_by_source
 
-    resolver = resolution.instantiable[args.output_format](fields)
+    resolver = instantiable_resolvers[args.output_format](fields)
     if args.output_format == 'anki':
-        resolver.set_card_templates(None, css=nhk.default_css)
+        resolver.set_note_name(args.output, None, css=nhk.default_css)
         #TODO: add proper default cards like in the SVL deck so people don't have to make their own
 
     resolver.mutator = disambiguate_pitch_accent

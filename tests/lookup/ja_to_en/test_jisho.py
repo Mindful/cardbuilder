@@ -27,6 +27,9 @@ class TestJisho(DataSourceTest):
         assert(inu_katakana_data[Fieldname.PART_OF_SPEECH].val.lower() == 'noun')
         assert(inu_katakana_data[Fieldname.FOUND_FORM].val == '犬')
 
+        # exception check
+        jisho.lookup_word(Word('デブ', JAPANESE), 'デブ')
+
     def test_reading_gen(self):
         simple_reading = Jisho._detailed_reading('犬')
         complex_reading = Jisho._detailed_reading('水飲み場')

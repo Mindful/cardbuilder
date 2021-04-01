@@ -1,6 +1,6 @@
 from typing import List
 
-from cardbuilder.resolution import ResolvedField
+from cardbuilder.resolution.field import ResolvedField
 
 
 class CardData:

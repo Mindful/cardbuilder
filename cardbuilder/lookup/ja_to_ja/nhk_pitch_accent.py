@@ -9,7 +9,7 @@ from cardbuilder.lookup.lookup_data import LookupData, lookup_data_type_factory
 from cardbuilder.lookup.value import Value
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
-from cardbuilder.scripts.helpers import trim_whitespace
+from cardbuilder.common.util import trim_whitespace
 
 
 class NhkPitchAccent(ExternalDataDataSource):
