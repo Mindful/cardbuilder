@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import List, Tuple, Optional, Any, Callable, Dict
+from typing import List, Tuple, Optional, Any, Callable
 
 from cardbuilder.exceptions import CardBuilderException
 from cardbuilder.common.fieldnames import Fieldname
@@ -162,10 +162,7 @@ class RawDataValue(Value):
 
 
 class LinksValue(Value):
-    def __init__(self, data_list: List[Dict[str, Value]]):
-        for data in data_list:
-            if Fieldname.WORD not in data:
-                raise CardBuilderException("LinksValue data must include the word")
+    def __init__(self, data_list: List['LookupData']):  # if we actually import LookupData it creates a cycle
         self.data_list = data_list
 
     def to_output_string(self, description_string: str = 'See also: ', join_words_with: str = ', ') -> str:

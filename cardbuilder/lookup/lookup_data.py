@@ -24,7 +24,22 @@ class LookupData(ABC):
 
     @abstractmethod
     def __init__(self, word: Word, found_form: str, data: Dict[Fieldname, Value]):
+        # setting these in the base class makes IDE code completion aware of them
+        self.word = word
+        self.found_form = found_form
+        self._data = data
+
         raise NotImplementedError()
+
+    @abstractmethod
+    def __setitem__(self, key: Fieldname, value: Value):
+        raise NotImplementedError()
+
+    def __repr__(self):
+        repr_dict = {
+            key.name: val for key, val in self._data.items()
+        }
+        return '<Word: {}, form: {}, data: {}>'.format(self.word, self.found_form, self._data)
 
 
 def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
@@ -46,23 +61,30 @@ def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
         def optional_fields(cls) -> FrozenSet[Fieldname]:
             return cls._optional_fields
 
-        def __getitem__(self, fieldname: Fieldname) -> Optional[Value]:
-            if fieldname == Fieldname.WORD:
+        def __setitem__(self, key: Fieldname, value: Value):
+            if key not in (self._required_fields | self._optional_fields):
+                raise CardBuilderUsageException('{} can only set its optional or required fields, not {}'.format(
+                    type(self).__name__, key.name
+                ))
+            else:
+                self._data[key] = value
+
+        def __getitem__(self, key: Fieldname) -> Optional[Value]:
+            if key == Fieldname.WORD:
                 return StringValue(self.word.input_form)
-            elif fieldname == Fieldname.FOUND_FORM:
+            elif key == Fieldname.FOUND_FORM:
                 return StringValue(self.found_form)
 
-            if fieldname not in (self._required_fields or self._optional_fields):
-                raise CardBuilderUsageException('{} cannot contain the field {}'.format(type(self).__name__,
-                                                                                        fieldname.name))
+            if key not in (self._required_fields | self._optional_fields):
+                raise CardBuilderUsageException('{} cannot contain the field {}'.format(type(self).__name__, key.name))
 
-            return self.data.get(fieldname, None)
+            return self._data.get(key, None)
 
         def __contains__(self, fieldname: Fieldname):
             if fieldname in {Fieldname.WORD, Fieldname.FOUND_FORM}:
                 return True
             else:
-                return fieldname in self.data
+                return fieldname in self._data
 
         def __init__(self, word: Word, found_form: str, data: Dict[Fieldname, Value]):
             self.word = word
@@ -77,7 +99,7 @@ def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
                     raise CardBuilderUsageException('{} cannot contain the field {}'.format(type(self).__name__,
                                                                                             fieldname.name))
 
-            self.data = data
+            self._data = data
 
     GeneratedLookupData.__name__ = name
 

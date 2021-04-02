@@ -2,14 +2,16 @@ import csv
 from collections import defaultdict
 from os.path import exists
 from string import ascii_lowercase
-from typing import Dict, Tuple, Iterable
+from typing import Tuple, Iterable
 
 import requests
 
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import log, loading_bar
-from cardbuilder.lookup.value import Value, StringListValue
+from cardbuilder.input.word import Word
+from cardbuilder.lookup.lookup_data import LookupData, lookup_data_type_factory
+from cardbuilder.lookup.value import StringListValue
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.value import LinksValue
 
@@ -18,6 +20,8 @@ class EJDictHand(ExternalDataDataSource):
     filename = 'ejdicthand.txt'
     definition_delim = ' / '
     link_symbol = '='
+
+    lookup_data_type = lookup_data_type_factory('EJDictHandLookupData', [Fieldname.DEFINITIONS], [Fieldname.LINKS])
 
     # https://kujirahand.com/web-tools/EJDictFreeDL.php
     def _fetch_remote_files_if_necessary(self):
@@ -43,7 +47,7 @@ class EJDictHand(ExternalDataDataSource):
 
         return ((word, self.definition_delim.join(defs)) for word, defs in definition_map.items())
 
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
         content_items = content.split(self.definition_delim)
         definitions = [c for c in content_items if not c.startswith(self.link_symbol)]
         links = [c[1:] for c in content_items if c.startswith(self.link_symbol)]
@@ -51,16 +55,18 @@ class EJDictHand(ExternalDataDataSource):
             if len(links) > 0:
                 first_link = links[0]
                 remaining_links = links[1:]
-                output = self.lookup_word(first_link)
+                output = self.lookup_word(word, first_link)
                 if len(remaining_links) > 0:
-                    output[Fieldname.LINKS] = LinksValue([self.lookup_word(linked_word) for linked_word in remaining_links])
+                    output[Fieldname.LINKS] = LinksValue([self.lookup_word(word, linked_word)
+                                                          for linked_word in remaining_links])
             else:
-                raise WordLookupException('Empty entry found for word {} in EJDictHand'.format(word))
+                raise WordLookupException('Empty entry found for word {} in EJDictHand'.format(form))
         else:
-            output = {
+            output = self.lookup_data_type(word, form, {
                 Fieldname.DEFINITIONS: StringListValue(definitions),
-            }
+            })
             if len(links) > 0:
-                output[Fieldname.LINKS] = LinksValue([self.lookup_word(linked_word) for linked_word in links])
+                output[Fieldname.LINKS] = LinksValue([self.lookup_word(word, linked_word)
+                                                      for linked_word in links])
 
         return output
