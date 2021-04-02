@@ -27,11 +27,11 @@ def main():
     example_sentences = TatoebaExampleSentences(source_lang=JAPANESE, target_lang=ENGLISH)
 
     fields = [
-        Field(dictionary, Fieldname.WORD, 'word'),
-        Field(dictionary, Fieldname.DEFINITIONS, 'definitions', lambda v: v.to_output_string(number=True)),
-        Field(dictionary, Fieldname.DETAILED_READING, 'reading'),
-        Field(nhk, Fieldname.PITCH_ACCENT, 'pitch_accent', optional=True),
-        Field(example_sentences, Fieldname.EXAMPLE_SENTENCES, 'example sentence', optional=True)
+        Field(dictionary, Fieldname.WORD, 'Word'),
+        Field(dictionary, Fieldname.DEFINITIONS, 'Definitions', lambda v: v.to_output_string(number=True)),
+        Field(dictionary, Fieldname.DETAILED_READING, 'Reading'),
+        Field(nhk, Fieldname.PITCH_ACCENT, 'Pitch Accent', optional=True),
+        Field(example_sentences, Fieldname.EXAMPLE_SENTENCES, 'Example Sentences', optional=True)
     ]
 
     # an example of how to use arbitrary mutators with resolvers
@@ -39,7 +39,6 @@ def main():
     # 1. it saves us from failing when someone tries to look up raw kana in the NHK accent database, like ひらく
     # 2. in cases where someone provides kana, we can disambiguate the pitch accent, like for 開く (ひらく・あく)
     # for the vast majority of words though, it should have no effect
-    #TODO: verify this still does what it's supposed to do
     def disambiguate_pitch_accent(data_by_source: Dict[DataSource, LookupData]) -> Dict[DataSource, LookupData]:
         try:
             reading = data_by_source[dictionary][Fieldname.DETAILED_READING].to_output_string()
@@ -58,13 +57,14 @@ def main():
             return data_by_source
         except KeyError:
             return data_by_source
+        except IndexError:
+            return data_by_source
 
-    resolver = instantiable_resolvers[args.output_format](fields)
+    resolver = instantiable_resolvers[args.output_format](fields, disambiguate_pitch_accent)
     if args.output_format == 'anki':
         resolver.set_note_name(args.output, None, css=nhk.default_css)
         #TODO: add proper default cards like in the SVL deck so people don't have to make their own
 
-    resolver.mutator = disambiguate_pitch_accent
     failed_resolutions = resolver.resolve_to_file(input_words, args.output)
     log_failed_resolutions(failed_resolutions)
 
