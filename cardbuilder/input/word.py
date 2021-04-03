@@ -15,7 +15,7 @@ class Word:
 
     form_map = {
         WordForm.PHONETICALLY_EQUIVALENT: {
-            languages.ENGLISH: lambda input_form: input_form.lower(),
+            languages.ENGLISH: lambda input_form: input_form.lower(), #TODO: false advertising (what if it's uppercase in the dictionary?)
             languages.JAPANESE: lambda input_form: ''.join(x['hira'] for x in Shared.get_kakasi().convert(input_form))
         },
         WordForm.LEMMA: {

@@ -35,6 +35,10 @@ class LookupData(ABC):
     def __setitem__(self, key: Fieldname, value: Value):
         raise NotImplementedError()
 
+    @abstractmethod
+    def __contains__(self, key: Fieldname):
+        raise NotImplementedError()
+
     def __repr__(self):
         repr_dict = {
             key.name: val for key, val in self._data.items()
@@ -89,17 +93,17 @@ def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
         def __init__(self, word: Word, found_form: str, data: Dict[Fieldname, Value]):
             self.word = word
             self.found_form = found_form
+            self._data = data
             for fieldname in self._required_fields:
                 if fieldname not in data:
                     raise CardBuilderUsageException('{} must contain the field {}'.format(type(self).__name__,
                                                                                           fieldname.name))
 
             for fieldname in data.keys():
-                if fieldname not in (self._required_fields or self._optional_fields):
+                if fieldname not in (self._required_fields | self._optional_fields):
                     raise CardBuilderUsageException('{} cannot contain the field {}'.format(type(self).__name__,
                                                                                             fieldname.name))
 
-            self._data = data
 
     GeneratedLookupData.__name__ = name
 

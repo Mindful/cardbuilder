@@ -1,5 +1,6 @@
 import pytest
 
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import HEBREW, ENGLISH
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
@@ -16,6 +17,8 @@ class TestWordFreq(DataSourceTest):
 
         the_data = data_source.lookup_word(Word('the', ENGLISH), 'the')
         dragon_data = data_source.lookup_word(Word('dragon', ENGLISH), 'dragon')
+
+        assert(int(the_data[Fieldname.SUPPLEMENTAL].val) > int(dragon_data[Fieldname.SUPPLEMENTAL].val))
 
         with pytest.raises(WordLookupException):
             data_source.lookup_word(Word('עברית', HEBREW), 'עברית')

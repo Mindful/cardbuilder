@@ -17,7 +17,6 @@ class Fieldname(Enum):
     AUDIO = 'aud'
     RAW_DATA = 'raw'
     SUPPLEMENTAL = 'supp'
-    WORD_FREQ = 'freq'
     LINKS = 'link'
 
 

@@ -2,7 +2,7 @@ import csv
 import sqlite3
 from typing import Any, List, Dict, Iterable, Tuple
 
-from cardbuilder.lookup.lookup_data import LookupData
+from cardbuilder.lookup.lookup_data import LookupData, lookup_data_type_factory
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar, log, DATABASE_NAME, retry_with_logging
@@ -16,6 +16,8 @@ class WordFrequency(ExternalDataDataSource):
     # https://norvig.com/ngrams/
     url = 'http://norvig.com/ngrams/count_1w.txt'
     filename = 'count_1w.txt'
+
+    lookup_data_type = lookup_data_type_factory('WordFreqLookupData', [Fieldname.SUPPLEMENTAL], [])
 
     def __init__(self):
         # deliberately don't call super().__init__() because we have a custom table schema
@@ -36,14 +38,13 @@ class WordFrequency(ExternalDataDataSource):
         c = self.conn.execute('''SELECT * FROM {}'''.format(self.default_table))
         self.frequency = dict(c.fetchall())
 
-    def lookup_word(self, word: str) -> Dict[str, Value]:
-        if word not in self.frequency:
-            raise WordLookupException('No frequency information for {}'.format(word))
+    def lookup_word(self, word: Word, form: str) -> LookupData:
+        if form not in self.frequency:
+            raise WordLookupException('No frequency information for {}'.format(form))
 
-        return {
-            Fieldname.WORD_FREQ: StringValue(str(self[word])),
-            Fieldname.WORD: word
-        }
+        return self.lookup_data_type(word, form, {
+            Fieldname.SUPPLEMENTAL: StringValue(str(self[form])),
+        })
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, int]]:
         frequency = {}

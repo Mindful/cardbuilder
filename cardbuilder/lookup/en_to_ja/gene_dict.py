@@ -5,6 +5,8 @@ from json import dumps, loads
 
 from cardbuilder.common.util import log, download_to_stream_with_loading_bar
 from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.input.word import Word
+from cardbuilder.lookup.lookup_data import lookup_data_type_factory, LookupData
 from cardbuilder.lookup.value import Value, StringValue
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 
@@ -15,6 +17,9 @@ class GeneDict(ExternalDataDataSource):
     expected_first_element = '!'
     filename = 'gene_dict.txt'
     url = 'http://www.namazu.org/~tsuchiya/sdic/data/gene95.tar.gz'
+
+    lookup_data_type = lookup_data_type_factory('GeneDictLookupData', [Fieldname.DEFINITIONS],
+                                                [Fieldname.SUPPLEMENTAL, Fieldname.EXAMPLE_SENTENCES])
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         definitions = {}
@@ -51,8 +56,10 @@ class GeneDict(ExternalDataDataSource):
                 data[Fieldname.EXAMPLE_SENTENCES] = examples[word]
             yield word, dumps(data)
 
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        return {key: StringValue(val) for key, val in loads(content).items()}
+    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+        return self.lookup_data_type(word, form, {
+            Fieldname(key): StringValue(val) for key, val in loads(content).items()
+        })
 
     def _fetch_remote_files_if_necessary(self):
         if not exists(self.filename):
