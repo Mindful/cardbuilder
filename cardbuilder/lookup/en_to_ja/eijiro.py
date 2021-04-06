@@ -1,15 +1,17 @@
 from collections import defaultdict
 from logging import WARNING
 from os.path import abspath
-from typing import Dict, Tuple, Iterable
+from typing import Dict, Tuple, Iterable, Optional
 
-from cardbuilder.exceptions import CardBuilderException, WordLookupException
+from cardbuilder.exceptions import CardBuilderException, WordLookupException, CardBuilderUsageException
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import fast_linecount, loading_bar, log
 import re
 from string import digits
 
+from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import ExternalDataDataSource
+from cardbuilder.lookup.lookup_data import lookup_data_type_factory, LookupData
 from cardbuilder.lookup.value import StringListsWithPOSValue, LinksValue, Value, StringValue
 
 digitset = set(digits)
@@ -39,10 +41,11 @@ class Eijiro(ExternalDataDataSource):
         pronunciation_important_symbol: Fieldname.PRONUNCIATION_IPA,
         katakana_reading_symbol: Fieldname.KATAKANA,
         inflections_symbol: Fieldname.INFLECTIONS,
-        level_symbol: 'level',
-        word_split_symbol: 'split',
+        level_symbol: Fieldname.SUPPLEMENTAL,
+        word_split_symbol: Fieldname.SUPPLEMENTAL,
         link_symbol: Fieldname.LINKS
     }
+
 
     content_sectioning_symbols = set(content_sectioning_symbol_map.keys())
 
@@ -99,7 +102,14 @@ class Eijiro(ExternalDataDataSource):
     header_data_delimiter = '⦀'
     line_data_delimiter = '⚬'
 
+    lookup_data_type = lookup_data_type_factory('EijiroLookupData', [],
+                                                list(set(val for val in content_sectioning_symbol_map.values()
+                                                         if isinstance(val, Fieldname))) + [Fieldname.PART_OF_SPEECH,
+                                                                                            Fieldname.DEFINITIONS])
+
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
+        if self.file_loc is None:
+            raise CardBuilderUsageException('Must set Eijiro location the first time for data ingestion')
         lines = fast_linecount(self.file_loc)
         prev_word = None
         prev_content = None
@@ -141,7 +151,7 @@ class Eijiro(ExternalDataDataSource):
 
         yield prev_word, prev_content
 
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
+    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
         lines = content.split(self.line_data_delimiter)
         line_parses = []
         for line in lines:
@@ -150,11 +160,11 @@ class Eijiro(ExternalDataDataSource):
             if self.header_data_delimiter in line:
                 header_data, line = line.split(self.header_data_delimiter)
                 # only data in the header seems to be the POS
-                line_attrs[fieldnames.PART_OF_SPEECH] = header_data
+                line_attrs[Fieldname.PART_OF_SPEECH] = header_data
 
             content_sections = Eijiro.content_sectioning_regex.split(line)
             if content_sections[0] not in Eijiro.content_sectioning_symbols:
-                line_attrs[fieldnames.DEFINITIONS].append(content_sections.pop(0))
+                line_attrs[Fieldname.DEFINITIONS].append(content_sections.pop(0))
 
             section_header = None
             for section in content_sections:
@@ -162,13 +172,13 @@ class Eijiro(ExternalDataDataSource):
                     section_header = section
                 elif section_header is not None and section not in Eijiro.content_sectioning_symbols:
                     key = Eijiro.content_sectioning_symbol_map[section_header]
-                    if key == fieldnames.LINKS:
+                    if key == Fieldname.LINKS:
                         linked_word = section[:-1]
                         try:
-                            line_attrs[fieldnames.LINKS].append(self.lookup_word(linked_word))
+                            line_attrs[Fieldname.LINKS].append(self.lookup_word(linked_word))
                         except WordLookupException:
                             log(self, 'Found link to apparently missing word "{}" in definition of word "{}"'.format(
-                                linked_word, word
+                                linked_word, form
                             ), WARNING)
                     else:
                         line_attrs[key].append(section.strip('、'))
@@ -182,16 +192,16 @@ class Eijiro(ExternalDataDataSource):
         aggregated_parse = defaultdict(lambda: defaultdict(list))
         links = []
         for val_map in line_parses:
-            pos = val_map.get(fieldnames.PART_OF_SPEECH, None)
-            if fieldnames.LINKS in val_map:
-                links.extend(val_map[fieldnames.LINKS])
-            for key, val in ((k, v) for k, v in val_map.items() if k != fieldnames.PART_OF_SPEECH
-                                                                   and k != fieldnames.LINKS):
+            pos = val_map.get(Fieldname.PART_OF_SPEECH, None)
+            if Fieldname.LINKS in val_map:
+                links.extend(val_map[Fieldname.LINKS])
+            for key, val in ((k, v) for k, v in val_map.items() if k != Fieldname.PART_OF_SPEECH
+                                                                   and k != Fieldname.LINKS):
                 aggregated_parse[key][pos].extend(val)
 
         output = {}
         if links:
-            output[fieldnames.LINKS] = LinksValue(links)
+            output[Fieldname.LINKS] = LinksValue(links)
         for val_key, val_dict in aggregated_parse.items():
             if sum(1 for key in val_dict if key is not None) > 0:
                 output[val_key] = StringListsWithPOSValue([([val for val in vals if val], pos)
@@ -199,18 +209,21 @@ class Eijiro(ExternalDataDataSource):
             else:
                 output[val_key] = StringValue(val_dict[None][0])
 
-        if fieldnames.LINKS in output:
-            for linked_word_dict in output[fieldnames.LINKS].data_list:
+        if Fieldname.LINKS in output:
+            for linked_word_dict in output[Fieldname.LINKS].data_list:
                 for key, value in linked_word_dict.items():
                     if (key not in output or not output[key].to_output_string()) \
-                            and key in fieldnames.LINK_FRIENDLY_FIELDS:
+                            and key in Fieldname.LINK_FRIENDLY_FIELDS:
                         output[key] = value
 
-        return output
+        return self.lookup_data_type(word, form, output)
 
     def _fetch_remote_files_if_necessary(self):
         pass  # No remote files to fetch, takes an explicit file location
 
-    def __init__(self, eijiro_location: str):
-        self.file_loc = abspath(eijiro_location)
+    def __init__(self, eijiro_location: Optional[str] = None):
+        if eijiro_location is not None:
+            self.file_loc = abspath(eijiro_location)
+        else:
+            self.file_loc = None
         super().__init__()

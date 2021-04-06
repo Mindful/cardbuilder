@@ -1,7 +1,9 @@
-from typing import Dict, Iterable, Tuple
+from typing import Iterable, Tuple
 from collections import defaultdict
 
-from cardbuilder.lookup.value import Value, StringValue, StringListValue
+from cardbuilder.input.word import Word
+from cardbuilder.lookup.lookup_data import lookup_data_type_factory, LookupData
+from cardbuilder.lookup.value import StringValue, StringListValue
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 
@@ -13,6 +15,9 @@ class ESPDIC(ExternalDataDataSource):
     delimiter = ':'
     backup_delimiter = ';'  # I wish this wasn't necessary, but there's at least one line that uses ;
     definition_delimiter = '|||'
+
+    lookup_data_type = lookup_data_type_factory('ESPDICLookupData', [],
+                                                [Fieldname.DEFINITIONS, Fieldname.PART_OF_SPEECH])
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         definitions = defaultdict(list)
@@ -32,12 +37,11 @@ class ESPDIC(ExternalDataDataSource):
 
         return ((word, self.definition_delimiter.join(defs)) for word, defs in definitions.items())
 
-    def _parse_word_content(self, word: str, content: str) -> Dict[str, Value]:
-        return {
+    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+        return self.lookup_data_type(word, form, {
             Fieldname.DEFINITIONS: StringListValue(content.split(self.definition_delimiter)),
-            Fieldname.PART_OF_SPEECH: StringValue(self._infer_pos(word))
-        }
-
+            Fieldname.PART_OF_SPEECH: StringValue(self._infer_pos(form))
+        })
 
     def _infer_pos(self, word: str):
         #TODO: this probably needs to be smarter than it is
