@@ -53,10 +53,6 @@ def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
         _required_fields = frozenset(input_required_fields)
         _optional_fields = frozenset(input_optional_fields)
 
-        if len(_required_fields & _optional_fields) > 0:
-            raise CardBuilderUsageException('{} WordData type cannot contain a field as both optional and required'.
-                                            format(name))
-
         @classmethod
         def required_fields(cls) -> FrozenSet[Fieldname]:
             return cls._required_fields
