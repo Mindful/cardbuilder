@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, FrozenSet, Dict, Optional
+from typing import List, Dict, Optional, Set, FrozenSet
 
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.lookup.value import Value, StringValue
@@ -11,11 +11,7 @@ class LookupData(ABC):
     """An empty base class for all word data so that a common type exists"""
 
     @classmethod
-    def required_fields(cls) -> FrozenSet[Fieldname]:
-        raise NotImplementedError()
-
-    @classmethod
-    def optional_fields(cls) -> FrozenSet[Fieldname]:
+    def fields(cls) -> Set[Fieldname]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -29,6 +25,10 @@ class LookupData(ABC):
         self.found_form = found_form
         self._data = data
 
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_data(self) -> Dict[Fieldname, Value]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -46,24 +46,21 @@ class LookupData(ABC):
         return '<Word: {}, form: {}, data: {}>'.format(self.word, self.found_form, self._data)
 
 
-def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
-                             input_optional_fields: List[Fieldname]) -> type:
+def lookup_data_type_factory(name: str, input_fields: Set[Fieldname]) -> type:
 
     class GeneratedLookupData(LookupData):
-        _required_fields = frozenset(input_required_fields)
-        _optional_fields = frozenset(input_optional_fields)
+        _fields = frozenset(input_fields)
 
         @classmethod
-        def required_fields(cls) -> FrozenSet[Fieldname]:
-            return cls._required_fields
+        def fields(cls) -> FrozenSet[Fieldname]:
+            return cls._fields
 
-        @classmethod
-        def optional_fields(cls) -> FrozenSet[Fieldname]:
-            return cls._optional_fields
+        def get_data(self) -> Dict[Fieldname, Value]:
+            return self._data
 
         def __setitem__(self, key: Fieldname, value: Value):
-            if key not in (self._required_fields | self._optional_fields):
-                raise CardBuilderUsageException('{} can only set its optional or required fields, not {}'.format(
+            if key not in self._fields:
+                raise CardBuilderUsageException('{} can only set its designated fields, not {}'.format(
                     type(self).__name__, key.name
                 ))
             else:
@@ -75,7 +72,7 @@ def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
             elif key == Fieldname.FOUND_FORM:
                 return StringValue(self.found_form)
 
-            if key not in (self._required_fields | self._optional_fields):
+            if key not in self.fields():
                 raise CardBuilderUsageException('{} cannot contain the field {}'.format(type(self).__name__, key.name))
 
             return self._data.get(key, None)
@@ -90,16 +87,11 @@ def lookup_data_type_factory(name: str, input_required_fields: List[Fieldname],
             self.word = word
             self.found_form = found_form
             self._data = data
-            for fieldname in self._required_fields:
-                if fieldname not in data:
-                    raise CardBuilderUsageException('{} must contain the field {}'.format(type(self).__name__,
-                                                                                          fieldname.name))
 
             for fieldname in data.keys():
-                if fieldname not in (self._required_fields | self._optional_fields):
+                if fieldname not in self.fields():
                     raise CardBuilderUsageException('{} cannot contain the field {}'.format(type(self).__name__,
                                                                                             fieldname.name))
-
 
     GeneratedLookupData.__name__ = name
 

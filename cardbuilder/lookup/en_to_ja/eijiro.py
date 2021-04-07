@@ -102,10 +102,10 @@ class Eijiro(ExternalDataDataSource):
     header_data_delimiter = '⦀'
     line_data_delimiter = '⚬'
 
-    lookup_data_type = lookup_data_type_factory('EijiroLookupData', [],
-                                                list(set(val for val in content_sectioning_symbol_map.values()
+    lookup_data_type = lookup_data_type_factory('EijiroLookupData',
+                                                set(list(set(val for val in content_sectioning_symbol_map.values()
                                                          if isinstance(val, Fieldname))) + [Fieldname.PART_OF_SPEECH,
-                                                                                            Fieldname.DEFINITIONS])
+                                                                                            Fieldname.DEFINITIONS]))
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         if self.file_loc is None:
@@ -175,7 +175,7 @@ class Eijiro(ExternalDataDataSource):
                     if key == Fieldname.LINKS:
                         linked_word = section[:-1]
                         try:
-                            line_attrs[Fieldname.LINKS].append(self.lookup_word(linked_word))
+                            line_attrs[Fieldname.LINKS].append(self.lookup_word(word, linked_word))
                         except WordLookupException:
                             log(self, 'Found link to apparently missing word "{}" in definition of word "{}"'.format(
                                 linked_word, form
@@ -211,7 +211,7 @@ class Eijiro(ExternalDataDataSource):
 
         if Fieldname.LINKS in output:
             for linked_word_dict in output[Fieldname.LINKS].data_list:
-                for key, value in linked_word_dict.items():
+                for key, value in linked_word_dict.get_data().items():
                     if (key not in output or not output[key].to_output_string()) \
                             and key in Fieldname.LINK_FRIENDLY_FIELDS:
                         output[key] = value

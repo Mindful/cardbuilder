@@ -21,7 +21,7 @@ class EJDictHand(ExternalDataDataSource):
     definition_delim = ' / '
     link_symbol = '='
 
-    lookup_data_type = lookup_data_type_factory('EJDictHandLookupData', [Fieldname.DEFINITIONS], [Fieldname.LINKS])
+    lookup_data_type = lookup_data_type_factory('EJDictHandLookupData', {Fieldname.DEFINITIONS, Fieldname.LINKS})
 
     # https://kujirahand.com/web-tools/EJDictFreeDL.php
     def _fetch_remote_files_if_necessary(self):

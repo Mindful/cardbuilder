@@ -24,7 +24,7 @@ from cardbuilder.lookup.data_source import ExternalDataDataSource
 
 class TatoebaExampleSentences(ExternalDataDataSource):
 
-    lookup_data_type = lookup_data_type_factory('TatoebaLookupData', [Fieldname.EXAMPLE_SENTENCES], [])
+    lookup_data_type = lookup_data_type_factory('TatoebaLookupData', {Fieldname.EXAMPLE_SENTENCES})
 
     links_table_name = 'tatoeba_links'
     sentences_table_name_formatstring = 'tatoeba_{}_sentences'

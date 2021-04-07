@@ -13,8 +13,7 @@ class DataSourceTest(ABC):
         wordlist_type = type(self.get_data_source())
         assert(hasattr(wordlist_type, 'lookup_data_type'))
 
-        assert(type(wordlist_type.lookup_data_type.required_fields()) == frozenset)
-        assert(type(wordlist_type.lookup_data_type.optional_fields()) == frozenset)
+        assert(type(wordlist_type.lookup_data_type.fields()) == frozenset)
 
 
 #TODO: WebApiDataSourceTest that inherits from above and also, at minimum, checks that enabling/disabling cache retrieval

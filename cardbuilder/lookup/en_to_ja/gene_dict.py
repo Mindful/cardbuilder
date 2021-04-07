@@ -18,8 +18,8 @@ class GeneDict(ExternalDataDataSource):
     filename = 'gene_dict.txt'
     url = 'http://www.namazu.org/~tsuchiya/sdic/data/gene95.tar.gz'
 
-    lookup_data_type = lookup_data_type_factory('GeneDictLookupData', [Fieldname.DEFINITIONS],
-                                                [Fieldname.SUPPLEMENTAL, Fieldname.EXAMPLE_SENTENCES])
+    lookup_data_type = lookup_data_type_factory('GeneDictLookupData', {Fieldname.DEFINITIONS, Fieldname.SUPPLEMENTAL,
+                                                                       Fieldname.EXAMPLE_SENTENCES})
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         definitions = {}

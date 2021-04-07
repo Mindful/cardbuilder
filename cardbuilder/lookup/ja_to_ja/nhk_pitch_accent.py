@@ -21,7 +21,7 @@ class NhkPitchAccent(ExternalDataDataSource):
                                     .nopron {color: royalblue;}
                                     .nasal{color: red;}''')
 
-    lookup_data_type = lookup_data_type_factory('NhkPitchLookupData', [Fieldname.PITCH_ACCENT], [])
+    lookup_data_type = lookup_data_type_factory('NhkPitchLookupData', {Fieldname.PITCH_ACCENT})
 
     def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
         return self.lookup_data_type(word, form, {

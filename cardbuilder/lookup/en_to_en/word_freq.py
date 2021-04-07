@@ -17,7 +17,7 @@ class WordFrequency(ExternalDataDataSource):
     url = 'http://norvig.com/ngrams/count_1w.txt'
     filename = 'count_1w.txt'
 
-    lookup_data_type = lookup_data_type_factory('WordFreqLookupData', [Fieldname.SUPPLEMENTAL], [])
+    lookup_data_type = lookup_data_type_factory('WordFreqLookupData', {Fieldname.SUPPLEMENTAL})
 
     def __init__(self):
         # deliberately don't call super().__init__() because we have a custom table schema

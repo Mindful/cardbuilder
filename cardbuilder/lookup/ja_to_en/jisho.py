@@ -16,12 +16,11 @@ from cardbuilder.input.word import Word, WordForm
 class Jisho(WebApiDataSource):
     """The DataSource class for jisho.org's API"""
 
-    lookup_data_type = lookup_data_type_factory('JishoLookupData', [Fieldname.PART_OF_SPEECH,
+    lookup_data_type = lookup_data_type_factory('JishoLookupData', {Fieldname.PART_OF_SPEECH,
                                                                     Fieldname.DEFINITIONS,
                                                                     Fieldname.READING,
                                                                     Fieldname.WRITINGS,
-                                                                    Fieldname.DETAILED_READING],
-                                                [])
+                                                                    Fieldname.DETAILED_READING})
 
     @staticmethod
     def _to_katakana_reading(form: str) -> str:

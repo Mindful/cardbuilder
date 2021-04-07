@@ -16,8 +16,7 @@ class ESPDIC(ExternalDataDataSource):
     backup_delimiter = ';'  # I wish this wasn't necessary, but there's at least one line that uses ;
     definition_delimiter = '|||'
 
-    lookup_data_type = lookup_data_type_factory('ESPDICLookupData', [],
-                                                [Fieldname.DEFINITIONS, Fieldname.PART_OF_SPEECH])
+    lookup_data_type = lookup_data_type_factory('ESPDICLookupData', {Fieldname.DEFINITIONS, Fieldname.PART_OF_SPEECH})
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         definitions = defaultdict(list)
