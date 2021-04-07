@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import copy
 from typing import List, Dict, Optional, Set, FrozenSet
 
 from cardbuilder.common.fieldnames import Fieldname
@@ -56,7 +57,7 @@ def lookup_data_type_factory(name: str, input_fields: Set[Fieldname]) -> type:
             return cls._fields
 
         def get_data(self) -> Dict[Fieldname, Value]:
-            return self._data
+            return copy(self._data)
 
         def __setitem__(self, key: Fieldname, value: Value):
             if key not in self._fields:
