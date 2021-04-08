@@ -13,6 +13,12 @@ class Value(ABC):
     def get_data(self) -> Any:
         return copy(self._data)
 
+    def __eq__(self, other):
+        return isinstance(other, type(self)) and self._data == other._data
+
+    def __hash__(self):
+        return hash(self._data)
+
 
 class SingleValue(Value):
 
@@ -46,12 +52,14 @@ class MultiListValue(Value):
     def __init__(self, list_header_tuples: List[Tuple[ListValue.input_type, Optional[SingleValue.input_type]]]):
         super(MultiListValue, self).__init__()
 
-        self.data = [
+        self._data = [
             (ListValue(list_data), SingleValue(header_data) if header_data is not None else None)
             for list_data, header_data in list_header_tuples
         ]
 
     def get_data(self) -> List[Tuple[ListValue, Optional[SingleValue]]]:
         return copy(self._data)
+
+
 
 
