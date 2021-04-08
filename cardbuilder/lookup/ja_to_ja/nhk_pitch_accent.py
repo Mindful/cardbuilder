@@ -5,13 +5,15 @@ from json import dumps, loads
 
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.input.word import Word
-from cardbuilder.lookup.lookup_data import LookupData, lookup_data_type_factory
-from cardbuilder.lookup.value import Value
+from cardbuilder.lookup.lookup_data import LookupData, outputs
+from cardbuilder.lookup.value import Value, SingleValue
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
 from cardbuilder.common.util import trim_whitespace
 
-
+@outputs({
+    Fieldname.PITCH_ACCENT: SingleValue
+})
 class NhkPitchAccent(ExternalDataDataSource):
     """A DataSource class that returns HTML pitch accent information,
      based on https://github.com/javdejong/nhk-pronunciation. Requires the css in default_css to be displayed
@@ -21,11 +23,9 @@ class NhkPitchAccent(ExternalDataDataSource):
                                     .nopron {color: royalblue;}
                                     .nasal{color: red;}''')
 
-    lookup_data_type = lookup_data_type_factory('NhkPitchLookupData', {Fieldname.PITCH_ACCENT})
-
     def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
-        return self.lookup_data_type(word, form, {
-            Fieldname.PITCH_ACCENT: NhkPitchAccentValue(loads(content))
+        return self.lookup_data_type(word, form, content, {
+            Fieldname.PITCH_ACCENT: SingleValue(next(iter(loads(content).values())))
         })
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
@@ -45,12 +45,3 @@ class NhkPitchAccent(ExternalDataDataSource):
     def _fetch_remote_files_if_necessary(self):
         super(NhkPitchAccent, self)._fetch_remote_files_if_necessary()
         build_database()
-
-
-class NhkPitchAccentValue(Value):
-    def __init__(self, pitch_accent_by_reading: Dict[str, str]):
-        self.pitch_accent_by_reading = pitch_accent_by_reading
-
-    def to_output_string(self):
-        # we can't do better than this without retrieving pitch accent by reading
-        return next(iter(self.pitch_accent_by_reading.values()))

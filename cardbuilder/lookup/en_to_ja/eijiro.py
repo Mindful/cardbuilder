@@ -11,12 +11,14 @@ from string import digits
 
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import ExternalDataDataSource
-from cardbuilder.lookup.lookup_data import lookup_data_type_factory, LookupData
-from cardbuilder.lookup.value import StringListsWithPOSValue, LinksValue, Value, StringValue
+from cardbuilder.lookup.lookup_data import outputs, LookupData
+from cardbuilder.lookup.value import SingleValue, LinksValue, MultiListValue
 
 digitset = set(digits)
 
-
+@outputs({
+    Fieldname.LINKS: LinksValue
+})
 class Eijiro(ExternalDataDataSource):
     # http://www.eijiro.jp/get-144.htm
     # https://www.eijiro.jp/spec.htm
@@ -203,11 +205,12 @@ class Eijiro(ExternalDataDataSource):
         if links:
             output[Fieldname.LINKS] = LinksValue(links)
         for val_key, val_dict in aggregated_parse.items():
+            #TODO: dynamically choosing between value types based on dictionary content isn't good
             if sum(1 for key in val_dict if key is not None) > 0:
-                output[val_key] = StringListsWithPOSValue([([val for val in vals if val], pos)
+                output[val_key] = MultiListValue([([val for val in vals if val], pos)
                                                            for pos, vals in val_dict.items()])
             else:
-                output[val_key] = StringValue(val_dict[None][0])
+                output[val_key] = SingleValue(val_dict[None][0])
 
         if Fieldname.LINKS in output:
             for linked_word_dict in output[Fieldname.LINKS].data_list:

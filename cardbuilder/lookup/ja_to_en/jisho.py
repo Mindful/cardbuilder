@@ -7,20 +7,21 @@ from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import is_hiragana, Shared
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.lookup.data_source import WebApiDataSource
-from cardbuilder.lookup.value import StringListsWithPOSValue, StringValue, StringListValue
+from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue
 
-from cardbuilder.lookup.lookup_data import LookupData, lookup_data_type_factory
+from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.input.word import Word, WordForm
 
 
+@outputs({
+    Fieldname.PART_OF_SPEECH: SingleValue,
+    Fieldname.DEFINITIONS: MultiListValue,
+    Fieldname.READING: SingleValue,
+    Fieldname.WRITINGS: ListValue,
+    Fieldname.DETAILED_READING: SingleValue
+})
 class Jisho(WebApiDataSource):
     """The DataSource class for jisho.org's API"""
-
-    lookup_data_type = lookup_data_type_factory('JishoLookupData', {Fieldname.PART_OF_SPEECH,
-                                                                    Fieldname.DEFINITIONS,
-                                                                    Fieldname.READING,
-                                                                    Fieldname.WRITINGS,
-                                                                    Fieldname.DETAILED_READING})
 
     @staticmethod
     def _to_katakana_reading(form: str) -> str:
@@ -91,13 +92,13 @@ class Jisho(WebApiDataSource):
         writing_candidates = list({x['word'] for x in match['japanese'] if 'word' in x})  # set for unique, then list
         detailed_reading = self._detailed_reading(form)
         reading = self._to_katakana_reading(form)
-        definitions_value = StringListsWithPOSValue(definitions_with_pos)
+        definitions_value = MultiListValue(definitions_with_pos)
         found_form = match['slug']
 
-        return self.lookup_data_type(word, found_form, {
-            Fieldname.PART_OF_SPEECH: StringValue(definitions_value.values_with_pos[0][1]),
+        return self.lookup_data_type(word, found_form, content, {
+            Fieldname.PART_OF_SPEECH: SingleValue(definitions_with_pos[0][1]),
             Fieldname.DEFINITIONS: definitions_value,
-            Fieldname.READING: StringValue(reading),
-            Fieldname.WRITINGS: StringListValue(writing_candidates),
-            Fieldname.DETAILED_READING: StringValue(detailed_reading),
+            Fieldname.READING: SingleValue(reading),
+            Fieldname.WRITINGS: ListValue(writing_candidates),
+            Fieldname.DETAILED_READING: SingleValue(detailed_reading),
         })

@@ -2,7 +2,8 @@ import pytest
 
 from cardbuilder.common.languages import ENGLISH
 from cardbuilder.input.word import Word
-from cardbuilder.lookup import DataSource, Eijiro
+from cardbuilder.lookup.data_source import DataSource
+from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
 from tests.lookup.data_source_test import DataSourceTest
 
 

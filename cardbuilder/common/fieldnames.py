@@ -15,7 +15,6 @@ class Fieldname(Enum):
     INFLECTIONS = 'infs'
     EXAMPLE_SENTENCES = 'exst'
     AUDIO = 'aud'
-    RAW_DATA = 'raw'
     SUPPLEMENTAL = 'supp'
     LINKS = 'link'
 

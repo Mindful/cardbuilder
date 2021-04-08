@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from cardbuilder.lookup import DataSource
+from cardbuilder.lookup.data_source import DataSource
 
 
 class DataSourceTest(ABC):
@@ -13,7 +13,7 @@ class DataSourceTest(ABC):
         wordlist_type = type(self.get_data_source())
         assert(hasattr(wordlist_type, 'lookup_data_type'))
 
-        assert(type(wordlist_type.lookup_data_type.fields()) == frozenset)
+        assert(type(wordlist_type.lookup_data_type.fields()) == dict)
 
 
 #TODO: WebApiDataSourceTest that inherits from above and also, at minimum, checks that enabling/disabling cache retrieval

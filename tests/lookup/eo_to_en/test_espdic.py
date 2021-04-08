@@ -2,7 +2,8 @@ import pytest
 
 from cardbuilder.common.languages import ESPERANTO
 from cardbuilder.input.word import Word
-from cardbuilder.lookup import DataSource, ESPDIC
+from cardbuilder.lookup.data_source import DataSource
+from cardbuilder.lookup.eo_to_en.espdic import ESPDIC
 from tests.lookup.data_source_test import DataSourceTest
 
 

@@ -3,7 +3,7 @@ from collections import OrderedDict
 from typing import Optional, Callable
 
 from cardbuilder.exceptions import CardBuilderUsageException
-from cardbuilder.lookup.new_value import SingleValue, ListValue, MultiListValue
+from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue
 
 
 class Printer(ABC):

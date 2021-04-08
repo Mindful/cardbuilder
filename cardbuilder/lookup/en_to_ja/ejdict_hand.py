@@ -10,18 +10,19 @@ from cardbuilder.exceptions import WordLookupException
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import log, loading_bar
 from cardbuilder.input.word import Word
-from cardbuilder.lookup.lookup_data import LookupData, lookup_data_type_factory
-from cardbuilder.lookup.value import StringListValue
+from cardbuilder.lookup.lookup_data import outputs, LookupData
+from cardbuilder.lookup.value import LinksValue, ListValue
 from cardbuilder.lookup.data_source import ExternalDataDataSource
-from cardbuilder.lookup.value import LinksValue
 
 
+@outputs({
+    Fieldname.DEFINITIONS: ListValue,
+    Fieldname.LINKS: LinksValue
+})
 class EJDictHand(ExternalDataDataSource):
     filename = 'ejdicthand.txt'
     definition_delim = ' / '
     link_symbol = '='
-
-    lookup_data_type = lookup_data_type_factory('EJDictHandLookupData', {Fieldname.DEFINITIONS, Fieldname.LINKS})
 
     # https://kujirahand.com/web-tools/EJDictFreeDL.php
     def _fetch_remote_files_if_necessary(self):
@@ -62,8 +63,8 @@ class EJDictHand(ExternalDataDataSource):
             else:
                 raise WordLookupException('Empty entry found for word {} in EJDictHand'.format(form))
         else:
-            output = self.lookup_data_type(word, form, {
-                Fieldname.DEFINITIONS: StringListValue(definitions),
+            output = self.lookup_data_type(word, form, content, {
+                Fieldname.DEFINITIONS: ListValue(definitions),
             })
             if len(links) > 0:
                 output[Fieldname.LINKS] = LinksValue([self.lookup_word(word, linked_word)
