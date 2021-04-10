@@ -15,4 +15,5 @@ class TestEijiro(DataSourceTest):
         data_source = self.get_data_source()
 
         dog_result = data_source.lookup_word(Word('dog', ENGLISH), 'dog')
+
         #TODO: flesh out this test, add a test for words with links (previously caused problems)

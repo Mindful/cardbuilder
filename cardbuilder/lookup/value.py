@@ -19,6 +19,9 @@ class Value(ABC):
     def __hash__(self):
         return hash(self._data)
 
+    def __repr__(self):
+        return type(self).__name__ + ':' + repr(self.get_data())
+
 
 class SingleValue(Value):
 
@@ -37,7 +40,6 @@ class SingleValue(Value):
 
 
 class ListValue(Value):
-
     input_type = List[SingleValue.input_type]
 
     def __init__(self, value_list: input_type):

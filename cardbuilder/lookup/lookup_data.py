@@ -108,7 +108,7 @@ def outputs(output_spec: Dict[Fieldname, type]):
                             fieldname, self._fields[fieldname].__name__
                         ))
 
-        GeneratedLookupData.__name__ = type(clazz).__name__ + 'LookupData'
+        GeneratedLookupData.__name__ = clazz.__name__ + 'LookupData'
 
         clazz.lookup_data_type = GeneratedLookupData
 

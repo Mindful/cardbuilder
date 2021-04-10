@@ -1,23 +1,24 @@
 import csv
 import sqlite3
-from typing import Any, List, Dict, Iterable, Tuple
+from typing import List, Iterable, Tuple
 
-from cardbuilder.lookup.lookup_data import LookupData, lookup_data_type_factory
+from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar, log, DATABASE_NAME, retry_with_logging
 
-from cardbuilder.lookup.value import Value, StringValue
+from cardbuilder.lookup.value import SingleValue
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.input.word import Word
 
 
+@outputs({
+    Fieldname.SUPPLEMENTAL: SingleValue
+})
 class WordFrequency(ExternalDataDataSource):
     # https://norvig.com/ngrams/
     url = 'http://norvig.com/ngrams/count_1w.txt'
     filename = 'count_1w.txt'
-
-    lookup_data_type = lookup_data_type_factory('WordFreqLookupData', {Fieldname.SUPPLEMENTAL})
 
     def __init__(self):
         # deliberately don't call super().__init__() because we have a custom table schema
@@ -42,8 +43,9 @@ class WordFrequency(ExternalDataDataSource):
         if form not in self.frequency:
             raise WordLookupException('No frequency information for {}'.format(form))
 
-        return self.lookup_data_type(word, form, {
-            Fieldname.SUPPLEMENTAL: StringValue(str(self[form])),
+        content = str(self[form])
+        return self.lookup_data_type(word, form, content, {
+            Fieldname.SUPPLEMENTAL: SingleValue(content),
         })
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, int]]:

@@ -12,42 +12,42 @@ from string import digits
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.lookup_data import outputs, LookupData
-from cardbuilder.lookup.value import SingleValue, LinksValue, MultiListValue
+from cardbuilder.lookup.value import LinksValue, MultiListValue
 
 digitset = set(digits)
 
-@outputs({
-    Fieldname.LINKS: LinksValue
-})
+# these definitions live outside the eijiro class so they can be used in the @output definition
+example_sentence_symbol = '■・'
+additional_explanation_symbol = '◆'
+pronunciation_symbol = '【発音】'
+pronunciation_important_symbol = '【発音！】'
+katakana_reading_symbol = '【＠】'
+inflections_symbol = '【変化】'
+level_symbol = '【レベル】'
+word_split_symbol = '【分節】'
+link_symbol = '＝<→'
+
+content_sectioning_symbol_map = {
+    example_sentence_symbol: Fieldname.EXAMPLE_SENTENCES,
+    additional_explanation_symbol: Fieldname.SUPPLEMENTAL,
+    pronunciation_symbol: Fieldname.PRONUNCIATION_IPA,
+    pronunciation_important_symbol: Fieldname.PRONUNCIATION_IPA,
+    katakana_reading_symbol: Fieldname.KATAKANA,
+    inflections_symbol: Fieldname.INFLECTIONS,
+    level_symbol: Fieldname.SUPPLEMENTAL,
+    word_split_symbol: Fieldname.SUPPLEMENTAL,
+    link_symbol: Fieldname.LINKS
+}
+
+
+@outputs({**{Fieldname.LINKS: LinksValue, Fieldname.DEFINITIONS: MultiListValue},
+          **{fname: MultiListValue for fname in content_sectioning_symbol_map.values() if fname != Fieldname.LINKS}})
 class Eijiro(ExternalDataDataSource):
     # http://www.eijiro.jp/get-144.htm
     # https://www.eijiro.jp/spec.htm
 
     line_head_symbol = '■'
     entry_delimiter = ' : '
-
-    example_sentence_symbol = '■・'
-    additional_explanation_symbol = '◆'
-    pronunciation_symbol = '【発音】'
-    pronunciation_important_symbol = '【発音！】'
-    katakana_reading_symbol = '【＠】'
-    inflections_symbol = '【変化】'
-    level_symbol = '【レベル】'
-    word_split_symbol = '【分節】'
-    link_symbol = '＝<→'
-
-    content_sectioning_symbol_map = {
-        example_sentence_symbol: Fieldname.EXAMPLE_SENTENCES,
-        additional_explanation_symbol: Fieldname.SUPPLEMENTAL,
-        pronunciation_symbol: Fieldname.PRONUNCIATION_IPA,
-        pronunciation_important_symbol: Fieldname.PRONUNCIATION_IPA,
-        katakana_reading_symbol: Fieldname.KATAKANA,
-        inflections_symbol: Fieldname.INFLECTIONS,
-        level_symbol: Fieldname.SUPPLEMENTAL,
-        word_split_symbol: Fieldname.SUPPLEMENTAL,
-        link_symbol: Fieldname.LINKS
-    }
-
 
     content_sectioning_symbols = set(content_sectioning_symbol_map.keys())
 
@@ -103,11 +103,6 @@ class Eijiro(ExternalDataDataSource):
 
     header_data_delimiter = '⦀'
     line_data_delimiter = '⚬'
-
-    lookup_data_type = lookup_data_type_factory('EijiroLookupData',
-                                                set(list(set(val for val in content_sectioning_symbol_map.values()
-                                                         if isinstance(val, Fieldname))) + [Fieldname.PART_OF_SPEECH,
-                                                                                            Fieldname.DEFINITIONS]))
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         if self.file_loc is None:
@@ -173,7 +168,7 @@ class Eijiro(ExternalDataDataSource):
                 if section_header is None and section in Eijiro.content_sectioning_symbols:
                     section_header = section
                 elif section_header is not None and section not in Eijiro.content_sectioning_symbols:
-                    key = Eijiro.content_sectioning_symbol_map[section_header]
+                    key = content_sectioning_symbol_map[section_header]
                     if key == Fieldname.LINKS:
                         linked_word = section[:-1]
                         try:
@@ -205,12 +200,7 @@ class Eijiro(ExternalDataDataSource):
         if links:
             output[Fieldname.LINKS] = LinksValue(links)
         for val_key, val_dict in aggregated_parse.items():
-            #TODO: dynamically choosing between value types based on dictionary content isn't good
-            if sum(1 for key in val_dict if key is not None) > 0:
-                output[val_key] = MultiListValue([([val for val in vals if val], pos)
-                                                           for pos, vals in val_dict.items()])
-            else:
-                output[val_key] = SingleValue(val_dict[None][0])
+            output[val_key] = MultiListValue([([val for val in vals if val], pos) for pos, vals in val_dict.items()])
 
         if Fieldname.LINKS in output:
             for linked_word_dict in output[Fieldname.LINKS].data_list:
@@ -219,7 +209,7 @@ class Eijiro(ExternalDataDataSource):
                             and key in Fieldname.LINK_FRIENDLY_FIELDS:
                         output[key] = value
 
-        return self.lookup_data_type(word, form, output)
+        return self.lookup_data_type(word, form, content, output)
 
     def _fetch_remote_files_if_necessary(self):
         pass  # No remote files to fetch, takes an explicit file location

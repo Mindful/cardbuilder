@@ -5,23 +5,20 @@ from typing import Dict
 import requests
 from json import loads
 
-from cardbuilder.common import fieldnames
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import log
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSource
-from cardbuilder.lookup.lookup_data import LookupData, lookup_data_type_factory
-from cardbuilder.lookup.value import StringListsWithPOSValue, StringListsWithPrimaryPOSValue, RawDataValue, \
-    StringsWithPosValue, StringValue, Value, StringListValue
+from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.exceptions import WordLookupException
 
 
 # https://dictionaryapi.com/products/api-collegiate-thesaurus
 class CollegiateThesaurus(WebApiDataSource):
-    lookup_data_type = lookup_data_type_factory('CollegiateThesaurusLookupData', {Fieldname.RAW_DATA,
-                                                                                  Fieldname.SYNONYMS,
-                                                                                  Fieldname.ANTONYMS,
-                                                                                  Fieldname.SUPPLEMENTAL})
+    # lookup_data_type = lookup_data_type_factory('CollegiateThesaurusLookupData', {Fieldname.RAW_DATA,
+    #                                                                               Fieldname.SYNONYMS,
+    #                                                                               Fieldname.ANTONYMS,
+    #                                                                               Fieldname.SUPPLEMENTAL})
 
     def __init__(self, api_key):
         super().__init__()
@@ -66,13 +63,13 @@ class CollegiateThesaurus(WebApiDataSource):
 
 # https://dictionaryapi.com/products/api-learners-dictionary
 class LearnerDictionary(WebApiDataSource):
-    lookup_data_type = lookup_data_type_factory('LearnerDictionaryLookupData', {Fieldname.PART_OF_SPEECH,
-                                                                                Fieldname.DEFINITIONS,
-                                                                                Fieldname.PRONUNCIATION_IPA,
-                                                                                Fieldname.INFLECTIONS,
-                                                                                Fieldname.SUPPLEMENTAL,
-                                                                                Fieldname.AUDIO,
-                                                                                Fieldname.RAW_DATA})
+    # lookup_data_type = lookup_data_type_factory('LearnerDictionaryLookupData', {Fieldname.PART_OF_SPEECH,
+    #                                                                             Fieldname.DEFINITIONS,
+    #                                                                             Fieldname.PRONUNCIATION_IPA,
+    #                                                                             Fieldname.INFLECTIONS,
+    #                                                                             Fieldname.SUPPLEMENTAL,
+    #                                                                             Fieldname.AUDIO,
+    #                                                                             Fieldname.RAW_DATA})
 
     audio_file_format = 'mp3'
     number_subdir_regex = re.compile(r'^[^a-zA-Z]+')
@@ -192,9 +189,9 @@ class LearnerDictionary(WebApiDataSource):
 class MerriamWebster(AggregatingDataSource):
     keylike = re.compile(r'.+-.+-.+-.+')
 
-    lookup_data_type = lookup_data_type_factory('MerriamWebsterLookupData',
-                                                LearnerDictionary.lookup_data_type.fields() |
-                                                CollegiateThesaurus.lookup_data_type.fields())
+    # lookup_data_type = lookup_data_type_factory('MerriamWebsterLookupData',
+    #                                             LearnerDictionary.lookup_data_type.fields() |
+    #                                             CollegiateThesaurus.lookup_data_type.fields())
 
     def __init__(self, learners_api_key: str, thesaurus_api_key: str, pos_in_definitions=False):
         api_keys = []
@@ -220,12 +217,12 @@ class MerriamWebster(AggregatingDataSource):
     def __del__(self):
         pass  # no need to close any database connections like DataSource does
 
-    @staticmethod
-    def _add_primary_pos_value_if_present(val: StringListsWithPOSValue, pos: str,
-                                          key: Fieldname, target_dict: Dict[Fieldname, Value]):
-        present_parts_of_speech = {pos for values, pos in val.values_with_pos}
-        if pos in present_parts_of_speech:
-            target_dict[key] = StringListsWithPrimaryPOSValue(val.values_with_pos, pos)
+    # @staticmethod
+    # def _add_primary_pos_value_if_present(val: StringListsWithPOSValue, pos: str,
+    #                                       key: Fieldname, target_dict: Dict[Fieldname, Value]):
+    #     present_parts_of_speech = {pos for values, pos in val.values_with_pos}
+    #     if pos in present_parts_of_speech:
+    #         target_dict[key] = StringListsWithPrimaryPOSValue(val.values_with_pos, pos)
 
     def lookup_word(self, word: Word, form: str) -> LookupData:
         dictionary_data = self.learners_dict.lookup_word(word, form)
