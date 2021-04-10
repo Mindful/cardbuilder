@@ -6,13 +6,14 @@ from json import dumps, loads
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.lookup_data import LookupData, outputs
-from cardbuilder.lookup.value import Value, SingleValue
+from cardbuilder.lookup.value import MultiValue
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
 from cardbuilder.common.util import trim_whitespace
 
+
 @outputs({
-    Fieldname.PITCH_ACCENT: SingleValue
+    Fieldname.PITCH_ACCENT: MultiValue
 })
 class NhkPitchAccent(ExternalDataDataSource):
     """A DataSource class that returns HTML pitch accent information,
@@ -24,8 +25,10 @@ class NhkPitchAccent(ExternalDataDataSource):
                                     .nasal{color: red;}''')
 
     def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+        reading_to_accent_map = loads(content)
         return self.lookup_data_type(word, form, content, {
-            Fieldname.PITCH_ACCENT: SingleValue(next(iter(loads(content).values())))
+            Fieldname.PITCH_ACCENT: MultiValue([(accent, reading) for reading, accent
+                                                 in reading_to_accent_map.items()])
         })
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:

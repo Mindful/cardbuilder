@@ -29,7 +29,7 @@ class LookupData(ABC):
 
         raise NotImplementedError()
 
-    def get_raw_data(self) -> str:
+    def get_raw_content(self) -> str:
         return copy(self._raw_data)
 
     def get_data(self) -> Dict[Fieldname, Value]:

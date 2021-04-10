@@ -44,6 +44,8 @@ class DataSource(ABC):
 class AggregatingDataSource(DataSource, ABC):
     """The base class for data sources that own other data sources and don't have a sqlite table of their own."""
 
+    aggregated_content_delimiter = '||||'  # placed in between aggregated raw content
+
     def __init__(self):
         pass
 

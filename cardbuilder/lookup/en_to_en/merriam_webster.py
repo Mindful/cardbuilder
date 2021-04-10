@@ -11,14 +11,15 @@ from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.exceptions import WordLookupException
+from cardbuilder.lookup.value import MultiListValue, ListValue, MultiValue
 
 
-# https://dictionaryapi.com/products/api-collegiate-thesaurus
+@outputs({
+    Fieldname.SYNONYMS: MultiListValue,
+    Fieldname.ANTONYMS: MultiListValue
+})
 class CollegiateThesaurus(WebApiDataSource):
-    # lookup_data_type = lookup_data_type_factory('CollegiateThesaurusLookupData', {Fieldname.RAW_DATA,
-    #                                                                               Fieldname.SYNONYMS,
-    #                                                                               Fieldname.ANTONYMS,
-    #                                                                               Fieldname.SUPPLEMENTAL})
+    # https://dictionaryapi.com/products/api-collegiate-thesaurus
 
     def __init__(self, api_key):
         super().__init__()
@@ -44,32 +45,28 @@ class CollegiateThesaurus(WebApiDataSource):
 
         syns_with_pos = []
         ants_with_pos = []
-        word_ids = []
 
         # we only take the first set of synonyms/antonyms per part of speech; at some point it's just overkill
         for word_data in target_words:
             pos = word_data['fl']
-            word_ids.append(word_data['meta']['id'].split(':')[0] + '_' + pos)
             syns_with_pos.append((word_data['meta']['syns'][0] if len(word_data['meta']['syns']) > 0 else [], pos))
             ants_with_pos.append((word_data['meta']['ants'][0] if len(word_data['meta']['ants']) > 0 else [], pos))
 
-        return self.lookup_data_type(word, form, {
-            Fieldname.SYNONYMS: StringListsWithPOSValue(syns_with_pos),
-            Fieldname.ANTONYMS: StringListsWithPOSValue(ants_with_pos),
-            Fieldname.SUPPLEMENTAL: StringListValue(word_ids),
-            Fieldname.RAW_DATA: RawDataValue(content)
+        return self.lookup_data_type(word, form, content, {
+            Fieldname.SYNONYMS: MultiListValue(syns_with_pos),
+            Fieldname.ANTONYMS: MultiListValue(ants_with_pos),
         })
 
 
-# https://dictionaryapi.com/products/api-learners-dictionary
+@outputs({
+    Fieldname.PART_OF_SPEECH: ListValue,
+    Fieldname.DEFINITIONS: MultiListValue,
+    Fieldname.PRONUNCIATION_IPA: MultiValue,
+    Fieldname.INFLECTIONS: MultiListValue,
+    Fieldname.AUDIO: MultiValue
+})
 class LearnerDictionary(WebApiDataSource):
-    # lookup_data_type = lookup_data_type_factory('LearnerDictionaryLookupData', {Fieldname.PART_OF_SPEECH,
-    #                                                                             Fieldname.DEFINITIONS,
-    #                                                                             Fieldname.PRONUNCIATION_IPA,
-    #                                                                             Fieldname.INFLECTIONS,
-    #                                                                             Fieldname.SUPPLEMENTAL,
-    #                                                                             Fieldname.AUDIO,
-    #                                                                             Fieldname.RAW_DATA})
+    # https://dictionaryapi.com/products/api-learners-dictionary
 
     audio_file_format = 'mp3'
     number_subdir_regex = re.compile(r'^[^a-zA-Z]+')
@@ -102,19 +99,19 @@ class LearnerDictionary(WebApiDataSource):
                     target_word = next((json for json in word_json['uros'] if json['ure'].replace('*', '') == form),
                                        None)
                     if target_word is not None:
-                        output = {Fieldname.RAW_DATA: RawDataValue(content)}
+                        output = {}
                         if 'prs' in target_word:
                             pronunciation_data = target_word['prs'][0]
                             if 'ipa' in pronunciation_data:
-                                output[Fieldname.PRONUNCIATION_IPA] = StringValue(pronunciation_data['ipa'])
+                                output[Fieldname.PRONUNCIATION_IPA] = MultiValue([(pronunciation_data['ipa'], None)])
                             if 'sound' in pronunciation_data:
-                                output[Fieldname.AUDIO] = StringValue(self._get_word_pronunciation_url(
-                                    pronunciation_data['sound']['audio']))
+                                output[Fieldname.AUDIO] = MultiValue([(self._get_word_pronunciation_url(
+                                    pronunciation_data['sound']['audio']), None)])
 
                         if 'fl' in target_word:
                             # There's only going to be one POS, but we expect this to be a StringListValue
                             # in the MerriamWebster data source
-                            output[Fieldname.PART_OF_SPEECH] = StringListValue([target_word['fl']])
+                            output[Fieldname.PART_OF_SPEECH] = ListValue([target_word['fl']])
 
                         if len(output) > 0:
                             return self.lookup_data_type(word, form, output)
@@ -122,7 +119,6 @@ class LearnerDictionary(WebApiDataSource):
             raise WordLookupException('Merriam Webster learner\'s dictionary had no exact matches for {}'.format(form))
 
         pos_list = []
-        word_id_list = []
         ipa_with_pos = []
         inflections_with_pos = []
         audio_with_pos = []
@@ -133,7 +129,6 @@ class LearnerDictionary(WebApiDataSource):
             if not shortdef:
                 continue
             pos_label = shortdef['fl']
-            word_id = word_data['meta']['id'].split(':')[0] + '_' + pos_label
             try:
                 pronunciation_data = word_data['hwi']['prs'][0]
             except KeyError:
@@ -153,21 +148,18 @@ class LearnerDictionary(WebApiDataSource):
                                                       for x in shortdef['def']) if d],
                                          pos_label))
             pos_list.append(pos_label)
-            word_id_list.append(word_id)
 
         out = {
-            Fieldname.PART_OF_SPEECH: StringListValue(pos_list),
-            Fieldname.DEFINITIONS: StringListsWithPOSValue(definitions_with_pos),
-            Fieldname.PRONUNCIATION_IPA: StringsWithPosValue(ipa_with_pos),
-            Fieldname.INFLECTIONS: StringListsWithPOSValue(inflections_with_pos),
-            Fieldname.SUPPLEMENTAL: StringListValue(word_id_list),
-            Fieldname.RAW_DATA: RawDataValue(content)
+            Fieldname.PART_OF_SPEECH: ListValue(pos_list),
+            Fieldname.DEFINITIONS: MultiListValue(definitions_with_pos),
+            Fieldname.PRONUNCIATION_IPA: MultiValue(ipa_with_pos),
+            Fieldname.INFLECTIONS: MultiListValue(inflections_with_pos),
         }
 
         if len(audio_with_pos) > 0:
-            out[Fieldname.AUDIO] = StringsWithPosValue(audio_with_pos)
+            out[Fieldname.AUDIO] = MultiValue(audio_with_pos)
 
-        return self.lookup_data_type(word, form, out)
+        return self.lookup_data_type(word, form, content, out)
 
     def _get_word_pronunciation_url(self, filename) -> str:
         if filename.startswith('bix'):
@@ -185,13 +177,13 @@ class LearnerDictionary(WebApiDataSource):
         return url
 
 
-# Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
+@outputs({
+    **LearnerDictionary.lookup_data_type.fields(), **CollegiateThesaurus.lookup_data_type.fields()
+})
 class MerriamWebster(AggregatingDataSource):
-    keylike = re.compile(r'.+-.+-.+-.+')
+    # Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
 
-    # lookup_data_type = lookup_data_type_factory('MerriamWebsterLookupData',
-    #                                             LearnerDictionary.lookup_data_type.fields() |
-    #                                             CollegiateThesaurus.lookup_data_type.fields())
+    keylike = re.compile(r'.+-.+-.+-.+')
 
     def __init__(self, learners_api_key: str, thesaurus_api_key: str, pos_in_definitions=False):
         api_keys = []
@@ -217,42 +209,18 @@ class MerriamWebster(AggregatingDataSource):
     def __del__(self):
         pass  # no need to close any database connections like DataSource does
 
-    # @staticmethod
-    # def _add_primary_pos_value_if_present(val: StringListsWithPOSValue, pos: str,
-    #                                       key: Fieldname, target_dict: Dict[Fieldname, Value]):
-    #     present_parts_of_speech = {pos for values, pos in val.values_with_pos}
-    #     if pos in present_parts_of_speech:
-    #         target_dict[key] = StringListsWithPrimaryPOSValue(val.values_with_pos, pos)
-
     def lookup_word(self, word: Word, form: str) -> LookupData:
         dictionary_data = self.learners_dict.lookup_word(word, form)
-        if len(dictionary_data[Fieldname.PART_OF_SPEECH].val_list) > 0:
-            primary_pos = dictionary_data[Fieldname.PART_OF_SPEECH].val_list[0]
-        else:
-            raise WordLookupException('No parts of speech found in MerriamWebster for {}'.format(form))
 
         output = dictionary_data.get_data()
         try:  # thesaurus gags an awful lot
             thesaurus_data = self.thesaurus.lookup_word(word, form)
-            output[Fieldname.RAW_DATA] = RawDataValue({
-                'thesaurus': thesaurus_data[Fieldname.RAW_DATA].data,
-                'dictionary': dictionary_data[Fieldname.RAW_DATA].data
-            })
-            thesaurus = True
+            output = {
+                **output, **thesaurus_data.get_data()
+            }
+            content = dictionary_data.get_raw_content() + self.aggregated_content_delimiter \
+                      + thesaurus_data.get_raw_content()
         except WordLookupException:
-            output[Fieldname.RAW_DATA] = RawDataValue({
-                'dictionary': dictionary_data[Fieldname.RAW_DATA].data
-            })
-            thesaurus = False
+            content = dictionary_data.get_raw_content()
 
-        if Fieldname.INFLECTIONS in dictionary_data:
-            self._add_primary_pos_value_if_present(dictionary_data[Fieldname.INFLECTIONS], primary_pos,
-                                                   Fieldname.INFLECTIONS, output)
-
-        if thesaurus:
-            self._add_primary_pos_value_if_present(thesaurus_data[Fieldname.SYNONYMS], primary_pos,
-                                                   Fieldname.SYNONYMS, output)
-            self._add_primary_pos_value_if_present(thesaurus_data[Fieldname.ANTONYMS], primary_pos,
-                                                   Fieldname.ANTONYMS, output)
-
-        return self.lookup_data_type(word, form, output)
+        return self.lookup_data_type(word, form, content, output)

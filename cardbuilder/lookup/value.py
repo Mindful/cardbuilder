@@ -38,6 +38,18 @@ class SingleValue(Value):
         return copy(self._data)
 
 
+class MultiValue(Value):
+    def __init__(self, list_header_tuples: List[Tuple[SingleValue.input_type, Optional[SingleValue.input_type]]]):
+        super(MultiValue, self).__init__()
+
+        self._data = [
+            (SingleValue(data), SingleValue(header_data) if header_data is not None else None)
+            for data, header_data in list_header_tuples
+        ]
+
+    def get_data(self) -> List[Tuple[SingleValue, Optional[SingleValue]]]:
+        return copy(self._data)
+
 
 class ListValue(Value):
     input_type = List[SingleValue.input_type]
