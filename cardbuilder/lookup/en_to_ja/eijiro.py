@@ -204,10 +204,9 @@ class Eijiro(ExternalDataDataSource):
             output[val_key] = MultiListValue([([val for val in vals if val], pos) for pos, vals in val_dict.items()])
 
         if Fieldname.LINKS in output:
-            for linked_word_dict in output[Fieldname.LINKS].data_list:
+            for linked_word_dict in output[Fieldname.LINKS].get_data():
                 for key, value in linked_word_dict.get_data().items():
-                    if (key not in output or not output[key].to_output_string()) \
-                            and key in Fieldname.LINK_FRIENDLY_FIELDS:
+                    if (key not in output or not output[key].get_data()) and key in Fieldname.LINK_FRIENDLY_FIELDS:
                         output[key] = value
 
         return self.lookup_data_type(word, form, content, output)

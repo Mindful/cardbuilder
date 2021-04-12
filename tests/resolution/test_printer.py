@@ -1,8 +1,9 @@
 import pytest
 
 from cardbuilder.exceptions import CardBuilderUsageException
-from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue
-from cardbuilder.resolution.printer import SingleValuePrinter, ListValuePrinter, MultiListValuePrinter
+from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue, MultiValue
+from cardbuilder.resolution.printer import SingleValuePrinter, ListValuePrinter, MultiListValuePrinter, \
+    MultiValuePrinter
 
 
 class TestPrinter:
@@ -34,6 +35,15 @@ class TestPrinter:
 
         with pytest.raises(CardBuilderUsageException):
             bad_printer = ListValuePrinter(SingleValuePrinter(), number_format_string='no format string here')
+
+    def test_multi_value_printer(self):
+        mv1 = MultiValue([
+            ('a cute pupper', 'noun'),
+            ('to pursue someone', 'verb')
+        ])
+
+        printer = MultiValuePrinter()
+        assert(printer(mv1) == 'noun: a cute pupper, verb: to pursue someone')
 
     def test_multi_list_value_printer(self):
         mlv1 = MultiListValue([

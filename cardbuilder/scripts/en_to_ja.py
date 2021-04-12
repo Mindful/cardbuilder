@@ -1,12 +1,14 @@
 from cardbuilder.resolution.field import Field
-from cardbuilder.resolution.anki import AkpgResolver
+from cardbuilder.resolution.anki import AkpgResolver, AnkiAudioDownloadPrinter
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.lookup.value import Value
+from cardbuilder.lookup.value import Value, SingleValue
 from cardbuilder.lookup.en_to_en import MerriamWebster, WordFrequency
 from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
 from cardbuilder.lookup.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.lookup.tatoeba import TatoebaExampleSentences
+from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrinter, MultiValuePrinter, \
+    SingleValuePrinter, TatoebaPrinter
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions
 from cardbuilder.common.util import trim_whitespace
@@ -104,25 +106,33 @@ def main():
     tatoeba = TatoebaExampleSentences(ENGLISH, JAPANESE)
     wf = WordFrequency()
 
-    def word_freq_comma_postprocessing(value: Value) -> str:
-        return value.to_output_string(value_format_string='{}, ', sort_key=wf.get_sort_key())
+    def word_freq_sort_key(value: SingleValue) -> int:
+        return -wf[value.get_data()]
 
+    linebreak_char = AkpgResolver.linebreak #TODO or normal linebreak if we're doing CSV
+
+    eng_def_printer = MultiListValuePrinter(
+        list_printer=ListValuePrinter(max_length=2, join_string=linebreak_char, number_format_string='{number}. '),
+        max_length=1, join_string=linebreak_char*2
+    )
+    jp_def_printer = MultiListValuePrinter(
+        list_printer=ListValuePrinter(join_string=linebreak_char, number_format_string='{number} .'),
+        join_string=linebreak_char*2
+    )
+    tatoeba_printer = TatoebaPrinter(header_printer=SingleValuePrinter('{value}'+linebreak_char),
+                                        join_string=linebreak_char*2)
+    related_words_printer = MultiListValuePrinter(list_printer=ListValuePrinter(sort_key=word_freq_sort_key))
+    audio_printer = None #TODO: we probably need a CachingExternalAudioPrinter class
     fields = [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
-        Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号', stringifier=lambda x: x.to_output_string(group_by_pos=False),
-              optional=True),
-        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', stringifier=lambda x: x.to_output_string(join_vals_with=', '),
-              optional=True),
-        Field(mw, Fieldname.AUDIO, '音声', stringifier=AkpgResolver.media_download_postprocessor, optional=True),
-        Field(mw, Fieldname.DEFINITIONS, '英語での定義', stringifier=lambda x: AkpgResolver.linebreak_postprocessing(
-                  x.to_output_string(number=True, max_pos=1, max_vals=2)), optional=True),
-        Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', stringifier=lambda x: AkpgResolver.linebreak_postprocessing(
-                  x.to_output_string(number=True, max_vals=5))),
-        Field(mw, Fieldname.SYNONYMS, '類義語', stringifier=word_freq_comma_postprocessing, optional=True),
-        Field(mw, Fieldname.ANTONYMS, '対義語', stringifier=word_freq_comma_postprocessing, optional=True),
-        Field(tatoeba, Fieldname.EXAMPLE_SENTENCES, '例文', stringifier=lambda x: AkpgResolver.linebreak_postprocessing(
-            x.to_output_string(pair_format_string='<span style="font-size:150%"> {} </span><br/>{}<br/><br/>')),
-              optional=True)
+        Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号', optional=True),
+        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', optional=True),
+        Field(mw, Fieldname.AUDIO, '音声', printer=AnkiAudioDownloadPrinter(), optional=True),
+        Field(mw, Fieldname.DEFINITIONS, '英語での定義', printer=eng_def_printer, optional=True),
+        Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer),
+        Field(mw, Fieldname.SYNONYMS, '類義語', printer=related_words_printer, optional=True),
+        Field(mw, Fieldname.ANTONYMS, '対義語', printer=related_words_printer, optional=True),
+        Field(tatoeba, Fieldname.EXAMPLE_SENTENCES, '例文', printer=tatoeba_printer, optional=True)
     ]
 
     resolver = instantiable_resolvers[args.output_format](fields)

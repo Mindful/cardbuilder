@@ -12,34 +12,18 @@ from typing import List, Tuple, Iterable
 from fugashi import Tagger
 
 from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar, \
-    dedup_by, DATABASE_NAME, InDataDir
+     DATABASE_NAME, InDataDir
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.lookup_data import outputs, LookupData
-from cardbuilder.lookup.value import MultiListValue
+from cardbuilder.lookup.value import MultiValue
 from cardbuilder.exceptions import WordLookupException, CardBuilderUsageException
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 
-#
-# class TatoebaExampleSentencesValue(Value):
-#     def __init__(self, example_sentence_pairs: List[Tuple[str, str]]):
-#         self.sentence_pairs = sorted(example_sentence_pairs, key=lambda x: 1 if x[1] is None else 0)
-#
-#     def to_output_string(self, pair_format_string: str = '{}\n{}\n', max_sentences: int = 10,
-#                          dedup: bool = True) -> str:
-#         sentence_pairs = self.sentence_pairs
-#         if dedup:
-#             sentence_pairs = dedup_by(dedup_by(sentence_pairs, lambda x: x[0]), lambda x: x[1])
-#
-#         if max_sentences is not None:
-#             sentence_pairs = sentence_pairs[:max_sentences]
-#
-#         return ''.join([pair_format_string.format(*pair) for pair in sentence_pairs])
-
 
 @outputs({
-    Fieldname.EXAMPLE_SENTENCES: MultiListValue
+    Fieldname.EXAMPLE_SENTENCES: MultiValue
 })
 class TatoebaExampleSentences(ExternalDataDataSource):
 
@@ -74,9 +58,9 @@ class TatoebaExampleSentences(ExternalDataDataSource):
             raise WordLookupException('Found no corresponding example sentences for word {} in'
                                       ' Tatoeba data for language {}'.format(form, self.target_lang))
 
-        example_sentences_value = TatoebaExampleSentencesValue(example_sentence_pairs)
+        example_sentences_value = MultiValue(example_sentence_pairs)
 
-        return self.lookup_data_type(word, form, {
+        return self.lookup_data_type(word, form, '', {
             Fieldname.EXAMPLE_SENTENCES: example_sentences_value
         })
 

@@ -1,8 +1,8 @@
 from typing import Union, List, Iterable, Callable, Dict
 
+from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.resolution.field import Field
 from cardbuilder.common.util import loading_bar
-from cardbuilder.lookup import DataSource
 from cardbuilder.lookup.lookup_data import LookupData
 from cardbuilder.exceptions import CardResolutionException, WordLookupException, CardBuilderUsageException
 from cardbuilder.input.word import Word

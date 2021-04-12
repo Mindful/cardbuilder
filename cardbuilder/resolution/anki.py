@@ -1,52 +1,48 @@
-from hashlib import sha256
 from os import mkdir, remove
 from os.path import exists, join
 from shutil import rmtree
-from typing import Dict, Union, List, Optional
+from typing import Dict, List, Optional
+import re
 
 import genanki
 import requests
 
+from cardbuilder.lookup.value import SingleValue, Value, MultiListValue, MultiValue
 from cardbuilder.resolution.card_data import CardData
+from cardbuilder.resolution.printer import Printer
 from cardbuilder.resolution.resolver import Resolver
 from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.lookup.value import ListConvertibleValue, Value, StringValue
 from cardbuilder.exceptions import CardBuilderException
+
+anki_audio_field_regex = re.compile(r'\[sound:.+\]')
+
+
+class AnkiAudioDownloadPrinter(Printer):
+
+    def __call__(self, value: Value) -> str:
+        if isinstance(value, SingleValue):
+            url = value.get_data()
+        elif isinstance(value, MultiValue):
+            url = value.get_data()[0][0].get_data()
+        else:
+            raise CardBuilderException('{} can only print SingleValues or MultiValues'.format(
+                AnkiAudioDownloadPrinter.__name__))
+
+        filename = url.split('/')[-1]
+        if not exists(AkpgResolver.media_temp_directory):
+            mkdir(AkpgResolver.media_temp_directory)
+
+        r = requests.get(url)
+        with open(join(AkpgResolver.media_temp_directory, filename), 'wb') as f:
+            f.write(r.content)
+
+        return '[sound:{}]'.format(filename)
 
 
 class AkpgResolver(Resolver):
 
     media_temp_directory = 'ankitemp'
-
-    @staticmethod
-    def media_download_postprocessor(value: Union[Value, str]) -> str:
-        # Anki only supports one media value per field
-        if isinstance(value, StringValue):
-            value = value.val
-        if isinstance(value, ListConvertibleValue):
-            value = value.to_list()[0]
-        elif not isinstance(value, str):
-            raise CardBuilderException('Anki media postprocessing input value must be '
-                                       'either StringValue, ListConvertibleValue or str')
-
-        filename = value.split('/')[-1]
-        if not exists(AkpgResolver.media_temp_directory):
-            mkdir(AkpgResolver.media_temp_directory)
-
-        r = requests.get(value)
-        with open(join(AkpgResolver.media_temp_directory, filename), 'wb') as f:
-            f.write(r.content)
-
-        return filename
-
-    @staticmethod
-    def linebreak_postprocessing(value: Union[Value, str]) -> str:
-        if isinstance(value, Value):
-            return value.to_output_string().replace('\n', '<br/>')
-        elif isinstance(value, str):
-            return value.replace('\n', '<br/>')
-        else:
-            raise CardBuilderException('Anki linebreak postprocessing input value must be either Value or str')
+    linebreak = '<br/>'
 
     default_templates = [{
                               'name': 'Dummy Card',
@@ -91,9 +87,7 @@ class AkpgResolver(Resolver):
 
         deck = genanki.Deck(self._str_to_id(name), name)
         for row in rows:
-            fields = (rf.value if rf.source_name != Fieldname.AUDIO else '[sound:{}]'.format(rf.value)
-                      for rf in row.fields)
-            fields = [x if len(x) > 0 else ' ' for x in fields]  # Anki sometimes doesn't like empty fields
+            fields = [x.value if len(x.value) > 0 else ' ' for x in row.fields]  # Anki sometimes doesn't like empty fields
             deck.add_note(genanki.Note(model=model, fields=fields))
 
         package = genanki.Package(deck)
@@ -101,8 +95,9 @@ class AkpgResolver(Resolver):
             if not exists(self.media_temp_directory):
                 raise CardBuilderException('Field with audio source found but no temporary media directory found')
 
-            package.media_files = [join(self.media_temp_directory, next(rf for rf in row.fields
-                                                                        if rf.source_name == Fieldname.AUDIO).value)
+            package.media_files = [join(self.media_temp_directory,
+                                        next(rf for rf in row.fields
+                                             if anki_audio_field_regex.match(rf.value)).value[7:-1])
                                    for row in rows]
 
             for file in package.media_files:

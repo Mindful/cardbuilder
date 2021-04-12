@@ -2,11 +2,11 @@ import logging
 from abc import ABC, abstractmethod
 from typing import List, Union, Tuple, Dict, Callable
 
+from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.resolution.card_data import CardData
 from cardbuilder.resolution.field import Field
 from cardbuilder.resolution.resolution_engine import ResolutionEngine
 from cardbuilder.common.util import log
-from cardbuilder.lookup import DataSource
 from cardbuilder.lookup.lookup_data import LookupData
 from cardbuilder.exceptions import CardResolutionException, CardBuilderException
 from cardbuilder.input.word_list import WordList

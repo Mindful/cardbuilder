@@ -30,7 +30,8 @@ class SingleValue(Value):
     def __init__(self, val: input_type):
         super(SingleValue, self).__init__()
         if not isinstance(val, self.input_type):
-            raise CardBuilderUsageException('SingleValue received input of incorrect type')
+            raise CardBuilderUsageException('SingleValue received input of incorrect type ({})'.format(
+                type(val).__name__))
 
         self._data = val
 

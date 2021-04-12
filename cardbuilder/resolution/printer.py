@@ -2,8 +2,9 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import Optional, Callable
 
+from cardbuilder.common.util import dedup_by
 from cardbuilder.exceptions import CardBuilderUsageException
-from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue
+from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue, MultiValue, Value
 
 
 class Printer(ABC):
@@ -20,11 +21,28 @@ class SingleValuePrinter(Printer):
     def __init__(self, format_string=value_format):
         if self.value_format not in format_string:
             raise CardBuilderUsageException('Format string {} does not include '.
-                                            format(format_string)+self.value_format)
+                                            format(format_string) + self.value_format)
         self.format_string = format_string
 
     def __call__(self, value: SingleValue) -> str:
         return self.format_string.format(value=value.get_data())
+
+
+class MultiValuePrinter(Printer):
+    def __init__(self, value_printer: SingleValuePrinter = SingleValuePrinter(),
+                 header_printer: SingleValuePrinter = SingleValuePrinter('{value}: '), join_string: str = ', ',
+                 max_length: int = 10):
+        self.value_printer = value_printer
+        self.header_printer = header_printer
+        self.join_string = join_string
+        self.max_length = max_length
+
+    def __call__(self, value: MultiValue) -> str:
+        return self.join_string.join([
+                                         (self.header_printer(
+                                             header) if header is not None else '') + self.value_printer(value)
+                                         for value, header in value.get_data()
+                                     ][:self.max_length])
 
 
 class ListValuePrinter(Printer):
@@ -47,7 +65,8 @@ class ListValuePrinter(Printer):
                                                                       key=self.sort_key))[:self.max_length]
 
         return self.join_string.join([
-            (self.num_fstring.format(number=idx) if self.num_fstring is not None else '') + self.single_value_printer(val)
+            (self.num_fstring.format(number=idx) if self.num_fstring is not None else '') + self.single_value_printer(
+                val)
             for idx, val in enumerate(data)
         ])
 
@@ -55,11 +74,12 @@ class ListValuePrinter(Printer):
 class MultiListValuePrinter(Printer):
     def __init__(self, list_printer: ListValuePrinter = ListValuePrinter(number_format_string='{number}. '),
                  header_printer: Optional[SingleValuePrinter] = SingleValuePrinter('{value}\n'),
-                 join_string: str = '\n\n', group_by_header: bool = True):
+                 join_string: str = '\n\n', group_by_header: bool = True, max_length: int = 10):
         self.list_printer = list_printer
         self.header_printer = header_printer
         self.join_string = join_string
         self.group_by_header = group_by_header
+        self.max_length = max_length
 
     def __call__(self, value: MultiListValue) -> str:
         data = value.get_data()
@@ -73,9 +93,27 @@ class MultiListValuePrinter(Printer):
 
             data = list((ListValue(val), key) for key, val in grouped_data.items())
 
+        data = data[:self.max_length]
+
         return self.join_string.join([
-            (self.header_printer(header) if self.header_printer is not None else '') + self.list_printer(data_list)
+            (self.header_printer(header) if header is not None else '') + self.list_printer(data_list)
             for data_list, header in data
         ])
 
 
+class TatoebaPrinter(MultiValuePrinter):
+
+    def __call__(self, value: MultiValue):
+        deduped_value = MultiValue((x.get_data(), y.get_data()) for x, y in
+                                   dedup_by(dedup_by(value.get_data(), lambda x: x[0]), lambda x: x[1]))
+        return super().__call__(deduped_value)
+
+
+class DefaultPrinter(Printer):
+    def __call__(self, value: Value):
+        return {
+            SingleValue: SingleValuePrinter(),
+            MultiValue: MultiValuePrinter(),
+            ListValue: ListValuePrinter(),
+            MultiListValue: MultiListValuePrinter()
+        }[type(value)](value)

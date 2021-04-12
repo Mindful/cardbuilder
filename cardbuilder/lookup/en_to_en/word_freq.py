@@ -65,9 +65,3 @@ class WordFrequency(ExternalDataDataSource):
     def __getitem__(self, word: str) -> int:
         return self.frequency.get(word.lower(), 0)
 
-    def sort_by_freq(self, words: List[str]):
-        return sorted(words, key=self.get_sort_key())
-
-    def get_sort_key(self):
-        return lambda x: -self[x]
-

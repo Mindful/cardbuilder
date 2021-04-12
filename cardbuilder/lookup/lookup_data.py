@@ -15,8 +15,15 @@ class LookupData(ABC):
     def fields(cls) -> Dict[Fieldname, type]:
         raise NotImplementedError()
 
+    @classmethod
+    def standard_fields(cls) -> Dict[Fieldname, type]:
+        return {
+            Fieldname.WORD: SingleValue,
+            Fieldname.FOUND_FORM: SingleValue
+        }
+
     @abstractmethod
-    def __getitem__(self, fieldname: Fieldname) -> Optional[Value]:
+    def __getitem__(self, fieldname: Fieldname) -> Value:
         raise NotImplementedError()
 
     @abstractmethod
@@ -75,7 +82,7 @@ def outputs(output_spec: Dict[Fieldname, type]):
                 else:
                     self._data[key] = value
 
-            def __getitem__(self, key: Fieldname) -> Optional[Value]:
+            def __getitem__(self, key: Fieldname) -> Value:
                 if key == Fieldname.WORD:
                     return SingleValue(self.word.input_form)
                 elif key == Fieldname.FOUND_FORM:
@@ -85,6 +92,12 @@ def outputs(output_spec: Dict[Fieldname, type]):
                     raise CardBuilderUsageException(
                         '{} cannot contain the field {}'.format(type(self).__name__, key.name))
 
+                if key in self._data:
+                    return self._data[key]
+                else:
+                    raise LookupError('{} for word {} did not contain data for fieldname {}'.format(type(self).__name__,
+                                                                                                    self[Fieldname.WORD],
+                                                                                                    key))
                 return self._data.get(key, None)
 
             def __contains__(self, fieldname: Fieldname):
@@ -104,7 +117,7 @@ def outputs(output_spec: Dict[Fieldname, type]):
                         raise CardBuilderUsageException('{} cannot contain the field {}'.format(type(self).__name__,
                                                                                                 fieldname.name))
                     if not isinstance(value, self._fields[fieldname]):
-                        raise CardBuilderUsageException('input for field {} did was not of the promised type {}'.format(
+                        raise CardBuilderUsageException('input for field {} was not of the promised type {}'.format(
                             fieldname, self._fields[fieldname].__name__
                         ))
 
