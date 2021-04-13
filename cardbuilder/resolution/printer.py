@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from typing import Optional, Callable
+from typing import Optional, Callable, get_type_hints
+
 
 from cardbuilder.common.util import dedup_by
 from cardbuilder.exceptions import CardBuilderUsageException
@@ -11,6 +12,17 @@ class Printer(ABC):
     @abstractmethod
     def __call__(self, *args, **kwargs) -> str:
         raise NotImplementedError()
+
+    def get_input_type(self) -> type:
+        return next(val for key, val in get_type_hints(self.__call__).items() if key != 'return')
+
+
+class WrappingPrinter(Printer, ABC):
+    def __init__(self, printer: Printer):
+        self._printer = printer
+
+    def get_input_type(self) -> type:
+        return self._printer.get_input_type()
 
 
 class SingleValuePrinter(Printer):
@@ -72,7 +84,8 @@ class ListValuePrinter(Printer):
 
 
 class MultiListValuePrinter(Printer):
-    def __init__(self, list_printer: ListValuePrinter = ListValuePrinter(number_format_string='{number}. '),
+    def __init__(self, list_printer: ListValuePrinter = ListValuePrinter(number_format_string='{number}. ',
+                                                            single_value_printer=SingleValuePrinter('{value}\n')),
                  header_printer: Optional[SingleValuePrinter] = SingleValuePrinter('{value}\n'),
                  join_string: str = '\n\n', group_by_header: bool = True, max_length: int = 10):
         self.list_printer = list_printer
@@ -103,9 +116,16 @@ class MultiListValuePrinter(Printer):
 
 class TatoebaPrinter(MultiValuePrinter):
 
+    def __init__(self, **kwargs):
+        if 'header_printer' not in kwargs:
+            kwargs['header_printer'] = SingleValuePrinter('{value}\n')
+        if 'join_string' not in kwargs:
+            kwargs['join_string'] = '\n\n'
+        super(TatoebaPrinter, self).__init__(**kwargs)
+
     def __call__(self, value: MultiValue):
-        deduped_value = MultiValue((x.get_data(), y.get_data()) for x, y in
-                                   dedup_by(dedup_by(value.get_data(), lambda x: x[0]), lambda x: x[1]))
+        deduped_value = MultiValue([(x.get_data(), y.get_data()) for x, y in
+                                   dedup_by(dedup_by(value.get_data(), lambda x: x[0]), lambda x: x[1])])
         return super().__call__(deduped_value)
 
 

@@ -1,15 +1,18 @@
 from os import mkdir, remove
 from os.path import exists, join
 from shutil import rmtree
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
 import re
 
 import genanki
 import requests
 
+from cardbuilder.lookup.data_source import DataSource
+from cardbuilder.lookup.lookup_data import LookupData
 from cardbuilder.lookup.value import SingleValue, Value, MultiListValue, MultiValue
 from cardbuilder.resolution.card_data import CardData
-from cardbuilder.resolution.printer import Printer
+from cardbuilder.resolution.field import Field
+from cardbuilder.resolution.printer import Printer, WrappingPrinter
 from cardbuilder.resolution.resolver import Resolver
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.exceptions import CardBuilderException
@@ -39,16 +42,30 @@ class AnkiAudioDownloadPrinter(Printer):
         return '[sound:{}]'.format(filename)
 
 
+class AnkiWrappingPrinter(WrappingPrinter):
+    def __call__(self, value: Value) -> str:
+        return self._printer(value).replace('\n', '<br/>')
+
+
 class AkpgResolver(Resolver):
 
     media_temp_directory = 'ankitemp'
-    linebreak = '<br/>'
 
     default_templates = [{
                               'name': 'Dummy Card',
                               'qfmt': 'This is a dummy card. Please update card types associated with this note.',
                               'afmt': 'This is a dummy card. Please update card types associated with this note.',
                           }]
+    
+    def __init__(self, fields: List[Field], 
+                 mutator: Callable[[Dict[DataSource, LookupData]], Dict[DataSource, LookupData]] = None,
+                 wrap_printers=True):
+
+        if wrap_printers:
+            for field in fields:
+                field.printer = AnkiWrappingPrinter(field.printer)
+
+        super(AkpgResolver, self).__init__(fields, mutator)
 
     @staticmethod
     def _str_to_id(s: str) -> int:

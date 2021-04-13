@@ -26,13 +26,18 @@ class Field:
             self.data_sources = data_source
 
         for data_source in self.data_sources:
-            returned_fields = data_source.lookup_data_type.fields()
-            if source_field_name not in returned_fields and source_field_name not in LookupData.standard_fields():
-                raise CardBuilderUsageException('field {} cannot be returned by data source {}'.format(
-                    source_field_name, type(data_source).__name__))
+            if source_field_name not in LookupData.standard_fields():
+                returned_fields = data_source.lookup_data_type.fields()
+                if source_field_name not in returned_fields:
+                    raise CardBuilderUsageException('field {} cannot be returned by data source {}'.format(
+                        source_field_name, type(data_source).__name__))
 
-            #TODO: validate the type of the printer somehow (I.E. that it takes the type of value returned by the
-            # data source)
+
+                returned_value_type = returned_fields[source_field_name]
+                if not issubclass(returned_value_type, printer.get_input_type()):
+                    raise CardBuilderUsageException('printer {} cannot print {}, which {} returns for field {}'.format(
+                        type(printer).__name__, returned_value_type.__name__, type(data_source).__name__, source_field_name
+                    ))
 
         self.source_field_name = source_field_name
         self.target_field_name = target_field

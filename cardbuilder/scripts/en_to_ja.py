@@ -109,20 +109,21 @@ def main():
     def word_freq_sort_key(value: SingleValue) -> int:
         return -wf[value.get_data()]
 
-    linebreak_char = AkpgResolver.linebreak #TODO or normal linebreak if we're doing CSV
-
     eng_def_printer = MultiListValuePrinter(
-        list_printer=ListValuePrinter(max_length=2, join_string=linebreak_char, number_format_string='{number}. '),
-        max_length=1, join_string=linebreak_char*2
+        list_printer=ListValuePrinter(max_length=2, number_format_string='{number}. ', join_string='\n'),
+        max_length=1,
     )
-    jp_def_printer = MultiListValuePrinter(
-        list_printer=ListValuePrinter(join_string=linebreak_char, number_format_string='{number} .'),
-        join_string=linebreak_char*2
-    )
-    tatoeba_printer = TatoebaPrinter(header_printer=SingleValuePrinter('{value}'+linebreak_char),
-                                        join_string=linebreak_char*2)
+
+    jp_def_printer = MultiListValuePrinter(list_printer=ListValuePrinter(number_format_string='{number} .',
+                                                                         join_string='\n'))
     related_words_printer = MultiListValuePrinter(list_printer=ListValuePrinter(sort_key=word_freq_sort_key))
-    audio_printer = None #TODO: we probably need a CachingExternalAudioPrinter class
+    if args.output_format == 'anki':
+        tatoeba_printer = TatoebaPrinter(header_printer=SingleValuePrinter('<span style="font-size:150%"> {value}<br/>'),
+                                         value_printer=SingleValuePrinter('{value} </span>'))
+    else:
+        tatoeba_printer = TatoebaPrinter()
+
+    #TODO: inflections, synonyms and antonyms should conditionally not print their headers if there's only list
     fields = [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
         Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号', optional=True),
