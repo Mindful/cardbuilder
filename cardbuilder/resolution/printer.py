@@ -42,19 +42,23 @@ class SingleValuePrinter(Printer):
 
 class MultiValuePrinter(Printer):
     def __init__(self, value_printer: SingleValuePrinter = SingleValuePrinter(),
-                 header_printer: SingleValuePrinter = SingleValuePrinter('{value}: '), join_string: str = ', ',
-                 max_length: int = 10):
+                 header_printer: Optional[SingleValuePrinter] = SingleValuePrinter('{value}: '), join_string: str = ', ',
+                 max_length: int = 10, print_lone_header: bool = True):
         self.value_printer = value_printer
         self.header_printer = header_printer
         self.join_string = join_string
         self.max_length = max_length
+        self.print_lone_header = print_lone_header
 
     def __call__(self, value: MultiValue) -> str:
-        return self.join_string.join([
-                                         (self.header_printer(
-                                             header) if header is not None else '') + self.value_printer(value)
-                                         for value, header in value.get_data()
-                                     ][:self.max_length])
+        if len(value.get_data()) == 1 and not self.print_lone_header:
+            header_printer = None
+        else:
+            header_printer = self.header_printer
+
+        return self.join_string.join([(header_printer(header) if header is not None and header_printer is not None
+                                       else '') + self.value_printer(value) for value, header in value.get_data()
+                                      ][:self.max_length])
 
 
 class ListValuePrinter(Printer):
@@ -87,12 +91,14 @@ class MultiListValuePrinter(Printer):
     def __init__(self, list_printer: ListValuePrinter = ListValuePrinter(number_format_string='{number}. ',
                                                             single_value_printer=SingleValuePrinter('{value}\n')),
                  header_printer: Optional[SingleValuePrinter] = SingleValuePrinter('{value}\n'),
-                 join_string: str = '\n\n', group_by_header: bool = True, max_length: int = 10):
+                 join_string: str = '\n\n', group_by_header: bool = True, max_length: int = 10,
+                 print_lone_header: bool = True):
         self.list_printer = list_printer
         self.header_printer = header_printer
         self.join_string = join_string
         self.group_by_header = group_by_header
         self.max_length = max_length
+        self.print_lone_header = print_lone_header
 
     def __call__(self, value: MultiListValue) -> str:
         data = value.get_data()
@@ -107,10 +113,14 @@ class MultiListValuePrinter(Printer):
             data = list((ListValue(val), key) for key, val in grouped_data.items())
 
         data = data[:self.max_length]
+        if len(data) == 1 and not self.print_lone_header:
+            header_printer = None
+        else:
+            header_printer = self.header_printer
 
         return self.join_string.join([
-            (self.header_printer(header) if header is not None else '') + self.list_printer(data_list)
-            for data_list, header in data
+            (header_printer(header) if header is not None and header_printer is not None else '') +
+            self.list_printer(data_list) for data_list, header in data
         ])
 
 

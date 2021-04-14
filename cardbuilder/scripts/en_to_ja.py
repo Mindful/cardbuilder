@@ -116,18 +116,20 @@ def main():
 
     jp_def_printer = MultiListValuePrinter(list_printer=ListValuePrinter(number_format_string='{number} .',
                                                                          join_string='\n'))
-    related_words_printer = MultiListValuePrinter(list_printer=ListValuePrinter(sort_key=word_freq_sort_key))
+
+    #TODO: max_length=1 here? depends whether we want POS granular info for inflections/synonyms/etc.
+    related_words_printer = MultiListValuePrinter(list_printer=ListValuePrinter(sort_key=word_freq_sort_key),
+                                                  print_lone_header=False)
     if args.output_format == 'anki':
         tatoeba_printer = TatoebaPrinter(header_printer=SingleValuePrinter('<span style="font-size:150%"> {value}<br/>'),
                                          value_printer=SingleValuePrinter('{value} </span>'))
     else:
         tatoeba_printer = TatoebaPrinter()
 
-    #TODO: inflections, synonyms and antonyms should conditionally not print their headers if there's only list
     fields = [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
         Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号', optional=True),
-        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', optional=True),
+        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', printer=related_words_printer, optional=True),
         Field(mw, Fieldname.AUDIO, '音声', printer=AnkiAudioDownloadPrinter(), optional=True),
         Field(mw, Fieldname.DEFINITIONS, '英語での定義', printer=eng_def_printer, optional=True),
         Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer),
