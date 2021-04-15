@@ -1,16 +1,17 @@
 # https://dictionaryapi.com/products/json
 import re
-from typing import Dict
+from typing import Dict, Optional
 
 import requests
 from json import loads
 
+from cardbuilder.common.config import Config
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import log
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
-from cardbuilder.exceptions import WordLookupException
+from cardbuilder.exceptions import WordLookupException, CardBuilderUsageException
 from cardbuilder.lookup.value import MultiListValue, ListValue, MultiValue
 
 
@@ -185,16 +186,29 @@ class MerriamWebster(AggregatingDataSource):
 
     keylike = re.compile(r'.+-.+-.+-.+')
 
-    def __init__(self, learners_api_key: str, thesaurus_api_key: str, pos_in_definitions=False):
+    learners_api_conf_name = 'mw_learners_api_key'
+    thesaurus_api_conf_name = 'thesaurus_api_key'
+
+    def __init__(self, learners_api_key: Optional[str] = None, thesaurus_api_key: Optional[str] = None,
+                 pos_in_definitions=False):
         api_keys = []
-        for key in [learners_api_key, thesaurus_api_key]:
-            if self.keylike.match(key) and '.' not in key:
-                log(self, '{} looks like API key - using it'.format(key))
-                api_key = key
+        for idx, key in enumerate([learners_api_key, thesaurus_api_key]):
+            key_name = self.learners_api_conf_name if idx == 0 else self.thesaurus_api_conf_name
+            if key is None:
+                try:
+                    api_key = Config.get(key_name)
+                except KeyError:
+                    raise CardBuilderUsageException('MerriamWebster was passed None for an API key but could not'
+                                                    'find it in the config database. Please pass in a key')
             else:
-                with open(key) as f:
-                    api_key = f.readlines()[0]
-                log(self, 'read API key {} from file {} - using it'.format(api_key, key))
+                if self.keylike.match(key) and '.' not in key:
+                    log(self, '{} looks like API key - using it'.format(key))
+                    api_key = key
+                else:
+                    with open(key) as f:
+                        api_key = f.readlines()[0]
+                    log(self, 'read API key {} from file {} - using it'.format(api_key, key))
+                Config.set(key_name, api_key)
 
             api_keys.append(api_key)
 

@@ -1,8 +1,8 @@
 from cardbuilder.resolution.field import Field
-from cardbuilder.resolution.anki import AkpgResolver, AnkiAudioDownloadPrinter
+from cardbuilder.resolution.anki import AnkiAudioDownloadPrinter
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.lookup.value import Value, SingleValue
+from cardbuilder.lookup.value import SingleValue
 from cardbuilder.lookup.en_to_en import MerriamWebster, WordFrequency
 from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
 from cardbuilder.lookup.en_to_ja.ejdict_hand import EJDictHand
@@ -11,7 +11,7 @@ from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrint
     SingleValuePrinter, TatoebaPrinter
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions
-from cardbuilder.common.util import trim_whitespace
+from cardbuilder.common.util import trim_whitespace, log
 from cardbuilder.scripts.router import command
 from cardbuilder.resolution.instantiable import instantiable_resolvers
 
@@ -88,20 +88,26 @@ default_css = trim_whitespace('''
 @command('en_to_ja')
 def main():
     parser = build_parser_with_common_args()
-    parser.add_argument('--learner_key', help="Location of a text file containing a "
-                                              "Merriam-Webster's Learner's Dictionary api key", required=True)
-    parser.add_argument('--thesaurus_key', help="Location of a text file containing a "
-                                                "Merriam-Webster's Collegiate Thesaurus api key", required=True)
+    parser.add_argument('--learner_key', help="Location of a text file containing a Merriam-Webster's Learner's"
+                                              " Dictionary api key. Required on the first run")
+    parser.add_argument('--thesaurus_key', help="Location of a text file containing a Merriam-Webster's Collegiate "
+                                                "Thesaurus api key. Required on the first run")
     parser.add_argument('--eijiro_location', help="The location of a dictionary containing the Eijiro data. If present,"
                                                   "Eijiro will be used instead of EJDictHand")
 
     args, input_words = get_args_and_input_from_parser(parser, ENGLISH)
 
     mw = MerriamWebster(args.learner_key, args.thesaurus_key)
-    if args.eijiro_location is None:
-        jp_dictionary = EJDictHand()
-    else:
+    if args.eijiro_location is not None:
+        log(None, 'Using Eijiro as dictionary from {}'.format(args.eijiro_location))
         jp_dictionary = Eijiro(args.eijiro_location)
+    else:
+        try:
+            jp_dictionary = Eijiro()
+            log(None, 'Using previously loaded Eijiro content as dictionary')
+        except FileNotFoundError:
+            log(None, 'Eijiro location not provided and no previously loaded content found: falling back to EJDictHand')
+            jp_dictionary = EJDictHand()
 
     tatoeba = TatoebaExampleSentences(ENGLISH, JAPANESE)
     wf = WordFrequency()
@@ -117,9 +123,9 @@ def main():
     jp_def_printer = MultiListValuePrinter(list_printer=ListValuePrinter(number_format_string='{number} .',
                                                                          join_string='\n'))
 
-    #TODO: max_length=1 here? depends whether we want POS granular info for inflections/synonyms/etc.
+    # max_length=1 combined with print_lone_header=False effectively prints only the content of the first list
     related_words_printer = MultiListValuePrinter(list_printer=ListValuePrinter(sort_key=word_freq_sort_key),
-                                                  print_lone_header=False)
+                                                  print_lone_header=False, max_length=1)
     if args.output_format == 'anki':
         tatoeba_printer = TatoebaPrinter(header_printer=SingleValuePrinter('<span style="font-size:150%"> {value}<br/>'),
                                          value_printer=SingleValuePrinter('{value} </span>'))

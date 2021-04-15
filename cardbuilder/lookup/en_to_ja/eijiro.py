@@ -107,7 +107,7 @@ class Eijiro(ExternalDataDataSource):
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         if self.file_loc is None:
-            raise CardBuilderUsageException('Must set Eijiro location the first time for data ingestion')
+            raise FileNotFoundError('Must set Eijiro location the first time for data ingestion')
         lines = fast_linecount(self.file_loc)
         prev_word = None
         prev_content = None

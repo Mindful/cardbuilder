@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 
+from cardbuilder.common.config import Config
 from cardbuilder.common.util import DATABASE_NAME, InDataDir, log
 from cardbuilder.scripts.router import command, commands
 
@@ -21,6 +22,23 @@ def _confirm_intent(action: str):
                 exit(0)
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
+
+
+@command('set_conf')
+def set_conf() -> None:
+    if len(sys.argv) < 3:
+        print('Please pass in a key and the value you would like to set it to, like "set_conf A B"')
+    else:
+        key, value = sys.argv[1:3]
+        if key in Config.get_conf():
+            _confirm_intent('overwrite the existing value for {} (which is {})'.format(key, Config.get(key)))
+
+        Config.set(key, value)
+
+
+@command('view_conf')
+def view_conf() -> None:
+    print(Config.get_conf())
 
 
 @command('purge_db')
