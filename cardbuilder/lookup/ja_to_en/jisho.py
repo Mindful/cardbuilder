@@ -91,7 +91,9 @@ class Jisho(WebApiDataSource):
         writing_candidates = list({x['word'] for x in match['japanese'] if 'word' in x})  # set for unique, then list
         detailed_reading = self._detailed_reading(form)
         reading = self._to_katakana_reading(form)
-        definitions_value = MultiListValue(definitions_with_pos)
+        # wikipedia definitions are a part of speech...
+        definitions_value = MultiListValue([(defs, pos) for defs, pos in definitions_with_pos
+                                            if 'wikipedia' not in pos.lower()])
         found_form = match['slug']
 
         return self.lookup_data_type(word, found_form, content, {

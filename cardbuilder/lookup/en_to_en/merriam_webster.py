@@ -71,7 +71,7 @@ class LearnerDictionary(WebApiDataSource):
 
     audio_file_format = 'mp3'
     number_subdir_regex = re.compile(r'^[^a-zA-Z]+')
-    # TODO: this might be too aggressive - for example it entirely erases "{it} chiefly US {/it}"
+    # this is fairly aggressive - for example it entirely erases "{it} chiefly US {/it}"
     formatting_marker_regex = re.compile(r'{.*}')
 
     def __init__(self, api_key):

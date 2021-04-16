@@ -7,7 +7,7 @@ from tests.lookup.data_source_test import DataSourceTest
 
 class TestMerriamWebster(DataSourceTest):
     def get_data_source(self) -> DataSource:
-        return MerriamWebster('mw_learner_api_key.txt', 'mw_thesaurus_api_key.txt') #TODO: SUPER HACKY, FIX
+        return MerriamWebster()
 
     def test_lookup(self):
         data_source = self.get_data_source()

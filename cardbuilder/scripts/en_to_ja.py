@@ -9,12 +9,13 @@ from cardbuilder.lookup.value import SingleValue
 from cardbuilder.resolution.anki import AnkiAudioDownloadPrinter
 from cardbuilder.resolution.field import Field
 from cardbuilder.resolution.instantiable import instantiable_resolvers
-from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrinter, SingleValuePrinter, TatoebaPrinter
+from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrinter, SingleValuePrinter, TatoebaPrinter, \
+    DownloadPrinter
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions
 from cardbuilder.scripts.router import command
 
-default_eng_card_front = trim_whitespace('''
+eng_card_front = trim_whitespace('''
                     <div style="text-align: center;"><h1>{{英単語}}</h1></div>
                     <br/>
                     {{英語での定義}}
@@ -27,7 +28,7 @@ default_eng_card_front = trim_whitespace('''
                     {{/対義語}}
                 ''')
 
-default_eng_card_back = trim_whitespace('''
+eng_card_back = trim_whitespace('''
                     <div style="text-align: center;">
                         <h1>{{英単語}}</h1>
                         {{#国際音声記号}}
@@ -45,8 +46,8 @@ default_eng_card_back = trim_whitespace('''
                     {{例文}}
                 ''')
 
-default_jp_card_front = '{{日本語での定義}}'
-default_jp_card_back = trim_whitespace('''
+jp_card_front = '{{日本語での定義}}'
+jp_card_back = trim_whitespace('''
                     <div style="text-align: center;">
                         <h1>{{英単語}}</h1>
                         {{#国際音声記号}}
@@ -71,7 +72,7 @@ default_jp_card_back = trim_whitespace('''
                 ''')
 
 
-default_css = trim_whitespace('''
+anki_css = trim_whitespace('''
                 .card { 
                     background-color: #23282F;
                     color: white; 
@@ -128,14 +129,17 @@ def main():
     if args.output_format == 'anki':
         tatoeba_printer = TatoebaPrinter(header_printer=SingleValuePrinter('<span style="font-size:150%"> {value}<br/>'),
                                          value_printer=SingleValuePrinter('{value} </span>'))
+        audio_printer = AnkiAudioDownloadPrinter()
     else:
         tatoeba_printer = TatoebaPrinter()
+        audio_directory = args.output+'_audio'
+        audio_printer = DownloadPrinter(audio_directory)
 
     fields = [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
         Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号'),
         Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', printer=related_words_printer),
-        Field(mw, Fieldname.AUDIO, '音声', printer=AnkiAudioDownloadPrinter()),
+        Field(mw, Fieldname.AUDIO, '音声', printer=audio_printer),
         Field(mw, Fieldname.DEFINITIONS, '英語での定義', printer=eng_def_printer),
         Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer, required=True),
         Field(mw, Fieldname.SYNONYMS, '類義語', printer=related_words_printer),
@@ -146,14 +150,15 @@ def main():
     resolver = instantiable_resolvers[args.output_format](fields)
     if args.output_format == 'anki':
         resolver.set_note_name(args.output,
-                               [{'name': '英語->日本語', 'qfmt': default_eng_card_front, 'afmt': default_eng_card_back},
-                                {'name': '日本語->英語', 'qfmt': default_jp_card_front, 'afmt': default_eng_card_back}],
-                               css=default_css)
-
-    #TODO: support CSV output (deal with audio somehow?)
+                               [{'name': '英語->日本語', 'qfmt': eng_card_front, 'afmt': eng_card_back},
+                                {'name': '日本語->英語', 'qfmt': jp_card_front, 'afmt': eng_card_back}],
+                               css=anki_css)
 
     failed_resolutions = resolver.resolve_to_file(input_words, args.output)
     log_failed_resolutions(failed_resolutions)
+
+    if args.output_format == 'csv':
+        log(None, 'Audio data saved to {}'.format(audio_directory))
 
 
 if __name__ == '__main__':

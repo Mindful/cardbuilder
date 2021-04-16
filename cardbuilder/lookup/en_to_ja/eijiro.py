@@ -38,8 +38,7 @@ content_sectioning_symbol_map = {
     link_symbol: Fieldname.LINKS
 }
 
-#TODO: I think we can reasonably expect that there wil be only one of many of these fields per POS, so
-# a lot of these MultiListValue fields should actually just be MultiValue
+
 @outputs({**{Fieldname.LINKS: LinksValue, Fieldname.DEFINITIONS: MultiListValue},
           **{fname: MultiListValue for fname in content_sectioning_symbol_map.values() if fname != Fieldname.LINKS}})
 class Eijiro(ExternalDataDataSource):

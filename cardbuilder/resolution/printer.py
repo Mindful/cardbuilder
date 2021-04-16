@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict
+from os import mkdir
+from os.path import exists, join
 from typing import Optional, Callable, get_type_hints, Dict
+
+import requests
 
 from cardbuilder.common.util import dedup_by
 from cardbuilder.exceptions import CardBuilderUsageException
@@ -155,3 +159,27 @@ class CasePrinter(Printer):
     def __call__(self, value: Value) -> str:
         return self.printers_by_type[type(value)](value)
 
+
+class DownloadPrinter(Printer):
+    def __init__(self, output_directory: str, format_string='{directory}/{filename}'):
+        self.output_directory = output_directory
+        self.format_string = format_string
+
+    def __call__(self, value: Value) -> str:
+        if isinstance(value, SingleValue):
+            url = value.get_data()
+        elif isinstance(value, MultiValue):
+            url = value.get_data()[0][0].get_data()
+        else:
+            raise CardBuilderUsageException('{} can only print SingleValues or MultiValues'.format(
+                DownloadPrinter.__name__))
+
+        filename = url.split('/')[-1]
+        if not exists(self.output_directory):
+            mkdir(self.output_directory)
+
+        r = requests.get(url)
+        with open(join(self.output_directory, filename), 'wb') as f:
+            f.write(r.content)
+
+        return self.format_string.format(directory=self.output_directory, filename=filename)

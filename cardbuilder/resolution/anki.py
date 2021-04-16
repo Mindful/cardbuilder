@@ -1,45 +1,27 @@
 import re
-from os import mkdir, remove
+from os import remove
 from os.path import exists, join
 from shutil import rmtree
 from typing import Dict, List, Optional, Callable
 
 import genanki
-import requests
 
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.lookup_data import LookupData
-from cardbuilder.lookup.value import SingleValue, Value, MultiValue
+from cardbuilder.lookup.value import Value
 from cardbuilder.resolution.card_data import CardData
 from cardbuilder.resolution.field import Field
-from cardbuilder.resolution.printer import Printer, WrappingPrinter
+from cardbuilder.resolution.printer import WrappingPrinter, DownloadPrinter
 from cardbuilder.resolution.resolver import Resolver
 
 anki_audio_field_regex = re.compile(r'\[sound:.+\]')
 
 
-class AnkiAudioDownloadPrinter(Printer):
-
-    def __call__(self, value: Value) -> str:
-        if isinstance(value, SingleValue):
-            url = value.get_data()
-        elif isinstance(value, MultiValue):
-            url = value.get_data()[0][0].get_data()
-        else:
-            raise CardBuilderUsageException('{} can only print SingleValues or MultiValues'.format(
-                AnkiAudioDownloadPrinter.__name__))
-
-        filename = url.split('/')[-1]
-        if not exists(AkpgResolver.media_temp_directory):
-            mkdir(AkpgResolver.media_temp_directory)
-
-        r = requests.get(url)
-        with open(join(AkpgResolver.media_temp_directory, filename), 'wb') as f:
-            f.write(r.content)
-
-        return '[sound:{}]'.format(filename)
+class AnkiAudioDownloadPrinter(DownloadPrinter):
+    def __init__(self):
+        super(AnkiAudioDownloadPrinter, self).__init__(AkpgResolver.media_temp_directory, '[sound:{filename}]')
 
 
 class AnkiWrappingPrinter(WrappingPrinter):
