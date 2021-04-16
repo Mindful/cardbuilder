@@ -14,4 +14,8 @@ class TestEijiro(DataSourceTest):
 
         dog_result = data_source.lookup_word(Word('dog', ENGLISH), 'dog')
 
+        little_result = data_source.lookup_word(Word('little', ENGLISH), 'little')  # has unmarked link
+        number_result = data_source.lookup_word(Word('number', ENGLISH), 'number')  # has grouped links
+
+        print('debug')
         #TODO: flesh out this test, add a test for words with links (previously caused problems)

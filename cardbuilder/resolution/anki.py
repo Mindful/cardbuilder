@@ -94,10 +94,15 @@ class AkpgResolver(Resolver):
             if not exists(self.media_temp_directory):
                 raise CardBuilderException('Field with audio source found but no temporary media directory found')
 
-            package.media_files = [join(self.media_temp_directory,
-                                        next(rf for rf in row.fields
-                                             if anki_audio_field_regex.match(rf.value)).value[7:-1])
-                                   for row in rows]
+            media_files = []
+            for row in rows:
+                # this is admittedly a pretty fragile way to find audio fields, but there's no better way unless
+                # we started using a Value type specifically for audio
+                audio_field = next((rf for rf in row.fields if anki_audio_field_regex.match(rf.value)), None)
+                if audio_field is not None:
+                    media_files.append(join(self.media_temp_directory, audio_field.value[7:-1]))
+
+            package.media_files = media_files
 
             for file in package.media_files:
                 if not exists(file):

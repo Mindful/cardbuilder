@@ -6,7 +6,7 @@ from typing import Optional, Callable, get_type_hints, Dict
 
 import requests
 
-from cardbuilder.common.util import dedup_by
+from cardbuilder.common.util import dedup_by, retry_with_logging
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue, MultiValue, Value
 
@@ -178,7 +178,7 @@ class DownloadPrinter(Printer):
         if not exists(self.output_directory):
             mkdir(self.output_directory)
 
-        r = requests.get(url)
+        r = retry_with_logging(requests.get, tries=2, delay=1, fargs=[url])
         with open(join(self.output_directory, filename), 'wb') as f:
             f.write(r.content)
 

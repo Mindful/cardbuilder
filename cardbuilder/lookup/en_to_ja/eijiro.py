@@ -25,6 +25,7 @@ inflections_symbol = '【変化】'
 level_symbol = '【レベル】'
 word_split_symbol = '【分節】'
 link_symbol = '＝<→'
+second_link_symbol = '<→'  # links don't always start with =
 
 content_sectioning_symbol_map = {
     example_sentence_symbol: Fieldname.EXAMPLE_SENTENCES,
@@ -35,7 +36,8 @@ content_sectioning_symbol_map = {
     inflections_symbol: Fieldname.INFLECTIONS,
     level_symbol: Fieldname.SUPPLEMENTAL,
     word_split_symbol: Fieldname.SUPPLEMENTAL,
-    link_symbol: Fieldname.LINKS
+    link_symbol: Fieldname.LINKS,
+    second_link_symbol: Fieldname.LINKS
 }
 
 
@@ -171,6 +173,8 @@ class Eijiro(ExternalDataDataSource):
                 elif section_header is not None and section not in Eijiro.content_sectioning_symbols:
                     key = content_sectioning_symbol_map[section_header]
                     if key == Fieldname.LINKS:
+                        #TODO prepend the header and then split on commas and add a link for each word, to handle
+                        # things like ＝<→numbers game>、<→numbers pool>
                         linked_word = section[:-1]
                         try:
                             line_attrs[Fieldname.LINKS].append(self.lookup_word(word, linked_word))

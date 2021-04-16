@@ -31,12 +31,12 @@ def get_args_and_input_from_parser(parser: ArgumentParser, input_language: str) 
         raise CardBuilderUsageException('Must provide either both --start and --stop arguments or neither')
 
     if args.input in instantiable_word_lists:
-        input_wordlist = instantiable_word_lists[args.input]
+        input_wordlist = instantiable_word_lists[args.input]()
     else:
         input_wordlist = InputList(args.input, input_language, [WordForm.PHONETICALLY_EQUIVALENT])
 
     if args.start is not None and args.stop is not None:
-        return args, input_wordlist[args.start:args.stop-1]
+        return args, input_wordlist[args.start:args.stop]
     else:
         return args, input_wordlist
 

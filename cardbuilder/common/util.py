@@ -118,9 +118,9 @@ def is_hiragana(char):
     return ord(char) in range(ord(u'\u3040'), ord(u'\u309f'))
 
 
-def loading_bar(iterable: Iterable, description: str, total: Optional[int] = None):
+def loading_bar(iterable: Iterable, description: str, total: Optional[int] = None, leave: bool = True):
     if Shared.loading_bars_enabled:
-        return tqdm(iterable=iterable, desc=description, total=total)
+        return tqdm(iterable=iterable, desc=description, total=total, leave=leave)
     else:
         return iterable
 
