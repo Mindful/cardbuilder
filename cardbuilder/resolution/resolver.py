@@ -2,15 +2,15 @@ import logging
 from abc import ABC, abstractmethod
 from typing import List, Union, Tuple, Dict, Callable
 
+from cardbuilder.common.util import log
+from cardbuilder.exceptions import CardResolutionException, CardBuilderUsageException
+from cardbuilder.input.word import Word
+from cardbuilder.input.word_list import WordList
 from cardbuilder.lookup.data_source import DataSource
+from cardbuilder.lookup.lookup_data import LookupData
 from cardbuilder.resolution.card_data import CardData
 from cardbuilder.resolution.field import Field
 from cardbuilder.resolution.resolution_engine import ResolutionEngine
-from cardbuilder.common.util import log
-from cardbuilder.lookup.lookup_data import LookupData
-from cardbuilder.exceptions import CardResolutionException, CardBuilderException
-from cardbuilder.input.word_list import WordList
-from cardbuilder.input.word import Word
 
 
 class Resolver(ABC):
@@ -24,7 +24,7 @@ class Resolver(ABC):
 
     def resolve_to_file(self, words: Union[List[Word], WordList], name: str) -> List[Tuple[str, CardResolutionException]]:
         if len(words) == 0:
-            raise CardBuilderException('Cannot resolve an empty wordlist')
+            raise CardBuilderUsageException('Cannot resolve an empty wordlist')
         cards = list(self.engine.cards(words))
         final_out_name = self._output_file(cards, name)
         log(self, 'Resolved card data written to file {}'.format(final_out_name))

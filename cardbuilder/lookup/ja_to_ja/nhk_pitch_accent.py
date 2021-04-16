@@ -1,15 +1,15 @@
 from _csv import reader
 from collections import defaultdict
-from typing import Dict, Iterable, Tuple
 from json import dumps, loads
+from typing import Iterable, Tuple
 
 from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common.util import trim_whitespace
 from cardbuilder.input.word import Word
-from cardbuilder.lookup.lookup_data import LookupData, outputs
-from cardbuilder.lookup.value import MultiValue
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.ja_to_ja._build_nhk import accent_database, build_database, derivative_database
-from cardbuilder.common.util import trim_whitespace
+from cardbuilder.lookup.lookup_data import LookupData, outputs
+from cardbuilder.lookup.value import MultiValue
 
 
 @outputs({

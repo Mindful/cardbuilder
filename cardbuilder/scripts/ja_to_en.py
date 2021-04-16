@@ -1,17 +1,17 @@
 from typing import Dict
 
-from cardbuilder.lookup.data_source import DataSource
-from cardbuilder.lookup.value import SingleValue
-from cardbuilder.resolution.instantiable import instantiable_resolvers
-from cardbuilder.input.word import Word
-from cardbuilder.lookup.lookup_data import LookupData
-from cardbuilder.resolution.field import Field
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import log, Shared
+from cardbuilder.input.word import Word
+from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.ja_to_en import Jisho
 from cardbuilder.lookup.ja_to_ja import NhkPitchAccent
+from cardbuilder.lookup.lookup_data import LookupData
 from cardbuilder.lookup.tatoeba import TatoebaExampleSentences
+from cardbuilder.lookup.value import SingleValue
+from cardbuilder.resolution.field import Field
+from cardbuilder.resolution.instantiable import instantiable_resolvers
 from cardbuilder.resolution.printer import TatoebaPrinter
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions
@@ -30,11 +30,10 @@ def main():
     #TODO: update the printer for tatoeba output to use anki linebreaks when we're outputting for anki
     fields = [
         Field(dictionary, Fieldname.WORD, 'Word'),
-        Field(dictionary, Fieldname.DEFINITIONS, 'Definitions'),
+        Field(dictionary, Fieldname.DEFINITIONS, 'Definitions', required=True),
         Field(dictionary, Fieldname.DETAILED_READING, 'Reading'),
-        Field(nhk, Fieldname.PITCH_ACCENT, 'Pitch Accent', optional=True),
-        Field(example_sentences, Fieldname.EXAMPLE_SENTENCES, 'Example Sentences', printer=TatoebaPrinter(),
-              optional=True)
+        Field(nhk, Fieldname.PITCH_ACCENT, 'Pitch Accent'),
+        Field(example_sentences, Fieldname.EXAMPLE_SENTENCES, 'Example Sentences', printer=TatoebaPrinter())
     ]
 
     # an example of how to use arbitrary mutators with resolvers

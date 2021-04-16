@@ -1,9 +1,9 @@
 import pytest
 
+from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, HEBREW
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
-from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.ja_to_ja import NhkPitchAccent
 

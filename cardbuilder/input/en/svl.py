@@ -1,7 +1,7 @@
 import sqlite3
 from glob import glob
 from os.path import exists
-from typing import Dict, Iterable, Tuple, List, Optional
+from typing import Iterable, Tuple, List, Optional
 
 import requests
 from lxml import html
@@ -9,11 +9,11 @@ from lxml import html
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import ENGLISH
 from cardbuilder.common.util import log, InDataDir, loading_bar, DATABASE_NAME
+from cardbuilder.input.word import WordForm, Word
+from cardbuilder.input.word_list import WordList
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.en_to_en import WordFrequency
 from cardbuilder.lookup.lookup_data import outputs, LookupData
-from cardbuilder.input.word_list import WordList
-from cardbuilder.input.word import WordForm, Word
 from cardbuilder.lookup.value import SingleValue
 
 

@@ -1,15 +1,14 @@
 import csv
 import sqlite3
-from typing import List, Iterable, Tuple
+from typing import Iterable, Tuple
 
-from cardbuilder.lookup.lookup_data import LookupData, outputs
-from cardbuilder.exceptions import WordLookupException
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar, log, DATABASE_NAME, retry_with_logging
-
-from cardbuilder.lookup.value import SingleValue
-from cardbuilder.lookup.data_source import ExternalDataDataSource
+from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
+from cardbuilder.lookup.data_source import ExternalDataDataSource
+from cardbuilder.lookup.lookup_data import LookupData, outputs
+from cardbuilder.lookup.value import SingleValue
 
 
 @outputs({

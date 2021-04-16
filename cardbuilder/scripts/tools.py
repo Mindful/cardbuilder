@@ -1,6 +1,6 @@
+import glob
 import os
 import sys
-import glob
 
 from cardbuilder.common.config import Config
 from cardbuilder.common.util import DATABASE_NAME, InDataDir, log

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from cardbuilder.input.word_list import WordList
 from cardbuilder.input.word import Word
+from cardbuilder.input.word_list import WordList
 
 
 class WordListTest(ABC):

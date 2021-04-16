@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import Dict, Optional
+from typing import Dict
 
 from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.lookup.value import Value, SingleValue
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.input.word import Word
+from cardbuilder.lookup.value import Value, SingleValue
 
 
 class LookupData(ABC):
@@ -109,7 +109,6 @@ def outputs(output_spec: Dict[Fieldname, type]):
             def __init__(self, word: Word, found_form: str, raw_data: str, data: Dict[Fieldname, Value]):
                 self.word = word
                 self.found_form = found_form
-                self._data = data
                 self._raw_data = raw_data
 
                 for fieldname, value in data.items():
@@ -120,6 +119,9 @@ def outputs(output_spec: Dict[Fieldname, type]):
                         raise CardBuilderUsageException('input for field {} was not of the promised type {}'.format(
                             fieldname, self._fields[fieldname].__name__
                         ))
+
+                # don't pass on any empty values
+                self._data = {k: v for k, v in data.items() if len(v.get_data()) > 0}
 
         GeneratedLookupData.__name__ = clazz.__name__ + 'LookupData'
 

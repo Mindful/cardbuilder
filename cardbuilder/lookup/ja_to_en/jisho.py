@@ -1,16 +1,15 @@
+from json import dumps, loads
 from typing import Dict, Set
 
 import requests
-from json import dumps, loads
 
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import is_hiragana, Shared
 from cardbuilder.exceptions import WordLookupException
-from cardbuilder.lookup.data_source import WebApiDataSource
-from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue
-
-from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.input.word import Word, WordForm
+from cardbuilder.lookup.data_source import WebApiDataSource
+from cardbuilder.lookup.lookup_data import LookupData, outputs
+from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue
 
 
 @outputs({

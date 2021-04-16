@@ -11,15 +11,15 @@ from typing import List, Tuple, Iterable
 
 from fugashi import Tagger
 
-from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar, \
-     DATABASE_NAME, InDataDir
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE
+from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar, \
+    DATABASE_NAME, InDataDir
+from cardbuilder.exceptions import WordLookupException, CardBuilderUsageException
 from cardbuilder.input.word import Word
+from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.lookup_data import outputs, LookupData
 from cardbuilder.lookup.value import MultiValue
-from cardbuilder.exceptions import WordLookupException, CardBuilderUsageException
-from cardbuilder.lookup.data_source import ExternalDataDataSource
 
 
 @outputs({

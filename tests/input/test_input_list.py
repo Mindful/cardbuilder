@@ -1,10 +1,8 @@
 import pathlib
 
-import pytest
-
 from cardbuilder.common.languages import ENGLISH
-from cardbuilder.input.word_list import WordList
 from cardbuilder.input.input_list import InputList
+from cardbuilder.input.word_list import WordList
 from tests.input.word_list_test import WordListTest
 
 

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import List, Any, Tuple, Optional
+from typing import List, Tuple, Optional, Sequence
 
 from cardbuilder.exceptions import CardBuilderUsageException
 
@@ -10,7 +10,7 @@ class Value(ABC):
         self._data = None
 
     @abstractmethod
-    def get_data(self) -> Any:
+    def get_data(self) -> Sequence:
         return copy(self._data)
 
     def __eq__(self, other):

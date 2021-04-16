@@ -1,11 +1,8 @@
-from typing import Dict
-
 import requests
 
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSource
 from cardbuilder.lookup.lookup_data import LookupData
-from cardbuilder.lookup.value import Value
 
 simpla_vortaro_url = 'http://www.simplavortaro.org'
 

@@ -1,13 +1,11 @@
-import pytest
-
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import ENGLISH
+from cardbuilder.input.en.svl import SvlWords
 from cardbuilder.input.word import Word
 from cardbuilder.input.word_list import WordList
-from cardbuilder.input.en.svl import SvlWords
 from cardbuilder.lookup.data_source import DataSource
-from tests.lookup.data_source_test import DataSourceTest
 from tests.input.word_list_test import WordListTest
+from tests.lookup.data_source_test import DataSourceTest
 
 
 class TestSvl(WordListTest, DataSourceTest):

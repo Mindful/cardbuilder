@@ -1,21 +1,21 @@
+import re
 from os import mkdir, remove
 from os.path import exists, join
 from shutil import rmtree
 from typing import Dict, List, Optional, Callable
-import re
 
 import genanki
 import requests
 
+from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.lookup_data import LookupData
-from cardbuilder.lookup.value import SingleValue, Value, MultiListValue, MultiValue
+from cardbuilder.lookup.value import SingleValue, Value, MultiValue
 from cardbuilder.resolution.card_data import CardData
 from cardbuilder.resolution.field import Field
 from cardbuilder.resolution.printer import Printer, WrappingPrinter
 from cardbuilder.resolution.resolver import Resolver
-from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.exceptions import CardBuilderException
 
 anki_audio_field_regex = re.compile(r'\[sound:.+\]')
 
@@ -28,7 +28,7 @@ class AnkiAudioDownloadPrinter(Printer):
         elif isinstance(value, MultiValue):
             url = value.get_data()[0][0].get_data()
         else:
-            raise CardBuilderException('{} can only print SingleValues or MultiValues'.format(
+            raise CardBuilderUsageException('{} can only print SingleValues or MultiValues'.format(
                 AnkiAudioDownloadPrinter.__name__))
 
         filename = url.split('/')[-1]
@@ -79,7 +79,7 @@ class AkpgResolver(Resolver):
             for template in templates:
                 for attr in ['name', 'qfmt', 'afmt']:
                     if attr not in template:
-                        raise CardBuilderException('Template missing required field {}'.format(attr))
+                        raise CardBuilderUsageException('Template missing required field {}'.format(attr))
             self.templates = templates
         else:
             self.templates = self.default_templates
@@ -119,7 +119,7 @@ class AkpgResolver(Resolver):
 
             for file in package.media_files:
                 if not exists(file):
-                    raise CardBuilderException('Supplied Anki media file {} not found'.format(file))
+                    raise CardBuilderUsageException('Supplied Anki media file {} not found'.format(file))
 
         final_out_name = '{}.apkg'.format(output_filename)
         if exists(output_filename):

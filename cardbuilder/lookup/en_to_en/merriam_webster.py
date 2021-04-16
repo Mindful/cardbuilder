@@ -1,17 +1,17 @@
 # https://dictionaryapi.com/products/json
 import re
-from typing import Dict, Optional
+from json import loads
+from typing import Optional
 
 import requests
-from json import loads
 
 from cardbuilder.common.config import Config
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import log
+from cardbuilder.exceptions import WordLookupException, CardBuilderUsageException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
-from cardbuilder.exceptions import WordLookupException, CardBuilderUsageException
 from cardbuilder.lookup.value import MultiListValue, ListValue, MultiValue
 
 
@@ -143,11 +143,14 @@ class LearnerDictionary(WebApiDataSource):
                 except KeyError:
                     pass
 
-            inflections_with_pos.append(([x['if'].replace('*', '') for x in word_data['ins']
-                                          if 'if' in x] if 'ins' in word_data else [], pos_label))
-            definitions_with_pos.append(([d for d in (self.formatting_marker_regex.sub('', x)
-                                                      for x in shortdef['def']) if d],
-                                         pos_label))
+            inflections = [x['if'].replace('*', '') for x in word_data['ins']
+                           if 'if' in x] if 'ins' in word_data else []
+            if len(inflections) > 0:
+                inflections_with_pos.append((inflections, pos_label))
+
+            definitions = [d for d in (self.formatting_marker_regex.sub('', x) for x in shortdef['def']) if d]
+            if len(definitions) > 0:
+                definitions_with_pos.append((definitions, pos_label))
             pos_list.append(pos_label)
 
         out = {

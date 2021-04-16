@@ -57,5 +57,11 @@ class TestPrinter:
         printer2 = MultiListValuePrinter(ListValuePrinter(SingleValuePrinter()), None, join_string='-',
                                          group_by_header=False)
 
-        assert printer(mlv1) == 'animals\n0. dog, 1. cat, 2. giraffe\n\nfiction\n0. dragon'
+        assert printer(mlv1) == '''animals
+0. dog
+1. cat
+2. giraffe
+
+fiction
+0. dragon'''
         assert printer2(mlv1) == 'dog, cat-dragon-giraffe'

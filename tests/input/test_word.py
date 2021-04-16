@@ -1,5 +1,3 @@
-import pytest
-
 from cardbuilder.common.languages import ENGLISH, JAPANESE
 from cardbuilder.input.word import Word, WordForm
 

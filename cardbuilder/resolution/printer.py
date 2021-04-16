@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from typing import Optional, Callable, get_type_hints
-
+from typing import Optional, Callable, get_type_hints, Dict
 
 from cardbuilder.common.util import dedup_by
 from cardbuilder.exceptions import CardBuilderUsageException
@@ -89,7 +88,7 @@ class ListValuePrinter(Printer):
 
 class MultiListValuePrinter(Printer):
     def __init__(self, list_printer: ListValuePrinter = ListValuePrinter(number_format_string='{number}. ',
-                                                            single_value_printer=SingleValuePrinter('{value}\n')),
+                                                                         join_string='\n'),
                  header_printer: Optional[SingleValuePrinter] = SingleValuePrinter('{value}\n'),
                  join_string: str = '\n\n', group_by_header: bool = True, max_length: int = 10,
                  print_lone_header: bool = True):
@@ -133,7 +132,7 @@ class TatoebaPrinter(MultiValuePrinter):
             kwargs['join_string'] = '\n\n'
         super(TatoebaPrinter, self).__init__(**kwargs)
 
-    def __call__(self, value: MultiValue):
+    def __call__(self, value: MultiValue) -> str:
         deduped_value = MultiValue([(x.get_data(), y.get_data()) for x, y in
                                    dedup_by(dedup_by(value.get_data(), lambda x: x[0]), lambda x: x[1])])
         return super().__call__(deduped_value)
@@ -147,3 +146,12 @@ class DefaultPrinter(Printer):
             ListValue: ListValuePrinter(),
             MultiListValue: MultiListValuePrinter()
         }[type(value)](value)
+
+
+class CasePrinter(Printer):
+    def __init__(self, printers_by_type: Dict[type, Printer]):
+        self.printers_by_type = printers_by_type
+
+    def __call__(self, value: Value) -> str:
+        return self.printers_by_type[type(value)](value)
+

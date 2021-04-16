@@ -1,22 +1,21 @@
 import logging
-import sys
 import os
+import re
+import sys
 from io import BytesIO
-from itertools import takewhile, repeat
+from itertools import takewhile, repeat, zip_longest
 from pathlib import Path
 from typing import Iterable, Optional, Any, List, Callable
-from itertools import zip_longest
-import re
 
-from tqdm import tqdm
-from retry.api import retry_call
-from pykakasi import kakasi as kakasi_state
-import spacy
-from spacy.cli.download import download as spacy_download
 import requests
+import spacy
+from pykakasi import kakasi as kakasi_state
+from retry.api import retry_call
+from spacy.cli.download import download as spacy_download
+from tqdm import tqdm
 
-from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.common.languages import ENGLISH, JAPANESE
+from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 
 whitespace_trim = re.compile(r'\n\s+')
 

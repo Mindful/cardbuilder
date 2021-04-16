@@ -1,19 +1,18 @@
-from cardbuilder.resolution.field import Field
-from cardbuilder.resolution.anki import AnkiAudioDownloadPrinter
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
-from cardbuilder.lookup.value import SingleValue
+from cardbuilder.common.util import trim_whitespace, log
 from cardbuilder.lookup.en_to_en import MerriamWebster, WordFrequency
 from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
 from cardbuilder.lookup.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.lookup.tatoeba import TatoebaExampleSentences
-from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrinter, MultiValuePrinter, \
-    SingleValuePrinter, TatoebaPrinter
+from cardbuilder.lookup.value import SingleValue
+from cardbuilder.resolution.anki import AnkiAudioDownloadPrinter
+from cardbuilder.resolution.field import Field
+from cardbuilder.resolution.instantiable import instantiable_resolvers
+from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrinter, SingleValuePrinter, TatoebaPrinter
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions
-from cardbuilder.common.util import trim_whitespace, log
 from cardbuilder.scripts.router import command
-from cardbuilder.resolution.instantiable import instantiable_resolvers
 
 default_eng_card_front = trim_whitespace('''
                     <div style="text-align: center;"><h1>{{英単語}}</h1></div>
@@ -134,14 +133,14 @@ def main():
 
     fields = [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
-        Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号', optional=True),
-        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', printer=related_words_printer, optional=True),
-        Field(mw, Fieldname.AUDIO, '音声', printer=AnkiAudioDownloadPrinter(), optional=True),
-        Field(mw, Fieldname.DEFINITIONS, '英語での定義', printer=eng_def_printer, optional=True),
-        Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer),
-        Field(mw, Fieldname.SYNONYMS, '類義語', printer=related_words_printer, optional=True),
-        Field(mw, Fieldname.ANTONYMS, '対義語', printer=related_words_printer, optional=True),
-        Field(tatoeba, Fieldname.EXAMPLE_SENTENCES, '例文', printer=tatoeba_printer, optional=True)
+        Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号'),
+        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', printer=related_words_printer),
+        Field(mw, Fieldname.AUDIO, '音声', printer=AnkiAudioDownloadPrinter()),
+        Field(mw, Fieldname.DEFINITIONS, '英語での定義', printer=eng_def_printer),
+        Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer, required=True),
+        Field(mw, Fieldname.SYNONYMS, '類義語', printer=related_words_printer),
+        Field(mw, Fieldname.ANTONYMS, '対義語', printer=related_words_printer),
+        Field(tatoeba, Fieldname.EXAMPLE_SENTENCES, '例文', printer=tatoeba_printer)
     ]
 
     resolver = instantiable_resolvers[args.output_format](fields)

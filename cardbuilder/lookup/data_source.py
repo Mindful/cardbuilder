@@ -1,14 +1,13 @@
+import sqlite3
 from abc import ABC, abstractmethod
 from os.path import exists
 from typing import Optional, Iterable, Tuple, Callable
-import sqlite3
 
-
-from cardbuilder.exceptions import WordLookupException
-from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME, retry_with_logging,\
+from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME, retry_with_logging, \
     InDataDir
-from cardbuilder.lookup.lookup_data import LookupData
+from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
+from cardbuilder.lookup.lookup_data import LookupData
 
 
 class DataSource(ABC):

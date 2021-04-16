@@ -2,7 +2,6 @@ import csv
 from typing import List
 
 from cardbuilder.resolution.card_data import CardData
-from cardbuilder.resolution.field import ResolvedField
 from cardbuilder.resolution.resolver import Resolver
 
 

@@ -1,11 +1,10 @@
-import sys
 import pkgutil
+import sys
 from importlib import import_module
+from logging import ERROR
 
 from cardbuilder import scripts
 from cardbuilder.common.util import log, enable_console_reporting
-from logging import ERROR
-
 
 commands = {}
 

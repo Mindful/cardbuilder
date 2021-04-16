@@ -6,13 +6,13 @@ from typing import Tuple, Iterable
 
 import requests
 
-from cardbuilder.exceptions import WordLookupException
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import log, loading_bar
+from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
+from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.lookup_data import outputs, LookupData
 from cardbuilder.lookup.value import LinksValue, ListValue
-from cardbuilder.lookup.data_source import ExternalDataDataSource
 
 
 @outputs({

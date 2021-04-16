@@ -1,5 +1,3 @@
-import pytest
-
 from cardbuilder.common.languages import ENGLISH
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
@@ -15,7 +13,6 @@ class TestMerriamWebster(DataSourceTest):
         data_source = self.get_data_source()
 
         dog_data = data_source.lookup_word(Word('dog', ENGLISH), 'dog')
-
-        print('debuggy')
+        later_data = data_source.lookup_word(Word('later', ENGLISH), 'later')
 
         #TODO: flesh out test, add a test for words the thesaurus fails on (previously caused problems)

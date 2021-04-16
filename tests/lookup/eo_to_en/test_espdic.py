@@ -1,5 +1,3 @@
-import pytest
-
 from cardbuilder.common.languages import ESPERANTO
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource

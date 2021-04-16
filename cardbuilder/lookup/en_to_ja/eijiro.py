@@ -1,14 +1,13 @@
+import re
 from collections import defaultdict
 from logging import WARNING
 from os.path import abspath
-from typing import Dict, Tuple, Iterable, Optional
+from string import digits
+from typing import Tuple, Iterable, Optional
 
-from cardbuilder.exceptions import CardBuilderException, WordLookupException, CardBuilderUsageException
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import fast_linecount, loading_bar, log
-import re
-from string import digits
-
+from cardbuilder.exceptions import CardBuilderException, WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.lookup_data import outputs, LookupData
@@ -162,7 +161,9 @@ class Eijiro(ExternalDataDataSource):
 
             content_sections = Eijiro.content_sectioning_regex.split(line)
             if content_sections[0] not in Eijiro.content_sectioning_symbols:
-                line_attrs[Fieldname.DEFINITIONS].append(content_sections.pop(0))
+                leading_content = content_sections.pop(0)
+                if leading_content:  # leading content is sometimes empty, don't want to add blank definitions
+                    line_attrs[Fieldname.DEFINITIONS].append(leading_content)
 
             section_header = None
             for section in content_sections:

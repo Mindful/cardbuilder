@@ -2,10 +2,10 @@ import pytest
 
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE
-from cardbuilder.lookup.data_source import DataSource
-from cardbuilder.lookup.ja_to_en import Jisho
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word, WordForm
+from cardbuilder.lookup.data_source import DataSource
+from cardbuilder.lookup.ja_to_en import Jisho
 from tests.lookup.data_source_test import DataSourceTest
 
 

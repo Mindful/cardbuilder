@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import Optional, List, Iterable
 
-from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.common import languages
 from cardbuilder.common.util import Shared
+from cardbuilder.exceptions import CardBuilderUsageException
 
 
 class WordForm(Enum):

@@ -1,13 +1,13 @@
 from typing import Union, List, Iterable, Callable, Dict
 
-from cardbuilder.lookup.data_source import DataSource
-from cardbuilder.resolution.field import Field
 from cardbuilder.common.util import loading_bar
-from cardbuilder.lookup.lookup_data import LookupData
 from cardbuilder.exceptions import CardResolutionException, WordLookupException, CardBuilderUsageException
 from cardbuilder.input.word import Word
 from cardbuilder.input.word_list import WordList
+from cardbuilder.lookup.data_source import DataSource
+from cardbuilder.lookup.lookup_data import LookupData
 from cardbuilder.resolution.card_data import CardData
+from cardbuilder.resolution.field import Field
 
 
 class ResolutionEngine:
@@ -63,7 +63,7 @@ class ResolutionEngine:
             field_data = [data_by_source[source] for source in field.data_sources if source in data_by_source]
             resolved_field = field.resolve(field_data)
             if resolved_field is None:
-                raise CardResolutionException('Failed to resolve non-optional field {} due to {}'.format(
+                raise CardResolutionException('Failed to resolve required field {} due to {}'.format(
                     field.target_field_name, ', '.join(['{}:{}'.format(type(source).__name__, failure) for source, failure
                                               in failures_by_source.items() if source in field.data_sources])))
             else:

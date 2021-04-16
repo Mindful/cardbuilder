@@ -1,14 +1,14 @@
 import tarfile
-from os.path import exists
-from typing import Dict, Iterable, Tuple
 from json import dumps, loads
+from os.path import exists
+from typing import Iterable, Tuple
 
-from cardbuilder.common.util import log, download_to_stream_with_loading_bar
 from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common.util import log, download_to_stream_with_loading_bar
 from cardbuilder.input.word import Word
+from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.lookup_data import outputs, LookupData
 from cardbuilder.lookup.value import SingleValue
-from cardbuilder.lookup.data_source import ExternalDataDataSource
 
 
 @outputs({

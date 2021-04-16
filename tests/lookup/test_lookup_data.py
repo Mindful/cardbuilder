@@ -1,7 +1,7 @@
 import pytest
 
-from cardbuilder.common.languages import ENGLISH
 from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common.languages import ENGLISH
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.lookup_data import outputs
