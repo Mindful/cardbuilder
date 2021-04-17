@@ -34,6 +34,7 @@ setuptools.setup(
         "unidic-lite ~= 1.0.8",
         "fugashi ~= 1.1.0",
         "retry ~= 0.9.2",
-        "spacy ~= 3.0.5"
+        "spacy ~= 3.0.5",
+        "beautifulsoup4 ~= 4.9.3"
     ]
 )

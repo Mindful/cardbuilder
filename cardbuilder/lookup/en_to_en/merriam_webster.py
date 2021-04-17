@@ -4,6 +4,8 @@ from json import loads
 from typing import Optional
 
 import requests
+from bs4 import BeautifulSoup
+from bs4.element import Tag
 
 from cardbuilder.common.config import Config
 from cardbuilder.common.fieldnames import Fieldname
@@ -13,6 +15,65 @@ from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.lookup.value import MultiListValue, ListValue, MultiValue
+
+
+class ScrapingMerriamWebster(WebApiDataSource):
+
+    synonyms_name = 'synonyms'
+    antonyms_name = 'antonyms'
+
+    pos_cleaning_regex = re.compile(r"[^a-zA-Z]")
+
+    def _query_api(self, form: str) -> str:
+        url = 'https://www.merriam-webster.com/dictionary/{}'.format(form)
+        html = requests.get(url).content
+        parsed = BeautifulSoup(html, 'html.parser')
+
+
+        #TODO: organize the data somehow and return it, or if we can't find the word the user is looking for, error out
+
+        rows = parsed.find_all('div', {'class': 'row'})
+        for row in rows:
+            if 'entry-header' in row['class']:
+                word = row.find('h1', {'class': 'hword'}).text
+                pos = self.pos_cleaning_regex.sub('', row.find('a', {'class': 'important-blue-link'}).text)
+            elif 'entry-attr' in row['class'] or 'headword-row' in row['class']:
+                #TODO: we could potentially return more than one sound file
+                # also, audio won't always be there, and neither will inflections
+                audio_content = row.find_all('a', {'class': 'play-pron'})
+                audio = audio_content[0]['data-file']
+                inflection_content = row.find_all('span', {'class': 'if'})
+                inflections = [x.text for x in inflection_content]
+
+        syn_ant_div = parsed.find_all('div', {'id': 'synonyms-anchor'})[0]
+
+        synonym_list = []
+        antonym_list = []
+
+        #TODO: make sure this works
+        for elem in syn_ant_div:
+            if isinstance(elem, Tag):
+                if elem.has_attr('class') and elem['class'] == "function-label":
+                    header_text_list = elem.text.split(':')
+                    if len(header_text_list) > 1:
+                        relation, pos = header_text_list
+                    else:
+                        relation = header_text_list
+                        pos = None
+
+                    relation = relation.lower()
+
+                elif elem.has_attr('class') and elem.name == 'ul':
+                    list_contents = [x.text for x in elem.find_all('a')]
+                    if relation == self.synonyms_name:
+                        synonym_list.append(list_contents, pos)
+                    elif relation == self.antonyms_name:
+                        antonym_list.append(list_contents, pos)
+
+        #TODO: return a raw json dict of some kind
+
+    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+        pass
 
 
 @outputs({
@@ -67,6 +128,7 @@ class CollegiateThesaurus(WebApiDataSource):
     Fieldname.AUDIO: MultiValue
 })
 class LearnerDictionary(WebApiDataSource):
+    #TODO: return multiple audio files when we have them (audio data can be MultiListvalue instead of MultiValue)
     # https://dictionaryapi.com/products/api-learners-dictionary
 
     audio_file_format = 'mp3'

@@ -1,13 +1,13 @@
 from cardbuilder.common.languages import ENGLISH
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
-from cardbuilder.lookup.en_to_en import MerriamWebster
+from cardbuilder.lookup.en_to_en.merriam_webster import ScrapingMerriamWebster
 from tests.lookup.data_source_test import DataSourceTest
 
 
-class TestMerriamWebster(DataSourceTest):
+class TestScrapingMerriamWebster(DataSourceTest):
     def get_data_source(self) -> DataSource:
-        return MerriamWebster()
+        return ScrapingMerriamWebster()
 
     def test_lookup(self):
         data_source = self.get_data_source()
@@ -16,4 +16,4 @@ class TestMerriamWebster(DataSourceTest):
         later_data = data_source.lookup_word(Word('later', ENGLISH), 'later')
         lead_data = data_source.lookup_word(Word('lead', ENGLISH), 'lead')
 
-        #TODO: flesh out test, add a test for words the thesaurus fails on (previously caused problems)
+        #TODO: flesh out test
