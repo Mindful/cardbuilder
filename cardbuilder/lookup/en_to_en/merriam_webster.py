@@ -1,7 +1,7 @@
 # https://dictionaryapi.com/products/json
 import re
 from json import loads
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import requests
 from bs4 import BeautifulSoup
@@ -16,10 +16,11 @@ from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSour
 from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.lookup.value import MultiListValue, ListValue, MultiValue
 
+
 @outputs({
     Fieldname.SYNONYMS: MultiListValue,
     Fieldname.ANTONYMS: MultiListValue,
-    Fieldname.AUDIO: MultiValue,
+    Fieldname.AUDIO: MultiListValue,
     Fieldname.PART_OF_SPEECH: ListValue,
     Fieldname.INFLECTIONS: MultiListValue
 })
@@ -129,9 +130,9 @@ class CollegiateThesaurus(WebApiDataSource):
 @outputs({
     Fieldname.PART_OF_SPEECH: ListValue,
     Fieldname.DEFINITIONS: MultiListValue,
-    Fieldname.PRONUNCIATION_IPA: MultiValue,
+    Fieldname.PRONUNCIATION_IPA: MultiListValue,
     Fieldname.INFLECTIONS: MultiListValue,
-    Fieldname.AUDIO: MultiValue
+    Fieldname.AUDIO: MultiListValue
 })
 class LearnerDictionary(WebApiDataSource):
     #TODO: return multiple audio files when we have them (audio data can be MultiListvalue instead of MultiValue)
@@ -152,6 +153,22 @@ class LearnerDictionary(WebApiDataSource):
             word=word, api_key=self.api_key)
         return requests.get(url).text
 
+    def _get_pronunciation_content(self, pronunciation_data: List) -> Tuple[List, List]:
+        pronunciation_url_list = []
+        ipa_list = []
+
+        for pronunciation_entry in pronunciation_data:
+            if 'ipa' in pronunciation_entry:
+                ipa_list.append(pronunciation_entry['ipa'].strip())
+            if 'sound' in pronunciation_entry:
+                pronunciation_url_list.append(self._get_word_pronunciation_url(
+                    pronunciation_entry['sound']['audio']))
+
+        return ipa_list, pronunciation_url_list
+
+
+
+
     def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
         raw_json = loads(content)
 
@@ -168,22 +185,21 @@ class LearnerDictionary(WebApiDataSource):
                     target_word = next((json for json in word_json['uros'] if json['ure'].replace('*', '') == form),
                                        None)
                     if target_word is not None:
+                        pos_label = None
                         output = {}
-                        if 'prs' in target_word:
-                            pronunciation_data = target_word['prs'][0]
-                            if 'ipa' in pronunciation_data:
-                                output[Fieldname.PRONUNCIATION_IPA] = MultiValue([(pronunciation_data['ipa'], None)])
-                            if 'sound' in pronunciation_data:
-                                output[Fieldname.AUDIO] = MultiValue([(self._get_word_pronunciation_url(
-                                    pronunciation_data['sound']['audio']), None)])
-
                         if 'fl' in target_word:
-                            # There's only going to be one POS, but we expect this to be a StringListValue
-                            # in the MerriamWebster data source
+                            pos_label = target_word['fl']
+                            # There's only going to be one POS, but this has to be a StringListValue anyway
                             output[Fieldname.PART_OF_SPEECH] = ListValue([target_word['fl']])
 
+                        if 'prs' in target_word:
+                            pronunciation_data = target_word['prs']
+                            ipa_list, pronunciation_url_list = self._get_pronunciation_content(pronunciation_data)
+                            output[Fieldname.AUDIO] = MultiListValue([(pronunciation_url_list, pos_label)])
+                            output[Fieldname.PRONUNCIATION_IPA] = MultiListValue([(ipa_list, pos_label)])
+
                         if len(output) > 0:
-                            return self.lookup_data_type(word, form, output)
+                            return self.lookup_data_type(word, content, form, output)
 
             raise WordLookupException('Merriam Webster learner\'s dictionary had no matches for {}'.format(form))
 
@@ -198,18 +214,10 @@ class LearnerDictionary(WebApiDataSource):
             if not shortdef:
                 continue
             pos_label = shortdef['fl']
-            try:
-                pronunciation_data = word_data['hwi']['prs'][0]
-            except KeyError:
-                pronunciation_data = None
-            if pronunciation_data:
-                if 'ipa' in pronunciation_data:
-                    ipa_with_pos.append((pronunciation_data['ipa'].strip(), pos_label))
-                try:
-                    pronunciation_url = self._get_word_pronunciation_url(pronunciation_data['sound']['audio'])
-                    audio_with_pos.append((pronunciation_url, pos_label))
-                except KeyError:
-                    pass
+            if 'prs' in word_data['hwi']:
+                ipa_list, pronunciation_url_list = self._get_pronunciation_content(word_data['hwi']['prs'])
+                audio_with_pos.append((pronunciation_url_list, pos_label))
+                ipa_with_pos.append((ipa_list, pos_label))
 
             inflections = [x['if'].replace('*', '') for x in word_data['ins']
                            if 'if' in x] if 'ins' in word_data else []
@@ -224,12 +232,12 @@ class LearnerDictionary(WebApiDataSource):
         out = {
             Fieldname.PART_OF_SPEECH: ListValue(pos_list),
             Fieldname.DEFINITIONS: MultiListValue(definitions_with_pos),
-            Fieldname.PRONUNCIATION_IPA: MultiValue(ipa_with_pos),
+            Fieldname.PRONUNCIATION_IPA: MultiListValue(ipa_with_pos),
             Fieldname.INFLECTIONS: MultiListValue(inflections_with_pos),
         }
 
         if len(audio_with_pos) > 0:
-            out[Fieldname.AUDIO] = MultiValue(audio_with_pos)
+            out[Fieldname.AUDIO] = MultiListValue(audio_with_pos)
 
         return self.lookup_data_type(word, form, content, out)
 
