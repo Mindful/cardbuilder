@@ -16,7 +16,13 @@ from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSour
 from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.lookup.value import MultiListValue, ListValue, MultiValue
 
-
+@outputs({
+    Fieldname.SYNONYMS: MultiListValue,
+    Fieldname.ANTONYMS: MultiListValue,
+    Fieldname.AUDIO: MultiValue,
+    Fieldname.PART_OF_SPEECH: ListValue,
+    Fieldname.INFLECTIONS: MultiListValue
+})
 class ScrapingMerriamWebster(WebApiDataSource):
 
     synonyms_name = 'synonyms'
@@ -35,13 +41,13 @@ class ScrapingMerriamWebster(WebApiDataSource):
         rows = parsed.find_all('div', {'class': 'row'})
         for row in rows:
             if 'entry-header' in row['class']:
-                word = row.find('h1', {'class': 'hword'}).text
+                word = row.find(attrs={'class': 'hword'}).text
                 pos = self.pos_cleaning_regex.sub('', row.find('a', {'class': 'important-blue-link'}).text)
             elif 'entry-attr' in row['class'] or 'headword-row' in row['class']:
                 #TODO: we could potentially return more than one sound file
                 # also, audio won't always be there, and neither will inflections
                 audio_content = row.find_all('a', {'class': 'play-pron'})
-                audio = audio_content[0]['data-file']
+                audio = audio_content[0]['data-file'] if len(audio_content) > 0 else None
                 inflection_content = row.find_all('span', {'class': 'if'})
                 inflections = [x.text for x in inflection_content]
 
@@ -53,7 +59,7 @@ class ScrapingMerriamWebster(WebApiDataSource):
         #TODO: make sure this works
         for elem in syn_ant_div:
             if isinstance(elem, Tag):
-                if elem.has_attr('class') and elem['class'] == "function-label":
+                if elem.has_attr('class') and "function-label" in elem['class']:
                     header_text_list = elem.text.split(':')
                     if len(header_text_list) > 1:
                         relation, pos = header_text_list
@@ -66,9 +72,9 @@ class ScrapingMerriamWebster(WebApiDataSource):
                 elif elem.has_attr('class') and elem.name == 'ul':
                     list_contents = [x.text for x in elem.find_all('a')]
                     if relation == self.synonyms_name:
-                        synonym_list.append(list_contents, pos)
+                        synonym_list.append((list_contents, pos))
                     elif relation == self.antonyms_name:
-                        antonym_list.append(list_contents, pos)
+                        antonym_list.append((list_contents, pos))
 
         #TODO: return a raw json dict of some kind
 
@@ -179,7 +185,7 @@ class LearnerDictionary(WebApiDataSource):
                         if len(output) > 0:
                             return self.lookup_data_type(word, form, output)
 
-            raise WordLookupException('Merriam Webster learner\'s dictionary had no exact matches for {}'.format(form))
+            raise WordLookupException('Merriam Webster learner\'s dictionary had no matches for {}'.format(form))
 
         pos_list = []
         ipa_with_pos = []
@@ -227,17 +233,18 @@ class LearnerDictionary(WebApiDataSource):
 
         return self.lookup_data_type(word, form, content, out)
 
-    def _get_word_pronunciation_url(self, filename) -> str:
+    @classmethod
+    def _get_word_pronunciation_url(cls, filename) -> str:
         if filename.startswith('bix'):
             subdir = 'bix'
         elif filename.startswith('gg'):
             subdir = 'gg'
-        elif self.number_subdir_regex.match(filename):
+        elif cls.number_subdir_regex.match(filename):
             subdir = 'number'
         else:
             subdir = filename[0]
         url = 'https://media.merriam-webster.com/audio/prons/en/us/{format}/{subdir}/{filename}.{format}'.format(
-            format=self.audio_file_format, subdir=subdir, filename=filename
+            format=cls.audio_file_format, subdir=subdir, filename=filename
         )
 
         return url

@@ -16,4 +16,7 @@ class TestScrapingMerriamWebster(DataSourceTest):
         later_data = data_source.lookup_word(Word('later', ENGLISH), 'later')
         lead_data = data_source.lookup_word(Word('lead', ENGLISH), 'lead')
 
+        # only found in extra form, not main results
+        perpetrator_data = data_source.lookup_word(Word('perpetrator', ENGLISH), 'perpetrator')
+
         #TODO: flesh out test
