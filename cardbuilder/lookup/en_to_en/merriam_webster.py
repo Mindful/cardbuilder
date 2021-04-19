@@ -1,7 +1,8 @@
 # https://dictionaryapi.com/products/json
 import re
-from json import loads
+from json import loads, dumps
 from typing import Optional, List, Tuple
+import zlib
 
 import requests
 from bs4 import BeautifulSoup
@@ -14,7 +15,7 @@ from cardbuilder.exceptions import WordLookupException, CardBuilderUsageExceptio
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource, AggregatingDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
-from cardbuilder.lookup.value import MultiListValue, ListValue, MultiValue
+from cardbuilder.lookup.value import MultiListValue, ListValue
 
 
 @outputs({
@@ -34,30 +35,41 @@ class ScrapingMerriamWebster(WebApiDataSource):
     def _query_api(self, form: str) -> str:
         url = 'https://www.merriam-webster.com/dictionary/{}'.format(form)
         html = requests.get(url).content
-        parsed = BeautifulSoup(html, 'html.parser')
+        return str(html)
 
-
-        #TODO: organize the data somehow and return it, or if we can't find the word the user is looking for, error out
+    #TODO: use the form here somehow? inform what we look for in the page?
+    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+        parsed = BeautifulSoup(content, 'html.parser')
 
         rows = parsed.find_all('div', {'class': 'row'})
+        audio_list = []
+        inflections_list = []
+        parts_of_speech = []
         for row in rows:
             if 'entry-header' in row['class']:
                 word = row.find(attrs={'class': 'hword'}).text
                 pos = self.pos_cleaning_regex.sub('', row.find('a', {'class': 'important-blue-link'}).text)
+                parts_of_speech.append(pos)
             elif 'entry-attr' in row['class'] or 'headword-row' in row['class']:
-                #TODO: we could potentially return more than one sound file
-                # also, audio won't always be there, and neither will inflections
+                audio_links = []
                 audio_content = row.find_all('a', {'class': 'play-pron'})
-                audio = audio_content[0]['data-file'] if len(audio_content) > 0 else None
+                for audio_element in audio_content:
+                    audio_links.append(LearnerDictionary.get_word_pronunciation_url(audio_element['data-file']))
+
                 inflection_content = row.find_all('span', {'class': 'if'})
                 inflections = [x.text for x in inflection_content]
+
+                if len(audio_links) > 0:
+                    audio_list.append((audio_links, pos))
+
+                if len(inflections) > 0:
+                    inflections_list.append((inflections, pos))
 
         syn_ant_div = parsed.find_all('div', {'id': 'synonyms-anchor'})[0]
 
         synonym_list = []
         antonym_list = []
 
-        #TODO: make sure this works
         for elem in syn_ant_div:
             if isinstance(elem, Tag):
                 if elem.has_attr('class') and "function-label" in elem['class']:
@@ -77,10 +89,13 @@ class ScrapingMerriamWebster(WebApiDataSource):
                     elif relation == self.antonyms_name:
                         antonym_list.append((list_contents, pos))
 
-        #TODO: return a raw json dict of some kind
-
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
-        pass
+        return self.lookup_data_type(word, form, content, {
+            Fieldname.PART_OF_SPEECH: ListValue(parts_of_speech),
+            Fieldname.AUDIO: MultiListValue(audio_list),
+            Fieldname.INFLECTIONS: MultiListValue(inflections_list),
+            Fieldname.SYNONYMS: MultiListValue(synonym_list),
+            Fieldname.ANTONYMS: MultiListValue(antonym_list)
+        })
 
 
 @outputs({
@@ -135,7 +150,6 @@ class CollegiateThesaurus(WebApiDataSource):
     Fieldname.AUDIO: MultiListValue
 })
 class LearnerDictionary(WebApiDataSource):
-    #TODO: return multiple audio files when we have them (audio data can be MultiListvalue instead of MultiValue)
     # https://dictionaryapi.com/products/api-learners-dictionary
 
     audio_file_format = 'mp3'
@@ -161,7 +175,7 @@ class LearnerDictionary(WebApiDataSource):
             if 'ipa' in pronunciation_entry:
                 ipa_list.append(pronunciation_entry['ipa'].strip())
             if 'sound' in pronunciation_entry:
-                pronunciation_url_list.append(self._get_word_pronunciation_url(
+                pronunciation_url_list.append(self.get_word_pronunciation_url(
                     pronunciation_entry['sound']['audio']))
 
         return ipa_list, pronunciation_url_list
@@ -242,7 +256,7 @@ class LearnerDictionary(WebApiDataSource):
         return self.lookup_data_type(word, form, content, out)
 
     @classmethod
-    def _get_word_pronunciation_url(cls, filename) -> str:
+    def get_word_pronunciation_url(cls, filename) -> str:
         if filename.startswith('bix'):
             subdir = 'bix'
         elif filename.startswith('gg'):

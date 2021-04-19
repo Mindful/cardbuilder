@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from os.path import exists
 from typing import Optional, Iterable, Tuple, Callable
 
+from cardbuilder.common.config import Config
 from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME, retry_with_logging, \
     InDataDir
 from cardbuilder.exceptions import WordLookupException
@@ -59,13 +60,33 @@ class AggregatingDataSource(DataSource, ABC):
 
 
 class WebApiDataSource(DataSource, ABC):
+    #TODO: use zlib to compress all the API content and then uncompress it when we pull it out of the cache
+    #we'll need to save it as raw bytes for this, but that should be easy
 
     @abstractmethod
     def _query_api(self, form: str) -> str:
         raise NotImplementedError()
 
+    @staticmethod
+    def _api_version() -> int:
+        return 0
+
     def __init__(self, enable_cache_retrieval=True):
         super().__init__()
+        version_key = type(self).__name__+'_api_version'
+
+        try:
+            prev_api_version = int(Config.get(version_key))
+            if prev_api_version < self._api_version():
+                log(self, 'API version appears to have changed - was {}, is now {}. '
+                          'Clearing cache and updating version...'.format(prev_api_version, self._api_version()))
+                self.conn.execute('DELETE FROM {}'.format(self.default_table))
+                self.conn.commit()
+                Config.set(version_key, str(self._api_version()))
+        except KeyError:
+            log(self, 'Found no API version, setting it to {}'.format(self._api_version()))
+            Config.set(version_key, str(self._api_version()))
+
         self.enable_cache_retrieval = enable_cache_retrieval
         if self.enable_cache_retrieval:
             log(self, 'Found {} cached entries'.format(self.get_table_rowcount()))
