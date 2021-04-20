@@ -2,6 +2,7 @@ import sqlite3
 from abc import ABC, abstractmethod
 from os.path import exists
 from typing import Optional, Iterable, Tuple, Callable
+import zlib
 
 from cardbuilder.common.config import Config
 from cardbuilder.common.util import log, grouper, download_to_file_with_loading_bar, DATABASE_NAME, retry_with_logging, \
@@ -12,6 +13,8 @@ from cardbuilder.lookup.lookup_data import LookupData
 
 
 class DataSource(ABC):
+
+    content_type = 'TEXT'
 
     @abstractmethod
     def lookup_word(self, word: Word, form: str) -> LookupData:
@@ -28,8 +31,8 @@ class DataSource(ABC):
         self.default_table = type(self).__name__.lower()
         self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
             word TEXT PRIMARY KEY,
-            content TEXT
-        );'''.format(self.default_table))
+            content {}
+        );'''.format(self.default_table, self.content_type))
         self.conn.commit()
 
     def __del__(self):
@@ -60,8 +63,7 @@ class AggregatingDataSource(DataSource, ABC):
 
 
 class WebApiDataSource(DataSource, ABC):
-    #TODO: use zlib to compress all the API content and then uncompress it when we pull it out of the cache
-    #we'll need to save it as raw bytes for this, but that should be easy
+    content_type = 'BLOB'
 
     @abstractmethod
     def _query_api(self, form: str) -> str:
@@ -108,10 +110,11 @@ class WebApiDataSource(DataSource, ABC):
 
             # parse it first so we don't save it if we can't parse it
             parsed_content = self.parse_word_content(word, form, content)
+            compressed_content = zlib.compress(content.encode('utf-8'))
 
             # update cache
             self.conn.execute('INSERT OR REPLACE INTO {} VALUES (?, ?)'.format(self.default_table),
-                              (form, content))
+                              (form, compressed_content))
             self.conn.commit()
 
             return parsed_content
@@ -119,7 +122,7 @@ class WebApiDataSource(DataSource, ABC):
     def _query_cached_api_results(self, form: str) -> Optional[str]:
         cursor = self.conn.execute('SELECT content FROM {} WHERE word=?'.format(self.default_table), (form,))
         result = cursor.fetchone()
-        return result[0] if result is not None else None
+        return zlib.decompress(result[0]).decode('utf-8') if result is not None else None
 
 
 class ExternalDataDataSource(DataSource, ABC):

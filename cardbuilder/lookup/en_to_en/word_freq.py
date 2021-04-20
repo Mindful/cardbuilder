@@ -19,20 +19,10 @@ class WordFrequency(ExternalDataDataSource):
     url = 'http://norvig.com/ngrams/count_1w.txt'
     filename = 'count_1w.txt'
 
+    content_type = 'INT'
+
     def __init__(self):
-        # deliberately don't call super().__init__() because we have a custom table schema
-        with InDataDir():
-            self.conn = sqlite3.connect(DATABASE_NAME)
-            retry_with_logging(self._fetch_remote_files_if_necessary, tries=2, delay=1)
-
-        self.default_table = type(self).__name__.lower()
-        self.conn.execute('''CREATE TABLE IF NOT EXISTS {}(
-            word TEXT PRIMARY KEY,
-            freq INT
-        );'''.format(self.default_table))
-        self.conn.commit()
-
-        self._load_data_into_database()
+        super(WordFrequency, self).__init__()
 
         log(self, 'Loading word frequency data from table...')
         c = self.conn.execute('''SELECT * FROM {}'''.format(self.default_table))

@@ -60,11 +60,11 @@ class GeneDict(ExternalDataDataSource):
                 data[Fieldname.SUPPLEMENTAL] = supplemental[word]
             if word in examples:
                 data[Fieldname.EXAMPLE_SENTENCES] = examples[word]
-            yield word, dumps(data)
+            yield word, dumps({key.name: val for key, val in data.items()})
 
     def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
         return self.lookup_data_type(word, form, content, {
-            Fieldname(key): SingleValue(val) for key, val in loads(content).items()
+            Fieldname[key]: SingleValue(val) for key, val in loads(content).items()
         })
 
     def _fetch_remote_files_if_necessary(self):

@@ -19,4 +19,6 @@ class TestScrapingMerriamWebster(DataSourceTest):
         # only found in extra form, not main results
         perpetrator_data = data_source.lookup_word(Word('perpetrator', ENGLISH), 'perpetrator')
 
+        print('debuggy')
+
         #TODO: flesh out test

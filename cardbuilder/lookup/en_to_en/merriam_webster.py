@@ -77,7 +77,7 @@ class ScrapingMerriamWebster(WebApiDataSource):
                     if len(header_text_list) > 1:
                         relation, pos = header_text_list
                     else:
-                        relation = header_text_list
+                        relation = header_text_list[0]
                         pos = None
 
                     relation = relation.lower()
