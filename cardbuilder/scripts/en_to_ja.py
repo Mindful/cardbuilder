@@ -1,7 +1,9 @@
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import trim_whitespace, log
+from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.lookup.en_to_en import MerriamWebster, WordFrequency
+from cardbuilder.lookup.en_to_en.merriam_webster import ScrapingMerriamWebster
 from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
 from cardbuilder.lookup.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.lookup.tatoeba import TatoebaExampleSentences
@@ -89,15 +91,20 @@ anki_css = trim_whitespace('''
 def main():
     parser = build_parser_with_common_args()
     parser.add_argument('--learner_key', help="Location of a text file containing a Merriam-Webster's Learner's"
-                                              " Dictionary api key. Required on the first run")
+                                              " Dictionary api key")
     parser.add_argument('--thesaurus_key', help="Location of a text file containing a Merriam-Webster's Collegiate "
-                                                "Thesaurus api key. Required on the first run")
+                                                "Thesaurus api key")
     parser.add_argument('--eijiro_location', help="The location of a dictionary containing the Eijiro data. If present,"
                                                   "Eijiro will be used instead of EJDictHand")
 
     args, input_words = get_args_and_input_from_parser(parser, ENGLISH)
+    try:
+        mw = MerriamWebster(args.learner_key, args.thesaurus_key)
+        log(None, 'Using Merriam Webster API keys')
+    except CardBuilderUsageException:
+        mw = ScrapingMerriamWebster()
+        log(None, 'Using scraping Merriam Webster')
 
-    mw = MerriamWebster(args.learner_key, args.thesaurus_key)
     if args.eijiro_location is not None:
         log(None, 'Using Eijiro as dictionary from {}'.format(args.eijiro_location))
         jp_dictionary = Eijiro(args.eijiro_location)

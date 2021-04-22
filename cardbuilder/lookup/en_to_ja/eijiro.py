@@ -173,9 +173,7 @@ class Eijiro(ExternalDataDataSource):
                 elif section_header is not None and section not in Eijiro.content_sectioning_symbols:
                     key = content_sectioning_symbol_map[section_header]
                     if key == Fieldname.LINKS:
-                        #TODO prepend the header and then split on commas and add a link for each word, to handle
-                        # things like ＝<→numbers game>、<→numbers pool>
-                        linked_word = section[:-1]
+                        linked_word = section[:section.index('>')]
                         try:
                             line_attrs[Fieldname.LINKS].append(self.lookup_word(word, linked_word))
                         except WordLookupException:
