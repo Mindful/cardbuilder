@@ -41,10 +41,17 @@ class Config:
         cls._cache[key] = val
 
         log(None, 'Update config state: {} = {}'.format(key, val))
-        cls._save()
+        cls._update()
 
     @classmethod
-    def _save(cls):
+    def clear(cls):
+        log(None, 'Purging config')
+        cls.conn.execute('''DELETE FROM config''')
+        cls.conn.commit()
+        cls._cache = {}
+
+    @classmethod
+    def _update(cls):
         if cls._cache is None:
             return
 

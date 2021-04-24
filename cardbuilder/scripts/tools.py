@@ -43,10 +43,17 @@ def view_conf() -> None:
 
 @command('purge_db')
 def purge_database() -> None:
-    _confirm_intent('purge cardbuilder\'s local database')
+    _confirm_intent('purge cardbuilder\'s entire local database')
 
     with InDataDir():
         os.remove(DATABASE_NAME)
+
+
+@command('purge_conf')
+def purge_config() -> None:
+    _confirm_intent('purge cardbuilder\'s config settings')
+
+    Config.clear()
 
 
 @command('purge_all')

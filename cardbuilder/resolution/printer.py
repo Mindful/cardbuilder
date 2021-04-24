@@ -157,7 +157,23 @@ class CasePrinter(Printer):
         self.printers_by_type = printers_by_type
 
     def __call__(self, value: Value) -> str:
-        return self.printers_by_type[type(value)](value)
+        if type(value) in self.printers_by_type:
+            return self.printers_by_type[type(value)](value)
+        else:
+            raise CardBuilderUsageException(f'{type(self).__name__} that supports types '
+                                            f'{set(self.printers_by_type.keys())} received type {type(value).__name__}'
+                                            f'to print')
+
+
+class FirstValuePrinter(CasePrinter):
+
+    def __init__(self):
+        super(FirstValuePrinter, self).__init__({
+            ListValue: ListValuePrinter(max_length=1),
+            MultiValue: MultiValuePrinter(max_length=1, print_lone_header=False),
+            MultiListValue: MultiListValuePrinter(max_length=1, print_lone_header=False,
+                                                  list_printer=ListValuePrinter(max_length=1))
+        })
 
 
 class DownloadPrinter(Printer):
@@ -170,9 +186,11 @@ class DownloadPrinter(Printer):
             url = value.get_data()
         elif isinstance(value, MultiValue):
             url = value.get_data()[0][0].get_data()
+        elif isinstance(value, MultiListValue):
+            url = value.get_data()[0][0].get_data()[0].get_data()
         else:
-            raise CardBuilderUsageException('{} can only print SingleValues or MultiValues'.format(
-                DownloadPrinter.__name__))
+            raise CardBuilderUsageException('{} is not supported for printing by {}'.format(
+                DownloadPrinter.__name__, type(value).__name__))
 
         filename = url.split('/')[-1]
         if not exists(self.output_directory):

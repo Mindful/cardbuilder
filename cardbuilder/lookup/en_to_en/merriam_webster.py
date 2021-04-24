@@ -1,8 +1,6 @@
-# https://dictionaryapi.com/products/json
 import re
-from json import loads, dumps
+from json import loads
 from typing import Optional, List, Tuple
-import zlib
 
 import requests
 from bs4 import BeautifulSoup
@@ -34,10 +32,11 @@ class ScrapingMerriamWebster(WebApiDataSource):
 
     def _query_api(self, form: str) -> str:
         url = 'https://www.merriam-webster.com/dictionary/{}'.format(form)
-        html = requests.get(url).content
+        # custom Accept-Encoding header is very important: without it, MW sometimes returns redirect loops
+        # (this happens for example with "science")
+        html = requests.get(url, headers={'Accept-Encoding': 'identity'}).content
         return str(html)
 
-    #TODO: use the form here somehow? inform what we look for in the page?
     def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
         parsed = BeautifulSoup(content, 'html.parser')
 
@@ -47,10 +46,21 @@ class ScrapingMerriamWebster(WebApiDataSource):
         parts_of_speech = []
         for row in rows:
             if 'entry-header' in row['class']:
-                word = row.find(attrs={'class': 'hword'}).text
-                pos = self.pos_cleaning_regex.sub('', row.find('a', {'class': 'important-blue-link'}).text)
-                parts_of_speech.append(pos)
-            elif 'entry-attr' in row['class'] or 'headword-row' in row['class']:
+                word_elem = row.find(attrs={'class': 'hword'})
+                if word_elem is None or word_elem.text != form:
+                    word = None
+                    pos = None
+                    continue
+                else:
+                    word = word_elem.text
+
+                pos_elem = row.find('a', {'class': 'important-blue-link'})
+                if pos_elem is not None:  # definitions under "more definitions" sometimes lack a POS
+                    pos = self.pos_cleaning_regex.sub('', pos_elem.text)
+                    parts_of_speech.append(self.pos_cleaning_regex.sub('', pos_elem.text))
+                else:
+                    pos = None
+            elif 'entry-attr' in row['class'] or 'headword-row' in row['class'] and pos is not None:
                 audio_links = []
                 audio_content = row.find_all('a', {'class': 'play-pron'})
                 for audio_element in audio_content:
@@ -65,29 +75,30 @@ class ScrapingMerriamWebster(WebApiDataSource):
                 if len(inflections) > 0:
                     inflections_list.append((inflections, pos))
 
-        syn_ant_div = parsed.find_all('div', {'id': 'synonyms-anchor'})[0]
-
         synonym_list = []
         antonym_list = []
 
-        for elem in syn_ant_div:
-            if isinstance(elem, Tag):
-                if elem.has_attr('class') and "function-label" in elem['class']:
-                    header_text_list = elem.text.split(':')
-                    if len(header_text_list) > 1:
-                        relation, pos = header_text_list
-                    else:
-                        relation = header_text_list[0]
-                        pos = None
+        syn_ant_div = parsed.find('div', {'id': 'synonyms-anchor'})
 
-                    relation = relation.lower()
+        if syn_ant_div:
+            for elem in syn_ant_div:
+                if isinstance(elem, Tag):
+                    if elem.has_attr('class') and "function-label" in elem['class']:
+                        header_text_list = elem.text.split(':')
+                        if len(header_text_list) > 1:
+                            relation, pos = header_text_list
+                        else:
+                            relation = header_text_list[0]
+                            pos = None
 
-                elif elem.has_attr('class') and elem.name == 'ul':
-                    list_contents = [x.text for x in elem.find_all('a')]
-                    if relation == self.synonyms_name:
-                        synonym_list.append((list_contents, pos))
-                    elif relation == self.antonyms_name:
-                        antonym_list.append((list_contents, pos))
+                        relation = relation.lower()
+
+                    elif elem.has_attr('class') and elem.name == 'ul':
+                        list_contents = [x.text for x in elem.find_all('a')]
+                        if relation == self.synonyms_name:
+                            synonym_list.append((list_contents, pos))
+                        elif relation == self.antonyms_name:
+                            antonym_list.append((list_contents, pos))
 
         return self.lookup_data_type(word, form, content, {
             Fieldname.PART_OF_SPEECH: ListValue(parts_of_speech),
@@ -276,6 +287,7 @@ class LearnerDictionary(WebApiDataSource):
     **LearnerDictionary.lookup_data_type.fields(), **CollegiateThesaurus.lookup_data_type.fields()
 })
 class MerriamWebster(AggregatingDataSource):
+    # https://dictionaryapi.com/products/json
     # Each lookup here is two requests to MW; be careful if using an account limited to 1000/day
 
     keylike = re.compile(r'.+-.+-.+-.+')

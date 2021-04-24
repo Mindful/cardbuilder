@@ -12,7 +12,7 @@ from cardbuilder.resolution.anki import AnkiAudioDownloadPrinter
 from cardbuilder.resolution.field import Field
 from cardbuilder.resolution.instantiable import instantiable_resolvers
 from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrinter, SingleValuePrinter, TatoebaPrinter, \
-    DownloadPrinter
+    DownloadPrinter, FirstValuePrinter
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions
 from cardbuilder.scripts.router import command
@@ -20,7 +20,9 @@ from cardbuilder.scripts.router import command
 eng_card_front = trim_whitespace('''
                     <div style="text-align: center;"><h1>{{英単語}}</h1></div>
                     <br/>
-                    {{英語での定義}}
+                    {{#英語での定義}}
+                        {{英語での定義}}
+                    {{/英語での定義}}
                     <br/><br/>
                     {{#類義語}}
                         類義語: {{類義語}}<br/>
@@ -144,15 +146,18 @@ def main():
 
     fields = [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
-        Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号'),
         Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', printer=related_words_printer),
         Field(mw, Fieldname.AUDIO, '音声', printer=audio_printer),
-        Field(mw, Fieldname.DEFINITIONS, '英語での定義', printer=eng_def_printer),
         Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer, required=True),
         Field(mw, Fieldname.SYNONYMS, '類義語', printer=related_words_printer),
         Field(mw, Fieldname.ANTONYMS, '対義語', printer=related_words_printer),
         Field(tatoeba, Fieldname.EXAMPLE_SENTENCES, '例文', printer=tatoeba_printer)
     ]
+
+    if isinstance(mw, MerriamWebster):
+        fields.insert(1, Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号', printer=FirstValuePrinter()))
+        fields.insert(4, Field(mw, Fieldname.DEFINITIONS, '英語での定義', printer=eng_def_printer),
+)
 
     resolver = instantiable_resolvers[args.output_format](fields)
     if args.output_format == 'anki':

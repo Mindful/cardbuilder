@@ -25,7 +25,6 @@ class SvlWords(WordList, ExternalDataDataSource):
     then by word frequency within level (by default). If word frequency ordering is disabled, word order within levels
     is as retrieved - effectively random."""
 
-
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         filenames_with_level = sorted(((fname, int(fname.split('.')[0].split('_')[-1:][0])) for fname in glob('svl_*')),
                                       key=lambda x: x[1])
