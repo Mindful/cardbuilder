@@ -1,6 +1,9 @@
 
 # cardbuilder
-<p align="left">
+A command line tool and Python library for creating language learning flashcards in a wide variety of languages.
+
+<hr/>
+<p align="center">
     <a href="https://pypi.org/project/cardbuilder/">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/cardbuilder">
     </a>
@@ -10,8 +13,21 @@
     <br/>
 </p>
 
-`cardbuilder` helps streamline the process of programmatically generating language learning flashcards. We currently support the following language pairs, but we're adding more all the time.
+## Quick Start
 
+Cardbuilder can output flashcards in several different formats, but the quick start will focus on [Anki](https://apps.ankiweb.net/).
+
+```
+pip install cardbuilder
+printf "暗記\nカード\n作る" > words.txt
+cardbuilder ja_to_en --input words.txt --output cards
+```
+
+That's it - cards built! Just import `cards.apkg` into Anki and you're good to go. 
+
+
+
+## Supported Languages 
 
 | Learning Language | From Language | 
 |----------|:-------------:|
@@ -20,16 +36,6 @@
 | English | Japanese
 
 
-## Installation
-
-The easiest way to install is via pip:
-```
-pip install cardbuilder
-```
-
-The current package requirements are (likely unnecessarily) quite specific, so it will likely be easiest to do the install in a fresh environment of some kind, such as a new conda environment. 
-
-Cloning the source from github and pip installing the `requirements.txt` file should also work fine, though.
 
 ## Usage
 

@@ -92,9 +92,7 @@ def main():
                                                      in accents_val.get_data()}[reading_katakana])
             })
             return data_by_source
-        except KeyError:
-            return data_by_source
-        except IndexError:
+        except (KeyError, IndexError, LookupError):
             return data_by_source
 
     resolver = instantiable_resolvers[args.output_format](fields, disambiguate_pitch_accent)
