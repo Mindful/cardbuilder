@@ -37,6 +37,7 @@ class ScrapingMerriamWebster(WebApiDataSource):
         html = requests.get(url, headers={'Accept-Encoding': 'identity'}).content
         return str(html)
 
+    #TODO: throw lookup exception if we can't find anything/content is empty (right now we just return empty data?)
     def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
         parsed = BeautifulSoup(content, 'html.parser')
 
@@ -190,9 +191,6 @@ class LearnerDictionary(WebApiDataSource):
                     pronunciation_entry['sound']['audio']))
 
         return ipa_list, pronunciation_url_list
-
-
-
 
     def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
         raw_json = loads(content)

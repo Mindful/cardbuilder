@@ -1,5 +1,5 @@
-from cardbuilder.lookup.en_to_en.merriam_webster import MerriamWebster, CollegiateThesaurus, LearnerDictionary
-from cardbuilder.lookup.en_to_en.word_freq import WordFrequency
+from cardbuilder.lookup.en.merriam_webster import MerriamWebster, CollegiateThesaurus, LearnerDictionary
+from cardbuilder.lookup.en.word_freq import WordFrequency
 from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
 from cardbuilder.lookup.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.lookup.en_to_ja.gene_dict import GeneDict

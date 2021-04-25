@@ -12,7 +12,7 @@ from cardbuilder.common.util import log, InDataDir, loading_bar, DATABASE_NAME
 from cardbuilder.input.word import WordForm, Word
 from cardbuilder.input.word_list import WordList
 from cardbuilder.lookup.data_source import ExternalDataDataSource
-from cardbuilder.lookup.en_to_en import WordFrequency
+from cardbuilder.lookup.en import WordFrequency
 from cardbuilder.lookup.lookup_data import outputs, LookupData
 from cardbuilder.lookup.value import SingleValue
 

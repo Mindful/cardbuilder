@@ -6,6 +6,7 @@ from io import BytesIO
 from itertools import takewhile, repeat, zip_longest
 from pathlib import Path
 from typing import Iterable, Optional, Any, List, Callable
+import platform
 
 import requests
 import spacy
@@ -63,9 +64,21 @@ class Shared:
 
 
 class InDataDir:
-    directory = Path(__file__).parent.parent.absolute() / 'data'
+
+    os_platform = platform.system()
+    if os_platform == 'Darwin':  # mac, https://stackoverflow.com/a/5084892/4243650
+        directory = Path.home() / 'Library'
+    elif os_platform == 'Windows':
+        #TODO: default to somewhere? where?
+        directory = Path(os.getenv('LOCALAPPDATA'))
+    else:  # we assume a linux distro of some kind
+        # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+        directory = Path(os.getenv('XDG_DATA_HOME', Path.home() / '.local' / 'share'))
+
+    directory = directory.absolute() / 'cardbuilder'
+
     if not directory.exists():
-        directory.mkdir()
+        directory.mkdir(parents=True)
 
     def __init__(self):
         self.prev_dir = None
@@ -136,8 +149,6 @@ def download_to_file_with_loading_bar(url: str, filename: str):
             progress_bar.update(len(data))
             file.write(data)
     progress_bar.close()
-    if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-        raise CardBuilderException('Failed to download file {} from URL {}'.format(filename, url))
 
 
 def download_to_stream_with_loading_bar(url: str) -> BytesIO:
@@ -150,8 +161,6 @@ def download_to_stream_with_loading_bar(url: str) -> BytesIO:
         progress_bar.update(len(data))
         stream.write(data)
     progress_bar.close()
-    if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-        raise CardBuilderException('Failed to download file from URL {}'.format(url))
 
     stream.seek(0)
     return stream

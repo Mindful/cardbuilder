@@ -5,7 +5,7 @@ from cardbuilder.common.languages import HEBREW, ENGLISH
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
-from cardbuilder.lookup.en_to_en import WordFrequency
+from cardbuilder.lookup.en import WordFrequency
 from tests.lookup.data_source_test import DataSourceTest
 
 

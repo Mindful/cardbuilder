@@ -1,7 +1,7 @@
 from cardbuilder.common.languages import ENGLISH
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
-from cardbuilder.lookup.en_to_en import MerriamWebster
+from cardbuilder.lookup.en import MerriamWebster
 from tests.lookup.data_source_test import DataSourceTest
 
 

@@ -2,8 +2,8 @@ from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import trim_whitespace, log
 from cardbuilder.exceptions import CardBuilderUsageException
-from cardbuilder.lookup.en_to_en import MerriamWebster, WordFrequency
-from cardbuilder.lookup.en_to_en.merriam_webster import ScrapingMerriamWebster
+from cardbuilder.lookup.en import MerriamWebster, WordFrequency
+from cardbuilder.lookup.en.merriam_webster import ScrapingMerriamWebster
 from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
 from cardbuilder.lookup.en_to_ja.ejdict_hand import EJDictHand
 from cardbuilder.lookup.tatoeba import TatoebaExampleSentences
