@@ -10,7 +10,7 @@ eval "$(conda shell.bash hook)"
 conda activate demo
 
 # final prep
-byzanz-record --duration=10 --x=2200 --y=90 --width=1424 --height=800 --delay=1 recorded_demo.gif &
+byzanz-record --duration=30 --x=2200 --y=90 --width=1424 --height=800 --delay=1 recorded_demo.gif &
 cd demo_scrapbox
 clear
 
@@ -18,12 +18,11 @@ clear
 pe "pip install cardbuilder"
 pe "printf \"暗記\nカード\n作る\" > words.txt"
 pe "cardbuilder ja_to_en --input words.txt --output cards"
+PROMPT_TIMEOUT=5
 wait
 
 # teardown
 cd ..
 rm -r demo_scrapbox
-source deactivate
-conda env remove --name demo
 
 
