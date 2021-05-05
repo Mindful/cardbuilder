@@ -309,7 +309,7 @@ class MerriamWebster(AggregatingDataSource):
                     log(self, '{} looks like API key - using it'.format(key))
                     api_key = key
                 else:
-                    with open(key) as f:
+                    with open(key, encoding='utf-8') as f:
                         api_key = f.readlines()[0]
                     log(self, 'read API key {} from file {} - using it'.format(api_key, key))
                 Config.set(key_name, api_key)

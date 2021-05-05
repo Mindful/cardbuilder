@@ -29,7 +29,7 @@ class SvlWords(WordList, ExternalDataDataSource):
         filenames_with_level = sorted(((fname, int(fname.split('.')[0].split('_')[-1:][0])) for fname in glob('svl_*')),
                                       key=lambda x: x[1])
         for name, level in filenames_with_level:
-            with open(name, 'r') as f:
+            with open(name, 'r', encoding='utf-8') as f:
                 words = [x.strip() for x in f.readlines()]
 
                 for word in words:
@@ -57,7 +57,7 @@ class SvlWords(WordList, ExternalDataDataSource):
                     if containing_element.text is not None:
                         entries.add(containing_element.text.strip())
                     assert (len(entries) == 1000)
-                    with open(filename, 'w+') as f:
+                    with open(filename, 'w+', encoding='utf-8') as f:
                         f.writelines(x + '\n' for x in entries)
 
     def __init__(self, order_by_wordfreq: bool = True, additional_forms: Optional[List[WordForm]] = None):

@@ -22,7 +22,7 @@ class ESPDIC(ExternalDataDataSource):
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         definitions = defaultdict(list)
-        for line in open(self.filename):
+        for line in open(self.filename, encoding='utf-8'):
             content = line.strip()
             if not content or '#' in content[:2]:
                 continue

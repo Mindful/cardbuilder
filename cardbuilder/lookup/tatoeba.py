@@ -93,7 +93,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
         with InDataDir():
             line_count = fast_linecount(self.links_file)
             log(self, 'Reading Tatoeba link data into database')
-            with open(self.links_file, 'r') as f:
+            with open(self.links_file, 'r', encoding='utf-8') as f:
                 reader = csv.reader(f, delimiter='\t')
                 for source_id, target_id in loading_bar(reader, 'reading links.csv', line_count):
                     yield int(source_id), int(target_id)
@@ -101,7 +101,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
     def _read_language_sents(self, lang) -> Iterable[Tuple[int, str]]:
         filename = self.sentences_filename_template.format(lang)
         line_count = fast_linecount(filename)
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
             reader = csv.reader(f, delimiter='\t')
             for ident, _, sentence in loading_bar(reader, 'reading {}'.format(filename), line_count):
                 yield int(ident), sentence

@@ -41,7 +41,7 @@ class WordFrequency(ExternalDataDataSource):
         frequency = {}
         with InDataDir():
             line_count = fast_linecount(self.filename)
-            with open(self.filename, 'r') as f:
+            with open(self.filename, 'r', encoding='utf-8') as f:
                 reader = csv.reader(f, delimiter='\t')
                 for word, freq in loading_bar(reader, 'reading {}'.format(self.filename), line_count):
                     frequency[word] = int(freq)

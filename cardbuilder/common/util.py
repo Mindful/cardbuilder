@@ -59,6 +59,7 @@ class Shared:
                 # this used to require explicit linking as per https://github.com/explosion/spaCy/issues/3435
                 # it seems it doesn't anymore though, and just the download function is fine
                 spacy_download(model_name)
+                cls.spacy_models[language] = spacy.load(model_name, exclude=['parser', 'senter', 'ner'])
 
         return cls.spacy_models[language]
 

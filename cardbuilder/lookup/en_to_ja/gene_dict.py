@@ -34,7 +34,7 @@ class GeneDict(ExternalDataDataSource):
 
         found_first_valid_line = False
         reading_word = True
-        for line in open(self.filename):
+        for line in open(self.filename, encoding='utf-8'):
             if not found_first_valid_line:
                 if line[0] == self.expected_first_element:
                     found_first_valid_line = True
@@ -73,7 +73,7 @@ class GeneDict(ExternalDataDataSource):
             stream = download_to_stream_with_loading_bar(self.url)
             tar = tarfile.open(fileobj=stream, mode='r:gz')
             gene_data = tar.extractfile('gene.txt').read().decode('shift_jisx0213')
-            with open(self.filename, 'w+') as f:
+            with open(self.filename, 'w+', encoding='utf-8') as f:
                 f.write(gene_data)
 
 

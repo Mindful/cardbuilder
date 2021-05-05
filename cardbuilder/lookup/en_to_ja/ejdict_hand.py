@@ -39,7 +39,7 @@ class EJDictHand(ExternalDataDataSource):
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         definition_map = defaultdict(list)
-        with open(self.filename, 'r') as f:
+        with open(self.filename, 'r', encoding='utf-8') as f:
             reader = csv.reader(f, delimiter='\t')
             for word_entry, definition in reader:
                 for word in word_entry.split(','):
