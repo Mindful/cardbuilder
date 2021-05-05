@@ -129,8 +129,11 @@ def main():
         max_length=1,
     )
 
-    jp_def_printer = MultiListValuePrinter(list_printer=ListValuePrinter(number_format_string='{number} .',
+    if isinstance(jp_dictionary, Eijiro):
+        jp_def_printer = MultiListValuePrinter(list_printer=ListValuePrinter(number_format_string='{number} .',
                                                                          join_string='\n'))
+    else:
+        jp_def_printer = ListValuePrinter()
 
     # max_length=1 combined with print_lone_header=False effectively prints only the content of the first list
     related_words_printer = MultiListValuePrinter(list_printer=ListValuePrinter(sort_key=word_freq_sort_key),
@@ -146,13 +149,15 @@ def main():
 
     fields = [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
-        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', printer=related_words_printer),
         Field(mw, Fieldname.AUDIO, '音声', printer=audio_printer),
         Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer, required=True),
         Field(mw, Fieldname.SYNONYMS, '類義語', printer=related_words_printer),
         Field(mw, Fieldname.ANTONYMS, '対義語', printer=related_words_printer),
         Field(tatoeba, Fieldname.EXAMPLE_SENTENCES, '例文', printer=tatoeba_printer)
     ]
+
+    if isinstance(jp_dictionary, Eijiro):
+        fields.insert(1, Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', printer=related_words_printer))
 
     if isinstance(mw, MerriamWebster):
         fields.insert(1, Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号', printer=FirstValuePrinter()))
