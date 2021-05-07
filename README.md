@@ -1,5 +1,5 @@
 
-# cardbuilder
+# Cardbuilder
 A command line tool and Python library for creating language learning flashcards in a wide variety of languages.
 
 <hr/>
@@ -23,8 +23,7 @@ printf "暗記\nカード\n作る" > words.txt
 cardbuilder ja_to_en --input words.txt --output cards
 ```
 
-That's it - cards built! Just import `cards.apkg` into Anki and you're good to go. 
-
+That's it - cards built! Just import `cards.apkg` into Anki and you're good to go. Note that the first time you run Cardbuilder it will download data which may take some time, but this only has to be done once.
 
 
 ## Supported Languages 
@@ -34,79 +33,6 @@ That's it - cards built! Just import `cards.apkg` into Anki and you're good to g
 | Japanese |  English 
 | Esperanto | English   
 | English | Japanese
-
-
-
-## Usage
-
-Broadly, flashcards are constructed by declaring a source of data,  the list of input words you want to generate flashcards for, and a set of fields which correspond to data that will be populated in each flaschard.
-
-An extremely simple example that looks up Japanese words from [Jisho](jisho.org) and returns English definitions looks like this: 
-
-```
-from cardbuilder.card_resolvers import Field, CsvResolver
-from cardbuilder.common.fieldnames import WORD, DEFINITIONS, DETAILED_READING
-from cardbuilder.data_sources.ja_to_en import Jisho
-from cardbuilder.word_lists import InputList
-
-dictionary = Jisho()
-words = InputList(input_file_name)
-
-fields = [
-    Field(dictionary, WORD, 'word'),
-    Field(dictionary, DEFINITIONS, 'definitions'),
-    Field(dictionary, DETAILED_READING, 'readding'),
-]
-
-resolver = CsvResolver(fields)
-failed_resolutions = resolver.resolve_to_file(words, output_filename)
-```
-
-Each component is explained in its own section below, but there are also more in-depth [examples](https://github.com/Mindful/cardbuilder/tree/main/cardbuilder/examples) available to showcase what a finished script looks like. 
-
-## Word Lists
-
-Word lists are an abstraction representing the list of input words - the words that you want to retrieve information for and turn into flashcards. To use one in a script, simply initialize it and pass it in as the first argument of your card resolver's `resolve_to_file` method.
-
-There are prebuilt lists of words available in packages like `cardbuilder.word_lists.en`, but for reading custom input you want the [InputList](https://github.com/Mindful/cardbuilder/blob/main/cardbuilder/word_lists/input_list.py). This simply takes the name of an input file, formatted with one word per line like in the example below.
-
-```
-impertinent
-superflous
-catastrophe
-...
-```
-
-## Data Sources
-Data sources represent - as their name suggests - sources of data such as dictionaries or other types of databases containing linguistic information. In order to use a data source in a card producing script, simply
-initialize it and pass it in as the first argument of a `Field` object. Many data sources will need to download data and/or build database tables the first time they are constructed, but this happens automatically. Most can be constructed with no arguments at all, although some require specific information - for example, the [MerriamWebster](https://github.com/Mindful/cardbuilder/blob/main/cardbuilder/data_sources/en_to_en/merriam_webster.py) data source requires API keys.
-
-```
-from cardbuilder.data_sources.en_to_en import MerriamWebster
-
-mw = MerriamWebster("leaner's dict api key", "thesaurus api key")
-```
-
-Data sources are organized in packages named after the language they
-expect input in and the language they produce output in, like 
-`cardbuilder.data_sources.inputlang_to_outputlang`.
-
- 
-## Card Resolvers
-
-Card resolvers are responsible for actually producing flaschards. They are initialized with a list of `Field` objects, which include information about what output fields to populate and which data source to use. Actually generating cards is as easy as calling `resolver.resolve_to_file(words, output_filename)`, although some resolvers benefit from having extra information set. For example, the Anki resolver [AkpgResolver](https://github.com/Mindful/cardbuilder/blob/main/cardbuilder/card_resolvers/anki.py) includes methods that allow you to control the format and styling of cards in the generated Anki deck. 
-
-```
-resolver.set_card_templates([
-            {
-                'name': "<card name">,
-                'qfmt': "<card front>",
-                'afmt': "<card back>",
-            }
-        ], css="<card CSS>")
-```
-
-
 
 
 ## FAQ
@@ -125,4 +51,4 @@ Not yet, but we're planning to add a command-line interface to handle simple use
 
 ### Is this like [genanki](https://github.com/kerrickstaley/genanki)?
 
-No, `genanki` is a great library and `cardbuilder` depends on it to output Anki decks, but the two packages serve different purposes. `genanki` is specifically for taking data and transforming it into the format that Anki uses, while `cardbuilder` attempts to simplify the process of going from a list of words to a set of complete flashcards with all the required information. 
+No, `genanki` is a great library and Cardbuilder depends on it to output Anki decks, but the two packages serve different purposes. `genanki` is specifically for taking data and transforming it into the format that Anki uses, while Cardbuilder attempts to simplify the process of going from a list of words to a set of complete flashcards with all the required information. 

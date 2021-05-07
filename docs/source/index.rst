@@ -13,6 +13,8 @@ Welcome to Cardbuilder's documentation!
    input/input
    contributing/contributing
    lookup/lookup
+   common/common
+   resolution/resolution
 
 
 Prebuilt Scripts

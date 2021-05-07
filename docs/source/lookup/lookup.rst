@@ -3,12 +3,16 @@
 Lookup
 =============
 
+.. toctree::
+   :maxdepth: 4
+
+   ja_to_en
 
 
 
 .. _data_source:
 
-DataSource
+Data Sources
 -----------------------
 
 .. autoclass:: lookup.data_source.DataSource
@@ -17,17 +21,11 @@ DataSource
 
 .. _web_api_data_source:
 
-WebApiDataSource
------------------------
-
 .. autoclass:: lookup.data_source.WebApiDataSource
    :members:
    :show-inheritance:
 
 .. _external_data_data_source:
-
-ExternalDataDataSource
------------------------
 
 .. autoclass:: lookup.data_source.ExternalDataDataSource
    :members:
@@ -35,9 +33,25 @@ ExternalDataDataSource
 
 .. _aggregating_data_source:
 
-AggregatingDataSource
------------------------
-
 .. autoclass:: lookup.data_source.AggregatingDataSource
    :members:
    :show-inheritance:
+
+
+.. _lookup_data:
+
+LookupData
+-----------
+
+.. autoclass:: lookup.lookup_data.LookupData
+   :members:
+
+.. _value:
+
+Value
+-------
+
+.. autoclass:: lookup.value.Value
+   :members:
+
+

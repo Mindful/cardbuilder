@@ -6,20 +6,17 @@ Input
 .. toctree::
    :maxdepth: 4
 
-   input.en
+   en
 
 
 .. _word_list:
 
-WordList
+Word Lists
 -----------------------
 
 .. autoclass:: input.word_list.WordList
    :members:
    :show-inheritance:
-
-InputList
-------------------------
 
 .. autoclass:: input.input_list.InputList
    :members:
