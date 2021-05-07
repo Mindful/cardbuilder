@@ -110,13 +110,18 @@ def main():
     if args.eijiro_location is not None:
         log(None, 'Using Eijiro as dictionary from {}'.format(args.eijiro_location))
         jp_dictionary = Eijiro(args.eijiro_location)
+        jp_def_printer = MultiListValuePrinter(list_printer=ListValuePrinter(number_format_string='{number} .',
+                                                                             join_string='\n'))
     else:
         try:
             jp_dictionary = Eijiro()
             log(None, 'Using previously loaded Eijiro content as dictionary')
+            jp_def_printer = MultiListValuePrinter(list_printer=ListValuePrinter(number_format_string='{number} .',
+                                                                                 join_string='\n'))
         except FileNotFoundError:
-            log(None, 'Eijiro location not provided and no previously loaded content found: falling back to EJDictHand')
             jp_dictionary = EJDictHand()
+            log(None, 'Eijiro location not provided and no previously loaded content found: falling back to EJDictHand')
+            jp_def_printer = ListValuePrinter(number_format_string='{number} .', join_string='\n')
 
     tatoeba = TatoebaExampleSentences(ENGLISH, JAPANESE)
     wf = WordFrequency()
@@ -128,12 +133,6 @@ def main():
         list_printer=ListValuePrinter(max_length=2, number_format_string='{number}. ', join_string='\n'),
         max_length=1,
     )
-
-    if isinstance(jp_dictionary, Eijiro):
-        jp_def_printer = MultiListValuePrinter(list_printer=ListValuePrinter(number_format_string='{number} .',
-                                                                         join_string='\n'))
-    else:
-        jp_def_printer = ListValuePrinter()
 
     # max_length=1 combined with print_lone_header=False effectively prints only the content of the first list
     related_words_printer = MultiListValuePrinter(list_printer=ListValuePrinter(sort_key=word_freq_sort_key),
@@ -147,22 +146,20 @@ def main():
         audio_directory = args.output+'_audio'
         audio_printer = DownloadPrinter(audio_directory)
 
-    fields = [
+    fields = [f for f in [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
+        Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号',
+              printer=FirstValuePrinter()) if isinstance(mw, MerriamWebster) else None,
+        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形',
+              printer=related_words_printer) if isinstance(jp_dictionary, Eijiro) else None,
         Field(mw, Fieldname.AUDIO, '音声', printer=audio_printer),
+        Field(mw, Fieldname.DEFINITIONS, '英語での定義',
+              printer=eng_def_printer) if isinstance(mw, MerriamWebster) else None,
         Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer, required=True),
         Field(mw, Fieldname.SYNONYMS, '類義語', printer=related_words_printer),
         Field(mw, Fieldname.ANTONYMS, '対義語', printer=related_words_printer),
         Field(tatoeba, Fieldname.EXAMPLE_SENTENCES, '例文', printer=tatoeba_printer)
-    ]
-
-    if isinstance(jp_dictionary, Eijiro):
-        fields.insert(1, Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形', printer=related_words_printer))
-
-    if isinstance(mw, MerriamWebster):
-        fields.insert(1, Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号', printer=FirstValuePrinter()))
-        fields.insert(4, Field(mw, Fieldname.DEFINITIONS, '英語での定義', printer=eng_def_printer),
-)
+    ] if f is not None]
 
     resolver = instantiable_resolvers[args.output_format](fields)
     if args.output_format == 'anki':

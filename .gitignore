@@ -14,3 +14,4 @@ build/*
 *.txt
 .coverage
 recorded_demo.gif
+docs/build/*
