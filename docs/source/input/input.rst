@@ -25,6 +25,8 @@ InputList
    :members:
    :show-inheritance:
 
+.. _word:
+
 Word
 -----------------
 

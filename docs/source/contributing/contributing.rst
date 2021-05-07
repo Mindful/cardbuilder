@@ -15,12 +15,6 @@ Broadly, there are four main ways to contribute:
 If you are not fixing an existing issue it is generally safest to open an issue to discuss the contribution you would like to make before actually submitting a pull request, but this is not strictly required. If you're not sure what to work on, look for existing issues tagged `good first issue <https://github.com/issues?q=is%3Aopen+is%3Aissue+author%3AMindful+archived%3Afalse+label%3A%22good+first+issue%22>`_.
 
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Implementation Guides:
-
-   contrib_data_source
-
 Submitting Issues
 -----------------
 
@@ -49,6 +43,13 @@ Adding Word Lists
 
 
 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Implementation Guides:
+
+   contrib_data_source
+   contrib_word_list
 
 
 
