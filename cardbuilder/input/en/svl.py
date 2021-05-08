@@ -35,7 +35,7 @@ class SvlWords(WordList, ExternalDataDataSource):
                 for word in words:
                     yield word, level
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         return self.lookup_data_type(word, form, str(content), {
             Fieldname.SUPPLEMENTAL: SingleValue(str(content))
         })

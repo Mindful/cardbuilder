@@ -17,11 +17,11 @@ class DataSource(ABC):
     content_type = 'TEXT'
 
     @abstractmethod
-    def lookup_word(self, word: Word, form: str) -> LookupData:
+    def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
         raise NotImplementedError()
 
     @abstractmethod
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         raise NotImplementedError()
 
     def __init__(self):
@@ -58,7 +58,7 @@ class AggregatingDataSource(DataSource, ABC):
     def get_table_rowcount(self, table_name: str = None):
         raise NotImplementedError()
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         raise NotImplementedError()
 
 
@@ -74,6 +74,12 @@ class WebApiDataSource(DataSource, ABC):
         return 0
 
     def __init__(self, enable_cache_retrieval=True):
+        """
+
+        Args:
+            enable_cache_retrieval: whether or not this data source should attempt to retrieve lookup data from its
+            SQLite cache.
+        """
         super().__init__()
         version_key = type(self).__name__+'_api_version'
 
@@ -98,18 +104,18 @@ class WebApiDataSource(DataSource, ABC):
     def set_cache_retrieval(self, value: bool):
         self.enable_cache_retrieval = value
 
-    def lookup_word(self, word: Word, form: str) -> LookupData:
+    def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
         cached_content = None
         if self.enable_cache_retrieval:
             cached_content = self._query_cached_api_results(form)
 
         if cached_content is not None:
-            return self.parse_word_content(word, form, cached_content)
+            return self.parse_word_content(word, form, cached_content, following_link=following_link)
         else:
             content = self._query_api(form)
 
             # parse it first so we don't save it if we can't parse it
-            parsed_content = self.parse_word_content(word, form, content)
+            parsed_content = self.parse_word_content(word, form, content, following_link=following_link)
             compressed_content = zlib.compress(content.encode('utf-8'))
 
             # update cache
@@ -139,13 +145,13 @@ class ExternalDataDataSource(DataSource, ABC):
             retry_with_logging(self._fetch_remote_files_if_necessary, tries=2, delay=1)
         self._load_data_into_database()
 
-    def lookup_word(self, word: Word, form: str) -> LookupData:
+    def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
         cursor = self.conn.execute('SELECT content FROM {} WHERE word=?'.format(self.default_table), (form,))
         result = cursor.fetchone()
         if result is None:
             raise WordLookupException('form "{}" not found in data source table for {}'.format(form,
                                                                                                type(self).__name__))
-        return self.parse_word_content(word, form, result[0])
+        return self.parse_word_content(word, form, result[0], following_link=following_link)
 
     def _fetch_remote_files_if_necessary(self):
         if not hasattr(self, 'filename') or not hasattr(self, 'url'):

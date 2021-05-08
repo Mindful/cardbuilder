@@ -48,17 +48,17 @@ class EJDictHand(ExternalDataDataSource):
 
         return ((word, self.definition_delim.join(defs)) for word, defs in definition_map.items())
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         content_items = content.split(self.definition_delim)
         definitions = [c for c in content_items if not c.startswith(self.link_symbol)]
         links = [c[1:] for c in content_items if c.startswith(self.link_symbol)]
         if len(definitions) == 0:
-            if len(links) > 0:
+            if len(links) > 0 and not following_link:
                 first_link = links[0]
                 remaining_links = links[1:]
-                output = self.lookup_word(word, first_link)
+                output = self.lookup_word(word, first_link, following_link=True)
                 if len(remaining_links) > 0:
-                    output[Fieldname.LINKS] = LinksValue([self.lookup_word(word, linked_word)
+                    output[Fieldname.LINKS] = LinksValue([self.lookup_word(word, linked_word, following_link=True)
                                                           for linked_word in remaining_links])
             else:
                 raise WordLookupException('Empty entry found for word {} in EJDictHand'.format(form))
@@ -66,8 +66,8 @@ class EJDictHand(ExternalDataDataSource):
             output = self.lookup_data_type(word, form, content, {
                 Fieldname.DEFINITIONS: ListValue(definitions),
             })
-            if len(links) > 0:
-                output[Fieldname.LINKS] = LinksValue([self.lookup_word(word, linked_word)
+            if len(links) > 0 and not following_link:
+                output[Fieldname.LINKS] = LinksValue([self.lookup_word(word, linked_word, following_link=True)
                                                       for linked_word in links])
 
         return output

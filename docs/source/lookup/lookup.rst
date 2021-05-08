@@ -48,10 +48,36 @@ LookupData
 
 .. _value:
 
-Value
+Values
 -------
 
 .. autoclass:: lookup.value.Value
    :members:
+
+.. autoclass:: lookup.value.SingleValue
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: lookup.value.MultiValue
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: lookup.value.ListValue
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: lookup.value.MultiListValue
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: lookup.value.LinksValue
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 

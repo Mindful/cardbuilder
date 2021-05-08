@@ -67,10 +67,10 @@ class Jisho(WebApiDataSource):
         json = requests.get(url).json()['data']
         return dumps(json)
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         json = loads(content)
         match = next((data for data in json if data['slug'] == form or
-                      any('word' in x and x['word'] in word.get_form_set() for x in data['japanese'])), None)
+                      any('word' in x and x['word'] in word for x in data['japanese'])), None)
 
         if match is None and WordForm.PHONETICALLY_EQUIVALENT in word.additional_forms:
             input_form_reading = self._to_katakana_reading(word.input_form)

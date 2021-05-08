@@ -10,35 +10,16 @@ Welcome to Cardbuilder's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   input/input
-   contributing/contributing
-   lookup/lookup
+   scripts/scripts
    common/common
+   input/input
+   lookup/lookup
    resolution/resolution
+   contributing/contributing
 
 
-Prebuilt Scripts
+
+
+
+:ref:`genindex`
 ----------------
-
-
-
-Input
------------------
-:ref:`input`
-
-
-Lookup
-------------------
-
-Resolution
----------------
-
-Contributing
-------------
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`

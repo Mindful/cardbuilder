@@ -21,8 +21,7 @@ class TestEJDictHand(DataSourceTest):
 
         # 'em has only linked content, so it should be its linked content (which has linked content, in this case)
         em_results = data_source.lookup_word(Word("'em", ENGLISH), "'em")
-        assert len(em_results[Fieldname.DEFINITIONS].get_data()) != \
-               len(em_results[Fieldname.LINKS].get_data()[0][Fieldname.DEFINITIONS].get_data())
+        assert '彼ら' in em_results[Fieldname.DEFINITIONS].get_data()[0].get_data()
 
         # has a link and other content, so they should be different
         academic_results = data_source.lookup_word(Word("academician", ENGLISH), "academician")

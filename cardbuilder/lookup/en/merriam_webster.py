@@ -38,7 +38,7 @@ class ScrapingMerriamWebster(WebApiDataSource):
         return str(html)
 
     #TODO: throw lookup exception if we can't find anything/content is empty (right now we just return empty data?)
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         parsed = BeautifulSoup(content, 'html.parser')
 
         rows = parsed.find_all('div', {'class': 'row'})
@@ -128,7 +128,7 @@ class CollegiateThesaurus(WebApiDataSource):
         )
         return requests.get(url).text
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         raw_json = loads(content)
 
         # thesaurus sometimes returns invalid data, such as for "percent", which returns a list like
@@ -192,7 +192,7 @@ class LearnerDictionary(WebApiDataSource):
 
         return ipa_list, pronunciation_url_list
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         raw_json = loads(content)
 
         # MW occasionally just returns a list of words, not actual data...
@@ -327,7 +327,7 @@ class MerriamWebster(AggregatingDataSource):
     def __del__(self):
         pass  # no need to close any database connections like DataSource does
 
-    def lookup_word(self, word: Word, form: str) -> LookupData:
+    def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
         dictionary_data = self.learners_dict.lookup_word(word, form)
 
         output = dictionary_data.get_data()

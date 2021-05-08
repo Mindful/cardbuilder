@@ -62,7 +62,7 @@ class GeneDict(ExternalDataDataSource):
                 data[Fieldname.EXAMPLE_SENTENCES] = examples[word]
             yield word, dumps({key.name: val for key, val in data.items()})
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         return self.lookup_data_type(word, form, content, {
             Fieldname[key]: SingleValue(val) for key, val in loads(content).items()
         })

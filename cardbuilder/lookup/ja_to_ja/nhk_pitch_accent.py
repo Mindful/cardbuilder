@@ -24,7 +24,7 @@ class NhkPitchAccent(ExternalDataDataSource):
                                     .nopron {color: royalblue;}
                                     .nasal{color: red;}''')
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         reading_to_accent_map = loads(content)
         return self.lookup_data_type(word, form, content, {
             Fieldname.PITCH_ACCENT: MultiValue([(accent, reading) for reading, accent

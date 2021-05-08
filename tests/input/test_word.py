@@ -19,12 +19,12 @@ class TestWord:
         assert(next(word_iter) == 'running')
 
         # verifying set works
-        assert(word.get_form_set() == {'Running', 'run', 'running'})
-        assert(word.get_form_set() == word2.get_form_set())
+        assert(set(word) == {'Running', 'run', 'running'})
+        assert(set(word) == set(word2))
 
         # verifying empty is fine too
         word3 = Word('dog', ENGLISH)
-        assert(word3.get_form_set() == {'dog'})
+        assert(set(word3) == {'dog'})
 
     def test_forms_ja(self):
         word = Word('走った', JAPANESE, [WordForm.PHONETICALLY_EQUIVALENT, WordForm.LEMMA])

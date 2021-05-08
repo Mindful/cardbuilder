@@ -38,7 +38,7 @@ class ESPDIC(ExternalDataDataSource):
 
         return ((word, self.definition_delimiter.join(defs)) for word, defs in definitions.items())
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         return self.lookup_data_type(word, form, content, {
             Fieldname.DEFINITIONS: ListValue(content.split(self.definition_delimiter)),
             Fieldname.PART_OF_SPEECH: SingleValue(self._infer_pos(form))

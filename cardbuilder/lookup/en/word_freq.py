@@ -28,7 +28,7 @@ class WordFrequency(ExternalDataDataSource):
         c = self.conn.execute('''SELECT * FROM {}'''.format(self.default_table))
         self.frequency = dict(c.fetchall())
 
-    def lookup_word(self, word: Word, form: str) -> LookupData:
+    def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
         if form not in self.frequency:
             raise WordLookupException('No frequency information for {}'.format(form))
 
@@ -48,7 +48,7 @@ class WordFrequency(ExternalDataDataSource):
 
         return frequency.items()
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         pass
 
     def __getitem__(self, word: str) -> int:

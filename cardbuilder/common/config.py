@@ -44,6 +44,13 @@ class Config:
         cls._update()
 
     @classmethod
+    def has(cls, key: str):
+        if cls._cache is None:
+            cls.get_conf()
+
+        return key in cls._cache
+
+    @classmethod
     def clear(cls):
         log(None, 'Purging config')
         cls.conn.execute('''DELETE FROM config''')

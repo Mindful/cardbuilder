@@ -31,7 +31,7 @@ class ScrapingOjad(WebApiDataSource):
         html = requests.get(url).content
         return str(html)
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         parsed = BeautifulSoup(content, 'html.parser')
         word_table = parsed.find('tbody', attrs={'class': 'ui-sortable'})
 

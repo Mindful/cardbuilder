@@ -55,6 +55,21 @@ eng_card_back = trim_whitespace('''
 
 @command('ja_to_en')
 def main():
+    """
+    The Cardbuilder command for generating English flashcards for Japanese words.
+
+    Supports the following arguments:
+
+    --input     The input list of words to generate cards from; can be a text file or the name of a WordList.
+    --output    (Optional) the name (with no file extension) of the desired output file.
+    --output_format     (Optional) The type of data to output, such as CSV file or Anki. Defaults to Anki.
+    --start     (Optional) an integer specifying the beginning of the range of input words to generate cards for.
+    --stop      (Optional) an integer specifying the end of the range of input words to generate cards for.
+
+    This command relies on jisho.org to fetch definitions, and consequently requires internet.
+
+    Used like ``cardbuilder ja_to_en --input words.txt --output cards``.
+    """
     parser = build_parser_with_common_args()
     args, input_words = get_args_and_input_from_parser(parser, JAPANESE)
 

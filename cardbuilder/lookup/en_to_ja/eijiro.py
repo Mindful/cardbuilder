@@ -5,6 +5,7 @@ from os.path import abspath
 from string import digits
 from typing import Tuple, Iterable, Optional
 
+from cardbuilder.common.config import Config
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.util import fast_linecount, loading_bar, log
 from cardbuilder.exceptions import CardBuilderException, WordLookupException
@@ -46,6 +47,8 @@ content_sectioning_symbol_map = {
 class Eijiro(ExternalDataDataSource):
     # http://www.eijiro.jp/get-144.htm
     # https://www.eijiro.jp/spec.htm
+
+    eijiro_conf_value = 'eijiro_loaded'
 
     line_head_symbol = '■'
     entry_delimiter = ' : '
@@ -149,7 +152,7 @@ class Eijiro(ExternalDataDataSource):
 
         yield prev_word, prev_content
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         lines = content.split(self.line_data_delimiter)
         line_parses = []
         for line in lines:
@@ -173,13 +176,15 @@ class Eijiro(ExternalDataDataSource):
                 elif section_header is not None and section not in Eijiro.content_sectioning_symbols:
                     key = content_sectioning_symbol_map[section_header]
                     if key == Fieldname.LINKS:
-                        linked_word = section[:section.index('>')]
-                        try:
-                            line_attrs[Fieldname.LINKS].append(self.lookup_word(word, linked_word))
-                        except WordLookupException:
-                            log(self, 'Found link to apparently missing word "{}" in definition of word "{}"'.format(
-                                linked_word, form
-                            ), WARNING)
+                        if not following_link:
+                            linked_word = section[:section.index('>')]
+                            try:
+                                line_attrs[Fieldname.LINKS].append(self.lookup_word(word, linked_word,
+                                                                                    following_link=True))
+                            except WordLookupException:
+                                log(self, 'Found link to apparently missing word "{}" in definition of word "{}"'.format(
+                                    linked_word, form
+                                ), WARNING)
                     else:
                         line_attrs[key].append(section.strip('、'))
 
@@ -208,7 +213,7 @@ class Eijiro(ExternalDataDataSource):
         if Fieldname.LINKS in output:
             for linked_word_dict in output[Fieldname.LINKS].get_data():
                 for key, value in linked_word_dict.get_data().items():
-                    if (key not in output or not output[key].get_data()) and key in Fieldname.LINK_FRIENDLY_FIELDS:
+                    if (key not in output or not output[key].get_data()) and key in Fieldname.link_friendly_fields():
                         output[key] = value
 
         return self.lookup_data_type(word, form, content, output)
@@ -219,6 +224,7 @@ class Eijiro(ExternalDataDataSource):
     def __init__(self, eijiro_location: Optional[str] = None):
         if eijiro_location is not None:
             self.file_loc = abspath(eijiro_location)
+            Config.set(self.eijiro_conf_value, 'yes')
         else:
             self.file_loc = None
         super().__init__()

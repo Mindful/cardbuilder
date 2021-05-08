@@ -12,6 +12,10 @@ class WordForm(Enum):
 
 
 class Word:
+    """
+    The class representing words we want to build flashcards for. One word can correspond to multiple string forms of
+    the same word, all of which can be used for lookup.
+    """
 
     form_map = {
         WordForm.PHONETICALLY_EQUIVALENT: {
@@ -25,6 +29,13 @@ class Word:
     }
 
     def __init__(self, input_form: str, lang: str, additional_forms: Optional[List[WordForm]] = None):
+        """
+
+        Args:
+            input_form: the original form of the word found in user input or a WordList
+            lang: the language of the word.
+            additional_forms: the types of other forms this word should include.
+        """
         self.input_form = input_form
         self.lang = lang
         if additional_forms is not None:
@@ -32,19 +43,32 @@ class Word:
         else:
             self.additional_forms = []
 
-    def get_form_set(self):
-        return set(self)
-
-    def __iter__(self) -> Iterable:
-        yield self.input_form
+        self._formset = [self.input_form]  # instantiate a list to preserve order, but use it like a set
 
         for form in self.additional_forms:
             if self.lang not in self.form_map[form]:
                 raise CardBuilderUsageException('Unsupported form {} for language {}'.format(form.name, self.lang))
 
-            other_form = self.form_map[form][self.lang](self.input_form)
-            if other_form != self.input_form:
-                yield other_form
+            self._formset.append(self.form_map[form][self.lang](self.input_form))
+
+    def __contains__(self, form: str) -> bool:
+        """
+
+        Args:
+            form: a string representing a concrete word form.
+
+        Returns: whether or not the given form is an applicable form of this word.
+
+        """
+        return form in self._formset
+
+    def __iter__(self) -> Iterable:
+        """
+
+        Yields: a string representing each applicable form of the word.
+
+        """
+        return iter(self._formset)
 
     def __repr__(self):
         return '<Word: {}>'.format(str(self))

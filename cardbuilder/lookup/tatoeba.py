@@ -36,7 +36,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
     sentences_filename_template = '{}_sentences.tsv'
     data_dict = {}
 
-    def lookup_word(self, word: Word, form: str) -> LookupData:
+    def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
         c = self.conn.execute("select sent_id_list from tatoeba_{}_index where word=?;".format(self.source_lang), (form,))
         index_result = c.fetchone()
         if index_result is None:
@@ -177,7 +177,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
         cleaned_sentence = self.punctuation_regex.sub(' ', sentence.lower())
         return cleaned_sentence.split()
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         pass  # don't need this because we override #lookup_word
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:

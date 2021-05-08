@@ -19,4 +19,3 @@ Languages
 .. automodule:: common.languages
    :members:
    :undoc-members:
-   :show-inheritance:

@@ -6,6 +6,7 @@ from cardbuilder.exceptions import CardBuilderUsageException
 
 
 class Value(ABC):
+    """Abstract base class for all values."""
     def __init__(self):
         self._data = None
 
@@ -24,6 +25,7 @@ class Value(ABC):
 
 
 class SingleValue(Value):
+    """Represents a single value, such as a part of speech, IPA for a word, or a word itself."""
 
     input_type = str
 
@@ -40,6 +42,9 @@ class SingleValue(Value):
 
 
 class MultiValue(Value):
+    """Represents multiple values, each optionally paired with a header value. Useful for capturing pairs or mappings
+    of values, such as words where pronunciation is different based on the part of speech. For straightforward lists
+    of values, use ListValue"""
     def __init__(self, list_header_tuples: List[Tuple[SingleValue.input_type, Optional[SingleValue.input_type]]]):
         super(MultiValue, self).__init__()
 
@@ -53,6 +58,9 @@ class MultiValue(Value):
 
 
 class ListValue(Value):
+    """
+    Represents a list of values, such as multiple possible parts of speech or multiple definitions.
+    """
     input_type = List[SingleValue.input_type]
 
     def __init__(self, value_list: input_type):
@@ -65,6 +73,11 @@ class ListValue(Value):
 
 
 class MultiListValue(Value):
+    """
+    Represents multiple lists of values, each optionally paired with a header value. Most commonly used in cases where
+    a word has multiple possible parts of speech, and there is a list of values (such as definitions) associated with
+    each part of speech.
+    """
     def __init__(self, list_header_tuples: List[Tuple[ListValue.input_type, Optional[SingleValue.input_type]]]):
         super(MultiListValue, self).__init__()
 
@@ -78,6 +91,9 @@ class MultiListValue(Value):
 
 
 class LinksValue(Value):
+    """
+    Represents a link in a dictionary to another word. Useful only in very specific cases.
+    """
     def __init__(self, link_data: List['LookupData']):
         self._data = link_data
 

@@ -8,7 +8,7 @@ simpla_vortaro_url = 'http://www.simplavortaro.org'
 
 #TODO: finish this class, then write tests
 class SimplaVortaro(AggregatingDataSource):
-    def lookup_word(self, word: Word, form: str) -> LookupData:
+    def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
         pass
 
     def __init__(self):
@@ -21,7 +21,7 @@ class SimplaVortaroMeta(WebApiDataSource):
         url = simpla_vortaro_url + '/api/v1/trovi/{}'.format(word)
         return requests.get(url).text
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         pass
 
 
@@ -30,5 +30,5 @@ class SimplaVortaroDefinition(WebApiDataSource):
         url = simpla_vortaro_url + '/api/v1/vorto/{}'.format(word)
         return requests.get(url).text
 
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         pass

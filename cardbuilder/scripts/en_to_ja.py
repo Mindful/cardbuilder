@@ -91,6 +91,21 @@ anki_css = trim_whitespace('''
 
 @command('en_to_ja')
 def main():
+    """
+    英単語に対して日本語で暗記カードを生成するCardbuilderのコマンドです。
+
+    使用可能な引数：
+
+    --input     暗記カードを生成する英単語のリスト。テキストファイルでもWordList名でも良い。
+    --output    (任意) 出力するファイル名（拡張子なし）。
+    --output_format     (任意）出力するデータ形式。CSVやAnkiなど色々あるが、デフォルトではAnkiになる。
+    --start     (任意) 入力から処理する最初の単語を定義する整数（5なら5語目以上のみ処理される）
+    --stop      (任意) 入力から処理する最後の単語を定義する整数（5なら5語目以下のみ処理される）
+
+    このコマンドはmerriam-webster.comから英単語に関する情報を読み込むため、実行するにはインターネット接続が必要です。
+
+    使用の実例： ``cardbuilder en_to_ja --eijiro_location eijiro-1448.txt --input eng_cards.txt``
+    """
     parser = build_parser_with_common_args()
     parser.add_argument('--learner_key', help="Location of a text file containing a Merriam-Webster's Learner's"
                                               " Dictionary api key")
