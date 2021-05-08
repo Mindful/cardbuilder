@@ -7,6 +7,9 @@ A command line tool and Python library for creating language learning flashcards
     <a href="https://pypi.org/project/cardbuilder/">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/cardbuilder">
     </a>
+    <a href='https://cardbuilder.readthedocs.io/en/latest/?badge=latest'>
+        <img src='https://readthedocs.org/projects/cardbuilder/badge/?version=latest' alt='Documentation Status' />
+    </a>
     <a href="https://github.com/Mindful/cardbuilder/blob/main/LICENSE.txt">
         <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
     </a>
