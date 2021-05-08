@@ -22,7 +22,7 @@ copyright = '2021, Joshua Tanner'
 author = 'Joshua Tanner'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.23'
+release = '0.0.24'
 
 
 # -- General configuration ---------------------------------------------------

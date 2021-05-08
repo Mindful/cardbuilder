@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="cardbuilder",
-    version="0.0.23",
+    version="0.0.24",
     author="Joshua Tanner",
     author_email="mindful.jt@gmail.com",
     description="A package for programmatically generating language learning flashcards",
