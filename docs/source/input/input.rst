@@ -14,11 +14,11 @@ Input
 Word Lists
 -----------------------
 
-.. autoclass:: input.word_list.WordList
+.. autoclass:: cardbuilder.input.word_list.WordList
    :members:
    :show-inheritance:
 
-.. autoclass:: input.input_list.InputList
+.. autoclass:: cardbuilder.input.input_list.InputList
    :members:
    :show-inheritance:
 
@@ -27,6 +27,6 @@ Word Lists
 Word
 -----------------
 
-.. autoclass:: input.word.Word
+.. autoclass:: cardbuilder.input.word.Word
    :members:
    :show-inheritance:

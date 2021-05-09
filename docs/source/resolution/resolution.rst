@@ -8,22 +8,22 @@ Resolution
 Resolvers
 --------------------------
 
-.. autoclass:: resolution.resolver.Resolver
+.. autoclass:: cardbuilder.resolution.resolver.Resolver
    :members:
    :show-inheritance:
 
-.. autoclass:: resolution.anki.AkpgResolver
+.. autoclass:: cardbuilder.resolution.anki.AkpgResolver
    :members:
    :show-inheritance:
 
-.. autoclass:: resolution.delimited.CsvResolver
+.. autoclass:: cardbuilder.resolution.delimited.CsvResolver
    :members:
    :show-inheritance:
 
 Field
 -----------------------
 
-.. autoclass:: resolution.field.Field
+.. autoclass:: cardbuilder.resolution.field.Field
    :members:
    :show-inheritance:
 
@@ -31,7 +31,7 @@ Field
 Printers
 -------------------------
 
-.. automodule:: resolution.printer
+.. automodule:: cardbuilder.resolution.printer
    :members:
    :show-inheritance:
 

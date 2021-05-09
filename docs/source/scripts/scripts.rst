@@ -10,6 +10,6 @@ Console Commands
 
 Utility Commands
 ------------------
-.. automodule:: scripts.tools
+.. automodule:: cardbuilder.scripts.tools
    :members:
    :undoc-members:

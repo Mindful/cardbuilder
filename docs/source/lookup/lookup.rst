@@ -1,4 +1,4 @@
-.. _lookup:
+.. _cardbuilder.lookup:
 
 Lookup
 =============
@@ -15,35 +15,35 @@ Lookup
 Data Sources
 -----------------------
 
-.. autoclass:: lookup.data_source.DataSource
+.. autoclass:: cardbuilder.lookup.data_source.DataSource
    :members:
    :show-inheritance:
 
 .. _web_api_data_source:
 
-.. autoclass:: lookup.data_source.WebApiDataSource
+.. autoclass:: cardbuilder.lookup.data_source.WebApiDataSource
    :members:
    :show-inheritance:
 
 .. _external_data_data_source:
 
-.. autoclass:: lookup.data_source.ExternalDataDataSource
+.. autoclass:: cardbuilder.lookup.data_source.ExternalDataDataSource
    :members:
    :show-inheritance:
 
 .. _aggregating_data_source:
 
-.. autoclass:: lookup.data_source.AggregatingDataSource
+.. autoclass:: cardbuilder.lookup.data_source.AggregatingDataSource
    :members:
    :show-inheritance:
 
 
-.. _lookup_data:
+.. _cardbuilder.lookup_data:
 
 LookupData
 -----------
 
-.. autoclass:: lookup.lookup_data.LookupData
+.. autoclass:: cardbuilder.lookup.lookup_data.LookupData
    :members:
 
 .. _value:
@@ -51,30 +51,30 @@ LookupData
 Values
 -------
 
-.. autoclass:: lookup.value.Value
+.. autoclass:: cardbuilder.lookup.value.Value
    :members:
 
-.. autoclass:: lookup.value.SingleValue
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: lookup.value.MultiValue
+.. autoclass:: cardbuilder.lookup.value.SingleValue
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: lookup.value.ListValue
+.. autoclass:: cardbuilder.lookup.value.MultiValue
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: lookup.value.MultiListValue
+.. autoclass:: cardbuilder.lookup.value.ListValue
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: lookup.value.LinksValue
+.. autoclass:: cardbuilder.lookup.value.MultiListValue
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: cardbuilder.lookup.value.LinksValue
    :members:
    :undoc-members:
    :show-inheritance:

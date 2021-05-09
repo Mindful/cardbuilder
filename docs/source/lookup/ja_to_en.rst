@@ -6,7 +6,7 @@ Japanese  ➜ English Lookup
 Jisho
 -------------------
 
-.. autoclass:: lookup.ja_to_en.jisho.Jisho
+.. autoclass:: cardbuilder.lookup.ja_to_en.jisho.Jisho
    :members:
    :show-inheritance:
 
