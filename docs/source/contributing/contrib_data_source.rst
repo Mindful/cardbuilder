@@ -24,7 +24,7 @@ Every data source defines the types of information it can output using the ``@ou
 
 The return value of ``parse_word_content`` or ``lookup_word`` should then look something like this:
 
-.. code-block::python
+.. code-block:: python
 
     return self.lookup_data_type(word, form, content, {
         Fieldname.DEFINITIONS: ListValue(definition_list)),
