@@ -3,6 +3,7 @@ from typing import Dict
 from cardbuilder.common.fieldnames import Fieldname
 from cardbuilder.common.languages import JAPANESE, ENGLISH
 from cardbuilder.common.util import log, Shared, trim_whitespace
+from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.ja_to_en import Jisho
@@ -107,7 +108,7 @@ def main():
                                                      in accents_val.get_data()}[reading_katakana])
             })
             return data_by_source
-        except (KeyError, IndexError, LookupError):
+        except (KeyError, IndexError, LookupError, WordLookupException):
             return data_by_source
 
     resolver = instantiable_resolvers[args.output_format](fields, disambiguate_pitch_accent)
