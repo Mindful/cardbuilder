@@ -44,7 +44,7 @@ Note that the first time you run Cardbuilder it will download data which may tak
 
 Cardbuilder builds flashcards in three steps:
 1. Compiling a list of input words
-2. Looking necessary information about each of these words
+2. Looking up necessary information about each of these words
 3. Formatting that information into flashcards
 
 These are the responsibilities of the [input](https://cardbuilder.readthedocs.io/en/latest/input/input.html), [lookup](https://cardbuilder.readthedocs.io/en/latest/lookup/lookup.html) and [resolution](https://cardbuilder.readthedocs.io/en/latest/resolution/resolution.html) packages respectively. The built-in console commands such as [ja_to_en](https://github.com/Mindful/cardbuilder/blob/main/cardbuilder/scripts/ja_to_en.py) just use Cardbuilder abstractions to do all of this for you, and if you just want to generate flashcards for a supported language pair, they will likely be more than sufficient. 
