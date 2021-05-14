@@ -13,5 +13,4 @@ build/*
 *.tsv
 *.txt
 .coverage
-recorded_demo.gif
 docs/build/*

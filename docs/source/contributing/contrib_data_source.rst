@@ -14,7 +14,7 @@ Words
 
 ``lookup_word`` takes two arguments where you might expect it to take only one; it accepts both a ``Word`` and a string representing a specific form of that word. The :ref:`Word <word>` class represents a word Cardbuilder is trying to find data for, which may involve searching for multiple forms of the word. The possibilities for different word forms ultimately depend on the language, but a very straightforward example for English is casing - we generally want to look for the lowercase version of a word in addition to whatever casing it originally had.
 
-Cardbuilder's resolution engine will automatically call ``lookup_word`` for every available form of the word until a result is found, but data sources should return data as soon as they find a match for one of the word's forms. Words and act like containers that include all their forms by supporting iteration and membership checks.
+Cardbuilder's resolution engine will automatically call ``lookup_word`` for every available form of the word until a result is found, but data sources should return data as soon as they find a match for one of the word's forms. Words act like containers that include all their forms by supporting iteration and membership checks.
 
 
 Returning Data
@@ -54,7 +54,7 @@ In order to get up and running, you will need to implement two methods. First, `
         return dumps(json)
 
 
-This almost no work, and could do even less - returning entirety of the json content (instead of just `data`) would also be fine. The heavy lifting happens in the second method you'll need to implement, which is ``parse_word_content``. This method takes the data that was either just retrieved by ``_quey_api`` or automatically loaded from the cache, converts it into a :ref:`LookupData <lookup_data>` object and returns that. The actual parsing logic will depend entirely on the content returned by the API in question (or the HTML content of the scraped webpage), but you can look at examples in existing DataSources.
+This almost no work, and could do even less - returning entirety of the json content (instead of just `data`) would also be fine. The heavy lifting happens in the second method you'll need to implement, which is ``parse_word_content``. This method takes the data that was either just retrieved by ``_query_api`` or automatically loaded from the cache, converts it into a :ref:`LookupData <lookup_data>` object and returns that. The actual parsing logic will depend entirely on the content returned by the API in question (or the HTML content of the scraped webpage), but you can look at examples in existing DataSources.
 
 Keep in mind that although each invocation of ``parse_word_content`` is called with specific string form, many online data sources have built-in search and will return multiple forms of the word. Consequently, it's generally a good idea to look for *all* forms of the word in the results from your query, as opposed to just the form that was passed in.
 
