@@ -6,9 +6,10 @@ from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.ja_to_ja import NhkPitchAccent
+from tests.lookup.data_source_test import DataSourceTest
 
 
-class TestNhkPitchAccent:
+class TestNhkPitchAccent(DataSourceTest):
 
     def get_data_source(self) -> DataSource:
         return NhkPitchAccent()
