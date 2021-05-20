@@ -14,4 +14,7 @@ class TestScrapingOjad(DataSourceTest):
     def test_lookup(self):
         data_source = self.get_data_source()
 
-        data_source.lookup_word(Word('食べる', JAPANESE), '食べる')
+        eat = data_source.lookup_word(Word('食べる', JAPANESE), '食べる')
+        hard = data_source.lookup_word(Word('難しい', JAPANESE), '難しい')  # multiple entries for single forms
+
+        print('debuggy')
