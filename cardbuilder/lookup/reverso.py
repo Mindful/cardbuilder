@@ -23,6 +23,24 @@ class Reverso(WebApiDataSource):
     def __init__(self, source_lang: str, target_lang: str):
         self.source_language = source_lang
         self.target_language = target_lang
+        self.max_examples = 5
+
+    def _get_example_sentences(self, translation_form: str) -> [str]:
+
+        # swap the src and target languages so we don't need thousands of calls to get one example for rarer translation
+        reversed_api = ReversoContextAPI(source_text=translation_form, source_lang=self.target_language, target_lang=self.source_language)
+
+        example_getter = reversed_api.get_examples()
+        examples = []
+        # just get 5 examples max, this takes way too long for common words
+        for i in range(self.max_examples):
+            try:
+                target_example, src_example = next(example_getter)
+                examples.append(target_example.text)
+            except StopIteration:
+                continue
+
+        return examples
 
     def _query_api(self, form: str) -> str:
         api = ReversoContextAPI(source_text=form,
@@ -36,10 +54,9 @@ class Reverso(WebApiDataSource):
         part_of_speech='adv.', inflected_forms=[]), ...
         """
         data = {}
+        examples = api.get_examples()  # generator for examples
         for _, translation, _, pos, _ in api.get_translations():
-            # todo: we should get context examples for a specific translation here, configurable amt?
-            # todo: following line will get examples regardless of translation form, so we should align or re-write api method
-            examples = api.get_examples()
+            examples = self._get_example_sentences(translation)
             data[translation] = {'part_of_speech': pos, 'examples': examples}
         return dumps(data)
 
