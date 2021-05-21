@@ -9,12 +9,12 @@ The base class for all data sources is the :ref:`DataSource <data_source>` class
 
 However, the overwhelming majority of data sources do not inherit from DataSource directly and but instead inherit from either :ref:`WebApiDataSource <web_api_data_source>` or :ref:`ExternalDataDataSource <external_data_data_source>`. These two base classes represent the two most common cases for data source implementation: a data source which relies on an API hosted somewhere online, and a data source which reads data from an external file of some kind. The remainder of this guide will explain some high level concepts related to data sources, and then cover the above two cases in detail.
 
-Words
+Words & Forms
 ------
 
 ``lookup_word`` takes two arguments where you might expect it to take only one; it accepts both a ``Word`` and a string representing a specific form of that word. The :ref:`Word <word>` class represents a word Cardbuilder is trying to find data for, which may involve searching for multiple forms of the word. The possibilities for different word forms ultimately depend on the language, but a very straightforward example for English is casing - we generally want to look for the lowercase version of a word in addition to whatever casing it originally had.
 
-Cardbuilder's resolution engine will automatically call ``lookup_word`` for every available form of the word until a result is found, but data sources should return data as soon as they find a match for one of the word's forms. Words act like containers that include all their forms by supporting iteration and membership checks.
+For the purposes of Data Source implementation, a ``Word`` can be be thought of a a container of possible forms, and in fact they can be iterated like containers as well. Cardbuilder's resolution engine will automatically call ``lookup_word`` for every available form of the word until a result is found, so in many cases it is safe to simply ignore ``Word``s altogether. That said, data sources should return data as soon as they find a match for one of the word's forms, so comparing against all forms of the word can be useful in cases where querying the underlying source of data can return more than just exact matches.
 
 
 Returning Data
@@ -60,11 +60,35 @@ Keep in mind that although each invocation of ``parse_word_content`` is called w
 
 Finally, a note on API versioning. If the API (or HTML of the scraped webpage) changes substantially, the DataSource implementation will need to change as well, and previously cached user content will get out of sync with the current implementation. The solution to this is to override ``_api_version`` to return its previous value plus one whenever you make breaking changes. This will invalidate any cached content from previous versions.
 
+Here are some examples of existing WebApiDataSource implementations:
+  - Jisho
+  - At least one more example
+
 Implementing an ExternalDataDataSource
 ---------------------------------------
-Coming soon.
+ExternalDataDataSource subclasses operate by downloading a set of external data, and then making it available to query locally. Most often this means downloading a text file containing dictionary data, parsing it, and inserting individual dictionary entries as rows into Cardbuilder's local SQLite database.
+
+Like WebApiDataSource, ExternalDataDataSource implements ``lookup_word`` for you. However, this implementation is extremely simple, and only makes sense if your data fits neatly into Cardbuilder's default schema.
+
+.. code-block:: python
+
+    def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
+        cursor = self.conn.execute('SELECT content FROM {} WHERE word=?'.format(self.default_table), (form,))
+        result = cursor.fetchone()
+        if result is None:
+            raise WordLookupException('form "{}" not found in data source table for {}'.format(form,
+                                                                                               type(self).__name__))
+        return self.parse_word_content(word, form, result[0], following_link=following_link)
 
 
+As the above code shows, all the default method does is try to find a database row where the ``word`` field matches the exact word form given as an argument, and then call ``parse_word_content``. If your data is too complicated to be queried like this, perhaps because it's highly normalized or otherwise requires multiple tables, this method can be safely overwritten.
+
+Regardless of whether you override ``lookup_word`` or not though, there are two methods you will need to override to get your data source working. The first, as with WebAPiDataSource, is ``parse_word_content``. This performs a similar role for ExternalDataDataSources, but instead it parses data loaded from Cardbuilder's local database.
+
+So how does that data make its way into Cardbuilder's database? Through the other method that needs to be overridden: ``_load_data_into_database``. This method ingests the downloaded data file(s) and saves them into Cardbuilder's database in a format that can be easily queried later, and is where most of the heavy lifting should happen. 
 
 
+Here are some examples of existing WebApiDataSource implementations:
+  - EJDictHand
+  - At least one more example
 
