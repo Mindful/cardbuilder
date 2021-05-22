@@ -4,15 +4,16 @@ Lookup
 =============
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    ja_to_en
+   en_to_ja
 
 
 
 .. _data_source:
 
-Data Sources
+DataSource
 -----------------------
 
 .. autoclass:: cardbuilder.lookup.data_source.DataSource
@@ -38,7 +39,7 @@ Data Sources
    :show-inheritance:
 
 
-.. _cardbuilder.lookup_data:
+.. _lookup_data:
 
 LookupData
 -----------

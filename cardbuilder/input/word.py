@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional, List, Iterable
 
-from cardbuilder.common import languages
+from cardbuilder.common import Language
 from cardbuilder.common.util import Shared
 from cardbuilder.exceptions import CardBuilderUsageException
 
@@ -19,16 +19,16 @@ class Word:
 
     form_map = {
         WordForm.PHONETICALLY_EQUIVALENT: {
-            languages.ENGLISH: lambda input_form: input_form.lower(), #TODO: false advertising (what if it's uppercase in the dictionary?)
-            languages.JAPANESE: lambda input_form: ''.join(x['hira'] for x in Shared.get_kakasi().convert(input_form))
+            Language.ENGLISH: lambda input_form: input_form.lower(), #TODO: false advertising (what if it's uppercase in the dictionary?)
+            Language.JAPANESE: lambda input_form: ''.join(x['hira'] for x in Shared.get_kakasi().convert(input_form))
         },
         WordForm.LEMMA: {
-            languages.ENGLISH: lambda input_form: Shared.get_spacy(languages.ENGLISH)(input_form)[0].lemma_,
-            languages.JAPANESE: lambda input_form: Shared.get_spacy(languages.JAPANESE)(input_form)[0].lemma_,
+            Language.ENGLISH: lambda input_form: Shared.get_spacy(Language.ENGLISH)(input_form)[0].lemma_,
+            Language.JAPANESE: lambda input_form: Shared.get_spacy(Language.JAPANESE)(input_form)[0].lemma_,
         }
     }
 
-    def __init__(self, input_form: str, lang: str, additional_forms: Optional[List[WordForm]] = None):
+    def __init__(self, input_form: str, lang: Language, additional_forms: Optional[List[WordForm]] = None):
         """
 
         Args:

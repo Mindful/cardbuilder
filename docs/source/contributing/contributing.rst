@@ -41,7 +41,9 @@ For a detailed explanation of how to implement new data sources, please see :ref
 Adding Word Lists
 ------------------
 
+Word lists are the abstraction representing possible lists of input words. Users commonly bring their own list of input words, but Cardbuilder also provides pre-build lists of words. In general, new word lists are always welcome as long as they're not redundant with an existing word list. That said, word lists need to represent a coherent grouping of (ideally professionally) curated words, and cannot be completely arbitrary or random.
 
+For a detailed explanation of how to implement new word lists, please see :ref:`here <contrib_word_list>`.
 
 
 .. toctree::

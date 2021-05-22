@@ -14,6 +14,8 @@ from cardbuilder.resolution.resolution_engine import ResolutionEngine
 
 
 class Resolver(ABC):
+    """The base class for all resolvers, responsible for taking lookup data and transforming it into an output format
+    that can be used as flashcards. """
     def __init__(self, fields: List[Field],
                  mutator: Callable[[Dict[DataSource, LookupData]], Dict[DataSource, LookupData]] = None):
         self.engine = ResolutionEngine(fields, mutator)

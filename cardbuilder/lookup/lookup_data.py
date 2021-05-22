@@ -2,14 +2,15 @@ from abc import ABC, abstractmethod
 from copy import copy
 from typing import Dict
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.value import Value, SingleValue
 
 
 class LookupData(ABC):
-    """An empty base class for all word data so that a common type exists"""
+    """An empty base class for all word data so that a common type exists. Data sources all return instances of a
+    subclass of this type, as defined by their @outputs decorator."""
 
     @classmethod
     def fields(cls) -> Dict[Fieldname, type]:

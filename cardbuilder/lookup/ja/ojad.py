@@ -5,7 +5,8 @@ import requests
 
 from bs4 import BeautifulSoup
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
+from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
@@ -44,7 +45,6 @@ class ScrapingOjad(WebApiDataSource):
         super(ScrapingOjad, self).__init__()
         self.male_audio = male_audio
 
-
     def _secondary_audio_url(self, elem_id: str):
         num = "00" + str(math.floor(int(elem_id.split("_")[0]) / 100))
         gender = elem_id.split("_")[-1]
@@ -63,13 +63,16 @@ class ScrapingOjad(WebApiDataSource):
 
     def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
         parsed = BeautifulSoup(content, 'html.parser')
-        word_table = parsed.find('table', attrs={'id': 'word_table'}).find('tbody')
+        word_table = parsed.find('table', attrs={'id': 'word_table'})
+
+        if word_table is None:
+            raise WordLookupException(f'Ojad returned no results for word form "{form}"')
 
         audio = defaultdict(list)
         pitch_accent = defaultdict(list)
         inflections = set()
 
-        for word_row in word_table.find_all('tr'):
+        for word_row in word_table.find('tbody').find_all('tr'):
             for conj_box in word_row.find_all('td', attrs={'class': 'katsuyo'}):
                 # conj_form = next(iter(set(conj_box['class']) - {'katsuyo'}))  # not using this currently
 
@@ -102,6 +105,9 @@ class ScrapingOjad(WebApiDataSource):
 
                     #TODO: come up with a reasonable way to present this info, not this. maybe use the HTML?
                     pitch_accent[inflection].append(''.join(''.join(str(z) for z in x) for x in accent_data))
+
+        if len(inflections) <= 0:
+            raise WordLookupException(f'Found no data for word form "{form}" in Ojad')
 
         return self.lookup_data_type(word, form, content, {
             Fieldname.AUDIO: MultiListValue([(list_val, header_val)

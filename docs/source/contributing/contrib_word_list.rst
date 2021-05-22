@@ -1,4 +1,6 @@
 .. _contrib_word_list:
 
-Data Source Implementation Guide
+Word List Implementation Guide
 ================================
+
+Under construction.

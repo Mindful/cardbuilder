@@ -1,7 +1,7 @@
 import pytest
 
+from cardbuilder.common import Language
 from cardbuilder.common.config import Config
-from cardbuilder.common.languages import ENGLISH
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
@@ -16,13 +16,13 @@ class TestEijiro(DataSourceTest):
     def test_lookup(self):
         data_source = self.get_data_source()
 
-        dog_result = data_source.lookup_word(Word('dog', ENGLISH), 'dog')
+        dog_result = data_source.lookup_word(Word('dog', Language.ENGLISH), 'dog')
 
-        little_result = data_source.lookup_word(Word('little', ENGLISH), 'little')  # has unmarked link
-        number_result = data_source.lookup_word(Word('number', ENGLISH), 'number')  # has grouped links
+        little_result = data_source.lookup_word(Word('little', Language.ENGLISH), 'little')  # has unmarked link
+        number_result = data_source.lookup_word(Word('number', Language.ENGLISH), 'number')  # has grouped links
 
         # stanch and staunch form a link cycle, we test to make sure that doesn't cause problems
-        stanch_result = data_source.lookup_word(Word('stanch', ENGLISH), 'stanch')
+        stanch_result = data_source.lookup_word(Word('stanch', Language.ENGLISH), 'stanch')
 
         print('debug')
         #TODO: flesh out this test, add a test for words with links (previously caused problems)

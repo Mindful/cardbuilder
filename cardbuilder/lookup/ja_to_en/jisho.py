@@ -3,7 +3,7 @@ from typing import Dict, Set
 
 import requests
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.common.util import is_hiragana, Shared
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word, WordForm

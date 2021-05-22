@@ -4,6 +4,7 @@ from logging import WARNING
 from typing import Tuple, List, Union
 
 import cardbuilder.resolution.instantiable
+from cardbuilder.common import Language
 from cardbuilder.common.util import log
 from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.input.input_list import InputList
@@ -26,7 +27,8 @@ def build_parser_with_common_args() -> ArgumentParser:
     return parser
 
 
-def get_args_and_input_from_parser(parser: ArgumentParser, input_language: str) -> Tuple[Namespace, Union[WordList, List[str]]]:
+def get_args_and_input_from_parser(parser: ArgumentParser,
+                                   input_language: Language) -> Tuple[Namespace, Union[WordList, List[str]]]:
     args = parser.parse_args()
     if sum(1 for argument in [args.start, args.stop] if argument is not None) % 2 != 0:
         raise CardBuilderUsageException('Must provide either both --start and --stop arguments or neither')

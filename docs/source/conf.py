@@ -35,7 +35,8 @@ extensions = [
     "sphinx.ext.napoleon",
     # typehints must come after napoleon; see https://github.com/agronholm/sphinx-autodoc-typehints/issues/15
     'sphinx_autodoc_typehints',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'sphinx.ext.extlinks'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -58,3 +59,6 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+extlinks = {'github_code': ('https://github.com/Mindful/cardbuilder/blob/main/cardbuilder/%s', 'Code for %s')}

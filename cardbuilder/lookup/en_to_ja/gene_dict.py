@@ -3,7 +3,7 @@ from json import dumps, loads
 from os.path import exists
 from typing import Iterable, Tuple
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.common.util import log, download_to_stream_with_loading_bar
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import ExternalDataDataSource

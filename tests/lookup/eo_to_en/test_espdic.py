@@ -1,4 +1,4 @@
-from cardbuilder.common.languages import ESPERANTO
+from cardbuilder.common import Language
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.eo_to_en.espdic import ESPDIC
@@ -13,5 +13,5 @@ class TestESPDIC(DataSourceTest):
     def test_lookup(self):
         data_source = self.get_data_source()
 
-        dog_data = data_source.lookup_word(Word('hundo', ESPERANTO), 'hundo')
+        dog_data = data_source.lookup_word(Word('hundo', Language.ESPERANTO), 'hundo')
         #TODO: flesh out test

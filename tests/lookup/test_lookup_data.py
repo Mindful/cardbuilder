@@ -1,7 +1,6 @@
 import pytest
 
-from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.common.languages import ENGLISH
+from cardbuilder.common import Fieldname, Language
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.lookup_data import outputs
@@ -20,7 +19,7 @@ class TestLookupData:
     def test_retrieval(self):
         test_class = DummyDataSource.lookup_data_type
 
-        word = Word('flaschard', ENGLISH)
+        word = Word('flaschard', Language.ENGLISH)
 
         test_data = test_class(word, word.input_form, '', {
             Fieldname.PART_OF_SPEECH: SingleValue('noun'),
@@ -36,7 +35,7 @@ class TestLookupData:
     def test_validation(self):
         test_class = DummyDataSource.lookup_data_type
 
-        word = Word('flaschard', ENGLISH)
+        word = Word('flaschard', Language.ENGLISH)
 
         # making sure this _doesn't_ throw an exception
         test_class(word, word.input_form, '', {

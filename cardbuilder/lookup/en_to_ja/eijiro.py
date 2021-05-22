@@ -6,7 +6,7 @@ from string import digits
 from typing import Tuple, Iterable, Optional
 
 from cardbuilder.common.config import Config
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.common.util import fast_linecount, loading_bar, log
 from cardbuilder.exceptions import CardBuilderException, WordLookupException
 from cardbuilder.input.word import Word

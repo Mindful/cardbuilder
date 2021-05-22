@@ -3,7 +3,7 @@ from collections import defaultdict
 from json import dumps, loads
 from typing import Iterable, Tuple
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.common.util import trim_whitespace
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import ExternalDataDataSource

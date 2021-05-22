@@ -13,6 +13,9 @@ from cardbuilder.lookup.lookup_data import LookupData
 
 
 class DataSource(ABC):
+    """The base class for all data sources, responsible for looking up various linguistic data about words.
+    It implements basic logic for generating SQLite tables with the default schema (word TEXT, content) where the
+    content type is defined by the class variable content_type."""
 
     content_type = 'TEXT'
 
@@ -63,6 +66,9 @@ class AggregatingDataSource(DataSource, ABC):
 
 
 class WebApiDataSource(DataSource, ABC):
+    """The base class for data sources which directly look up data somewhere online, either by calling an APi or
+    scraping HTML."""
+
     content_type = 'BLOB'
 
     @abstractmethod
@@ -132,6 +138,8 @@ class WebApiDataSource(DataSource, ABC):
 
 
 class ExternalDataDataSource(DataSource, ABC):
+    """The base class for data sources which depend on external data such as downloaded files. Contains logic for
+    ingesting these files into SQlite tables and looking up data from those tables."""
 
     batch_size = 10000
 

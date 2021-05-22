@@ -1,7 +1,6 @@
 import pytest
 
-from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.common.languages import JAPANESE, HEBREW
+from cardbuilder.common import Fieldname, Language
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
@@ -17,8 +16,8 @@ class TestNhkPitchAccent(DataSourceTest):
     def test_lookup(self):
         data_source = self.get_data_source()
 
-        inu_data = data_source.lookup_word(Word('犬', JAPANESE), '犬')
-        hirumu_data = data_source.lookup_word(Word('怯む', JAPANESE), '怯む')
+        inu_data = data_source.lookup_word(Word('犬', Language.JAPANESE), '犬')
+        hirumu_data = data_source.lookup_word(Word('怯む', Language.JAPANESE), '怯む')
 
         assert(inu_data[Fieldname.PITCH_ACCENT].get_data()[0][0].get_data()
                == 'イ<span class="overline">ヌ</span>&#42780;')
@@ -26,5 +25,5 @@ class TestNhkPitchAccent(DataSourceTest):
                == 'ヒ<span class="overline">ル</span>&#42780;ム')
 
         with pytest.raises(WordLookupException):
-            data_source.lookup_word(Word('עברית', HEBREW), 'עברית')
+            data_source.lookup_word(Word('עברית', Language.HEBREW), 'עברית')
 

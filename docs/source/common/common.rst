@@ -7,7 +7,7 @@ Common
 Fieldnames
 ------------------------
 
-.. autoclass:: cardbuilder.common.fieldnames.Fieldname
+.. autoclass:: cardbuilder.common.Fieldname
    :members:
    :undoc-members:
 
@@ -16,6 +16,8 @@ Fieldnames
 Languages
 -----------------------
 
-.. automodule:: cardbuilder.common.languages
+.. autoclass:: cardbuilder.common.Language
    :members:
    :undoc-members:
+
+

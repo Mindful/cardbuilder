@@ -6,7 +6,7 @@ from typing import Tuple, Iterable
 
 import requests
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.common.util import log, loading_bar
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word

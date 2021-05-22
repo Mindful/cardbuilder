@@ -1,6 +1,6 @@
 import pathlib
 
-from cardbuilder.common.languages import ENGLISH
+from cardbuilder.common import Language
 from cardbuilder.input.input_list import InputList
 from cardbuilder.input.word_list import WordList
 from tests.input.word_list_test import WordListTest
@@ -9,7 +9,7 @@ from tests.input.word_list_test import WordListTest
 class TestInputList(WordListTest):
 
     def get_word_list(self) -> WordList:
-        return InputList(str(pathlib.Path(__file__).parent.absolute().joinpath('input_list.txt')), ENGLISH)
+        return InputList(str(pathlib.Path(__file__).parent.absolute().joinpath('input_list.txt')), Language.ENGLISH)
 
     def test_list(self):
         wordlist = self.get_word_list()

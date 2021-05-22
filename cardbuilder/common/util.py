@@ -15,8 +15,10 @@ from retry.api import retry_call
 from spacy.cli.download import download as spacy_download
 from tqdm import tqdm
 
-from cardbuilder.common.languages import ENGLISH, JAPANESE
-from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
+from cardbuilder.common import Language
+
+from cardbuilder.common import Language
+from cardbuilder.exceptions import CardBuilderUsageException
 
 whitespace_trim = re.compile(r'\n\s+')
 
@@ -34,8 +36,8 @@ class Shared:
     spacy_models = {}
 
     spacy_model_names = {
-        ENGLISH: 'en_core_web_sm',
-        JAPANESE: 'ja_core_news_sm'
+        Language.ENGLISH: 'en_core_web_sm',
+        Language.JAPANESE: 'ja_core_news_sm'
     }
 
     @classmethod
@@ -46,7 +48,7 @@ class Shared:
         return cls.kakasi
 
     @classmethod
-    def get_spacy(cls, language: str):
+    def get_spacy(cls, language: Language):
         if language not in cls.spacy_models:
             if language not in cls.spacy_model_names:
                 raise CardBuilderUsageException('No spacy model for language {}'.format(language))
@@ -144,7 +146,7 @@ def download_to_file_with_loading_bar(url: str, filename: str):
     response = requests.get(url, stream=True)
     total_size_in_bytes = int(response.headers.get('content-length', 0))
     block_size = 1024
-    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, disable= not Shared.loading_bars_enabled)
+    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, disable=not Shared.loading_bars_enabled)
     with open(filename, 'wb') as file:
         for data in response.iter_content(block_size):
             progress_bar.update(len(data))

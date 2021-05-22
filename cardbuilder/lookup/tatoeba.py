@@ -11,8 +11,7 @@ from typing import List, Tuple, Iterable
 
 from fugashi import Tagger
 
-from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.common.languages import JAPANESE
+from cardbuilder.common import Fieldname, Language
 from cardbuilder.common.util import is_hiragana, fast_linecount, loading_bar, log, download_to_stream_with_loading_bar, \
     DATABASE_NAME, InDataDir
 from cardbuilder.exceptions import WordLookupException, CardBuilderUsageException
@@ -117,9 +116,9 @@ class TatoebaExampleSentences(ExternalDataDataSource):
         for word, identity_set in results.items():
             yield word, str(list(identity_set))
 
-    def __init__(self, source_lang: str, target_lang: str):
-        self.source_lang = source_lang
-        self.target_lang = target_lang
+    def __init__(self, source_lang: Language, target_lang: Language):
+        self.source_lang = source_lang.value
+        self.target_lang = target_lang.value
         # intentionally don't call parent init; tatoeba doesn't use default sql table
         with InDataDir():
             self.conn = sqlite3.connect(DATABASE_NAME)
@@ -131,7 +130,7 @@ class TatoebaExampleSentences(ExternalDataDataSource):
             self._load_data_into_database(self.sentences_table_name_formatstring.format(lang),
                                           lambda: self._read_language_sents(lang))
 
-        if source_lang == JAPANESE:
+        if self.source_lang == Language.JAPANESE:
             self.tagger = Tagger('-Owakati')
             self._split_sentence = self._split_japanese_sentence
         else:

@@ -25,7 +25,7 @@ A command line tool and Python library for creating language learning flashcards
 
 ## Quick Start
 
-Cardbuilder can output flashcards in several different formats, but the quick start will focus on [Anki](https://apps.ankiweb.net/).
+Cardbuilder can output flashcards in several different formats, but the quick start will focus on [Anki](https://apps.ankiweb.net/). If the content below looks confusing to you, please see the [gentler installation guide](https://cardbuilder.readthedocs.io/en/latest/installation.html).
 
 ```
 pip install cardbuilder
@@ -38,18 +38,20 @@ That's it - cards built! Just import `cards.apkg` into Anki and you're good to g
 ![](docs/demo/demo.gif)
 
 
-Note that the first time you run Cardbuilder it will download data which may take some time, but this only has to be done once.
+Note that the first time you run Cardbuilder it will need to download data which may take some time, but this only has to be done once.
 
 ## What can I do with Cardbuilder?
 
-Cardbuilder builds flashcards in three steps:
+Cardbuilder is a tool for building flashcards, which it does in three steps:
 1. Compiling a list of input words
 2. Looking up necessary information about each of these words
 3. Formatting that information into flashcards
 
-These are the responsibilities of the [input](https://cardbuilder.readthedocs.io/en/latest/input/input.html), [lookup](https://cardbuilder.readthedocs.io/en/latest/lookup/lookup.html) and [resolution](https://cardbuilder.readthedocs.io/en/latest/resolution/resolution.html) packages respectively. The built-in console commands such as [ja_to_en](https://github.com/Mindful/cardbuilder/blob/main/cardbuilder/scripts/ja_to_en.py) just use Cardbuilder abstractions to do all of this for you, and if you just want to generate flashcards for a supported language pair, they will likely be more than sufficient. 
+The built-in console commands such as [ja_to_en](https://cardbuilder.readthedocs.io/en/latest/scripts/ja_to_en.html) just use Cardbuilder abstractions to do all of this for you, and if you just want to generate flashcards for a supported language pair, they will likely be more than sufficient. In that case, Cardbuilder is a command line tool for generating flashcards. 
 
-That said, it should be relatively straightforward to write your own code using Cardbuilder abstractions if you want to customize how these things happen. 
+That said, Cardbuilder is designed so that its code is easy to reuse for generating flashcards however you'd like. The above three steps in particular are the responsibilities of the [input](https://cardbuilder.readthedocs.io/en/latest/input/input.html), [lookup](https://cardbuilder.readthedocs.io/en/latest/lookup/lookup.html) and [resolution](https://cardbuilder.readthedocs.io/en/latest/resolution/resolution.html) packages respectively. If you want more control over how your flashcards are generated, Cardbuilder can be used as a library for generating flashcards. More details can be found in Cardbuilder's [documentation](https://cardbuilder.readthedocs.io/en/latest/scripts/ja_to_en.html).
+
+Cardbuilder is **not** a flashcarding application or a tool for reviewing flashcards. There are many excellent tools for this already, such as [Anki](https://apps.ankiweb.net/). The objective of Cardbuilder is to automate the flashcard creation process by generating files that can be imported into these existing applications.
 
 ## Supported Languages 
 

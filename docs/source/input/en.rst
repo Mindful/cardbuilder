@@ -1,5 +1,5 @@
-English Input
-================
+English Premade Word Lists
+============================
 
 SvlWords
 -------------------

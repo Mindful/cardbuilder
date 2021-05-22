@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Callable
 
 import genanki
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.lookup_data import LookupData

@@ -1,6 +1,6 @@
 from typing import Union, List, Optional
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.lookup.data_source import DataSource
 from cardbuilder.lookup.lookup_data import LookupData

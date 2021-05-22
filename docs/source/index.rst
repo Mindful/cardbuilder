@@ -10,12 +10,14 @@ Welcome to Cardbuilder's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+
    scripts/scripts
+   contributing/contributing
+   installation
    common/common
    input/input
    lookup/lookup
    resolution/resolution
-   contributing/contributing
 
 
 

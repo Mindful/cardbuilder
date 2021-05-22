@@ -6,8 +6,7 @@ from typing import Iterable, Tuple, List, Optional
 import requests
 from lxml import html
 
-from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.common.languages import ENGLISH
+from cardbuilder.common import Fieldname, Language
 from cardbuilder.common.util import log, InDataDir, loading_bar, DATABASE_NAME
 from cardbuilder.input.word import WordForm, Word
 from cardbuilder.input.word_list import WordList
@@ -23,7 +22,8 @@ from cardbuilder.lookup.value import SingleValue
 class SvlWords(WordList, ExternalDataDataSource):
     """A wordlist which provides the 12000 word long Standard Vocabulary List words. Words are ordered by level, and
     then by word frequency within level (by default). If word frequency ordering is disabled, word order within levels
-    is as retrieved - effectively random."""
+    is as retrieved - effectively random. Unusually, this class can also be used as a data source (for word frequency)
+    """
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:
         filenames_with_level = sorted(((fname, int(fname.split('.')[0].split('_')[-1:][0])) for fname in glob('svl_*')),
@@ -81,7 +81,7 @@ class SvlWords(WordList, ExternalDataDataSource):
             word_freq = WordFrequency()
             all_words_with_level = sorted(all_words_with_level, key=lambda tpl: (tpl[1], -word_freq[tpl[0]]))
         ordered_input_forms = [word for word, level in all_words_with_level]
-        super().__init__(ordered_input_forms, ENGLISH, additional_forms)
+        super().__init__(ordered_input_forms, Language.ENGLISH, additional_forms)
 
 
 

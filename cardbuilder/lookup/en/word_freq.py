@@ -2,7 +2,7 @@ import csv
 import sqlite3
 from typing import Iterable, Tuple
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.common.util import fast_linecount, InDataDir, loading_bar, log, DATABASE_NAME, retry_with_logging
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word

@@ -1,7 +1,6 @@
 from typing import Dict
 
-from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.common.languages import JAPANESE, ENGLISH
+from cardbuilder.common import Fieldname, Language
 from cardbuilder.common.util import log, Shared, trim_whitespace
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
@@ -72,11 +71,11 @@ def main():
     Used like ``cardbuilder ja_to_en --input words.txt --output cards``.
     """
     parser = build_parser_with_common_args()
-    args, input_words = get_args_and_input_from_parser(parser, JAPANESE)
+    args, input_words = get_args_and_input_from_parser(parser, Language.JAPANESE)
 
     dictionary = Jisho()
     nhk = NhkPitchAccent()
-    example_sentences = TatoebaExampleSentences(source_lang=JAPANESE, target_lang=ENGLISH)
+    example_sentences = TatoebaExampleSentences(source_lang=Language.JAPANESE, target_lang=Language.ENGLISH)
 
     fields = [
         Field(dictionary, Fieldname.WORD, 'Word'),
@@ -100,10 +99,10 @@ def main():
                 if len(accents_val.get_data()) == 1:
                     return data_by_source  # No ambiguities to resolve here
             else:
-                accents_val = nhk.lookup_word(Word(writing, JAPANESE), writing)[Fieldname.PITCH_ACCENT]
+                accents_val = nhk.lookup_word(Word(writing, Language.JAPANESE), writing)[Fieldname.PITCH_ACCENT]
             reading_katakana = Shared.get_kakasi().convert(reading)[0]['kana']
 
-            data_by_source[nhk] = nhk.lookup_data_type(Word(writing, JAPANESE), writing, {
+            data_by_source[nhk] = nhk.lookup_data_type(Word(writing, Language.JAPANESE), writing, {
                 Fieldname.PITCH_ACCENT: SingleValue({header: val for val, header
                                                      in accents_val.get_data()}[reading_katakana])
             })

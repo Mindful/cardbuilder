@@ -1,5 +1,4 @@
-from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.common.languages import JAPANESE, ENGLISH
+from cardbuilder.common import Fieldname, Language
 from cardbuilder.common.util import trim_whitespace, log
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.lookup.en import MerriamWebster, WordFrequency
@@ -114,7 +113,7 @@ def main():
     parser.add_argument('--eijiro_location', help="The location of a dictionary containing the Eijiro data. If present,"
                                                   "Eijiro will be used instead of EJDictHand")
 
-    args, input_words = get_args_and_input_from_parser(parser, ENGLISH)
+    args, input_words = get_args_and_input_from_parser(parser, Language.ENGLISH)
     try:
         mw = MerriamWebster(args.learner_key, args.thesaurus_key)
         log(None, 'Using Merriam Webster API keys')
@@ -138,7 +137,7 @@ def main():
             log(None, 'Eijiro location not provided and no previously loaded content found: falling back to EJDictHand')
             jp_def_printer = ListValuePrinter(number_format_string='{number} .', join_string='\n')
 
-    tatoeba = TatoebaExampleSentences(ENGLISH, JAPANESE)
+    tatoeba = TatoebaExampleSentences(Language.ENGLISH, Language.JAPANESE)
     wf = WordFrequency()
 
     def word_freq_sort_key(value: SingleValue) -> int:

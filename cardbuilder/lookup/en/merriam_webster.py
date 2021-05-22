@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from cardbuilder.common.config import Config
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.common.util import log
 from cardbuilder.exceptions import WordLookupException, CardBuilderUsageException
 from cardbuilder.input.word import Word

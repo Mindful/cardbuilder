@@ -1,5 +1,4 @@
-from cardbuilder.common.fieldnames import Fieldname
-from cardbuilder.common.languages import ENGLISH
+from cardbuilder.common import Fieldname, Language
 from cardbuilder.input.en.svl import SvlWords
 from cardbuilder.input.word import Word
 from cardbuilder.input.word_list import WordList
@@ -28,9 +27,9 @@ class TestSvl(WordListTest, DataSourceTest):
     def test_level_retrieval(self):
         wordlist = self.get_word_list()
 
-        w1 = Word('sure', ENGLISH)
-        w2 = Word('incorrect', ENGLISH)
-        w3 = Word('aviary', ENGLISH)
+        w1 = Word('sure', Language.ENGLISH)
+        w2 = Word('incorrect', Language.ENGLISH)
+        w3 = Word('aviary', Language.ENGLISH)
         assert(wordlist.lookup_word(w1, w1.input_form)[Fieldname.SUPPLEMENTAL].get_data() == '1')
         assert(wordlist.lookup_word(w2, w2.input_form)[Fieldname.SUPPLEMENTAL].get_data() == '6')
         assert(wordlist.lookup_word(w3, w3.input_form)[Fieldname.SUPPLEMENTAL].get_data() == '12')

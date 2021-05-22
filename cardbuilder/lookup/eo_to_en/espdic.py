@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Iterable, Tuple
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import ExternalDataDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
