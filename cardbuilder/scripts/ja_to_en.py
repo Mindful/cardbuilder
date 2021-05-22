@@ -60,11 +60,11 @@ def main():
 
     Supports the following arguments:
 
-    --input     The input list of words to generate cards from; can be a text file or the name of a WordList.
-    --output    (Optional) the name (with no file extension) of the desired output file.
-    --output_format     (Optional) The type of data to output, such as CSV file or Anki. Defaults to Anki.
-    --start     (Optional) an integer specifying the beginning of the range of input words to generate cards for.
-    --stop      (Optional) an integer specifying the end of the range of input words to generate cards for.
+    --input     The input list of words to generate cards from; can be a text file or the name of a WordList
+    --output    (Optional) the name (with no file extension) of the desired output file
+    --output_format     (Optional) The type of data to output, such as CSV file or Anki. Defaults to Anki
+    --start     (Optional) an integer specifying the beginning of the range of input words to generate cards for
+    --stop      (Optional) an integer specifying the end of the range of input words to generate cards for
 
     This command relies on jisho.org to fetch definitions, and consequently requires internet.
 

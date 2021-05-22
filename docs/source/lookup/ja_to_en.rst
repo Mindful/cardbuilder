@@ -1,4 +1,4 @@
-Japanese ➜ English Lookup
+Japanese ➜ English
 -----------------------------
 
 .. _jisho:

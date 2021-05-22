@@ -122,7 +122,7 @@ def outputs(output_spec: Dict[Fieldname, type]):
                         ))
 
                 # don't pass on any empty values
-                self._data = {k: v for k, v in data.items() if len(v.get_data()) > 0}
+                self._data = {k: v for k, v in data.items() if not v.is_empty()}
 
         GeneratedLookupData.__name__ = clazz.__name__ + 'LookupData'
 

@@ -18,6 +18,7 @@ class TestMerriamWebster(DataSourceTest):
     def test_lookup(self):
         data_source = self.get_data_source()
 
+        society_data = data_source.lookup_word(Word('society', Language.ENGLISH), 'society')  # MW returns no audio
         dog_data = data_source.lookup_word(Word('dog', Language.ENGLISH), 'dog')
         later_data = data_source.lookup_word(Word('later', Language.ENGLISH), 'later')
         lead_data = data_source.lookup_word(Word('lead', Language.ENGLISH), 'lead')

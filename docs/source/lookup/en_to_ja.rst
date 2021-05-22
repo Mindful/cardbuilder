@@ -1,4 +1,4 @@
-English ➜ Japanese Lookup
+English ➜ Japanese
 -----------------------------
 
 
@@ -18,7 +18,7 @@ EJDictHand
    :members:
    :show-inheritance:
 
-Eijiro
+Gene Dict
 ================================
 
 .. autoclass:: cardbuilder.lookup.en_to_ja.gene_dict.GeneDict

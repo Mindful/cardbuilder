@@ -12,7 +12,10 @@ class Value(ABC):
 
     @abstractmethod
     def get_data(self) -> Sequence:
-        return copy(self._data)
+        raise NotImplementedError()
+
+    def is_empty(self) -> bool:
+        return len(self._data) == 0
 
     def __eq__(self, other):
         return isinstance(other, type(self)) and self._data == other._data
@@ -48,10 +51,12 @@ class MultiValue(Value):
     def __init__(self, list_header_tuples: List[Tuple[SingleValue.input_type, Optional[SingleValue.input_type]]]):
         super(MultiValue, self).__init__()
 
-        self._data = [
+        value_data = [
             (SingleValue(data), SingleValue(header_data) if header_data is not None else None)
             for data, header_data in list_header_tuples
         ]
+
+        self._data = [(content, header) for content, header in value_data if not content.is_empty()]
 
     def get_data(self) -> List[Tuple[SingleValue, Optional[SingleValue]]]:
         return copy(self._data)
@@ -66,7 +71,8 @@ class ListValue(Value):
     def __init__(self, value_list: input_type):
         super(ListValue, self).__init__()
 
-        self._data = [SingleValue(x) for x in value_list]
+        value_data = [SingleValue(x) for x in value_list]
+        self._data = [v for v in value_data if not v.is_empty()]
 
     def get_data(self) -> List[SingleValue]:
         return copy(self._data)
@@ -81,10 +87,12 @@ class MultiListValue(Value):
     def __init__(self, list_header_tuples: List[Tuple[ListValue.input_type, Optional[SingleValue.input_type]]]):
         super(MultiListValue, self).__init__()
 
-        self._data = [
+        value_data = [
             (ListValue(list_data), SingleValue(header_data) if header_data is not None else None)
             for list_data, header_data in list_header_tuples
         ]
+
+        self._data = [(content, header) for content, header in value_data if not content.is_empty()]
 
     def get_data(self) -> List[Tuple[ListValue, Optional[SingleValue]]]:
         return copy(self._data)

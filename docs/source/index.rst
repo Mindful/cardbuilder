@@ -8,18 +8,21 @@ Welcome to Cardbuilder's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Explanations & Guides
 
-
+   installation
    scripts/scripts
    contributing/contributing
-   installation
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Library Documentation
+
    common/common
    input/input
    lookup/lookup
    resolution/resolution
-
-
 
 
 

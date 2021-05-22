@@ -239,8 +239,10 @@ class LearnerDictionary(WebApiDataSource):
             pos_label = shortdef['fl']
             if 'prs' in word_data['hwi']:
                 ipa_list, pronunciation_url_list = self._get_pronunciation_content(word_data['hwi']['prs'])
-                audio_with_pos.append((pronunciation_url_list, pos_label))
-                ipa_with_pos.append((ipa_list, pos_label))
+                if len(pronunciation_url_list) > 0:
+                    audio_with_pos.append((pronunciation_url_list, pos_label))
+                if len(ipa_list) > 0:
+                    ipa_with_pos.append((ipa_list, pos_label))
 
             inflections = [x['if'].replace('*', '') for x in word_data['ins']
                            if 'if' in x] if 'ins' in word_data else []

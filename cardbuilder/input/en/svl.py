@@ -22,7 +22,7 @@ from cardbuilder.lookup.value import SingleValue
 class SvlWords(WordList, ExternalDataDataSource):
     """A wordlist which provides the 12000 word long Standard Vocabulary List words. Words are ordered by level, and
     then by word frequency within level (by default). If word frequency ordering is disabled, word order within levels
-    is as retrieved - effectively random. Unusually, this class can also be used as a data source (for word frequency)
+    is as retrieved - effectively random. Unusually, this class can also be used as a data source (for word level)
     """
 
     def _read_and_convert_data(self) -> Iterable[Tuple[str, str]]:

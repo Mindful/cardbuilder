@@ -15,7 +15,10 @@ from cardbuilder.lookup.value import SingleValue
     Fieldname.SUPPLEMENTAL: SingleValue
 })
 class WordFrequency(ExternalDataDataSource):
-    # https://norvig.com/ngrams/
+    """
+    Provides English word frequency, taken from Peter Norvig's ngram frequency list (https://norvig.com/ngrams/).
+    """
+
     url = 'http://norvig.com/ngrams/count_1w.txt'
     filename = 'count_1w.txt'
 

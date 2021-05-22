@@ -8,6 +8,7 @@ Lookup
 
    ja_to_en
    en_to_ja
+   en
 
 
 
