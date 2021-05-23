@@ -1,3 +1,4 @@
+import sqlite3
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from os import mkdir
@@ -6,7 +7,7 @@ from typing import Optional, Callable, get_type_hints, Dict
 
 import requests
 
-from cardbuilder.common.util import dedup_by, retry_with_logging
+from cardbuilder.common.util import dedup_by, retry_with_logging, InDataDir, DATABASE_NAME
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue, MultiValue, Value
 
@@ -180,6 +181,13 @@ class DownloadPrinter(Printer):
     def __init__(self, output_directory: str, format_string='{directory}/{filename}'):
         self.output_directory = output_directory
         self.format_string = format_string
+        with InDataDir():
+            self.conn = sqlite3.connect(DATABASE_NAME)
+
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS download_cache (
+            url TEXT PRIMARY KEY,
+            content BLOB);''')
+        self.conn.commit()
 
     def __call__(self, value: Value) -> str:
         if isinstance(value, SingleValue):
@@ -196,8 +204,25 @@ class DownloadPrinter(Printer):
         if not exists(self.output_directory):
             mkdir(self.output_directory)
 
-        r = retry_with_logging(requests.get, tries=2, delay=1, fargs=[url])
+        data = self._get_cached_data(url)
+        if data is None:
+            r = retry_with_logging(requests.get, tries=2, delay=1, fargs=[url])
+            data = r.content
+            self._cache_data(url, data)
+
         with open(join(self.output_directory, filename), 'wb') as f:
-            f.write(r.content)
+            f.write(data)
 
         return self.format_string.format(directory=self.output_directory, filename=filename)
+
+    def _get_cached_data(self, url: str) -> Optional[bytes]:
+        cursor = self.conn.execute('SELECT content FROM download_cache WHERE url=?', (url,))
+        result = cursor.fetchone()
+        return result[0] if result else None
+
+    def _cache_data(self, url: str, data: bytes):
+        self.conn.execute('INSERT OR REPLACE INTO download_cache VALUES (?, ?)', (url, data))
+        self.conn.commit()
+
+
+

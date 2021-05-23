@@ -1,11 +1,14 @@
 #!/bin/bash
 
 # installation for asciicast2gif
-#sudo apt install npm gifsicle
-#mkdir ~/.npm-global
-#npm config set prefix '~/.npm-global'
-#npm install --global asciicast2gif
-# may need to increase memory in/etc/ImageMagick-6/policy.xml, see https://github.com/ImageMagick/ImageMagick/issues/396
+
+# sudo apt install npm gifsicle
+# mkdir ~/.npm-global
+# npm config set prefix '~/.npm-global'
+# npm install --global asciicast2gif
+
+# may need to increase memory in /etc/ImageMagick-6/policy.xml (a lot)
+# see https://github.com/ImageMagick/ImageMagick/issues/396
 
 
 export PATH=~/.npm-global/bin:$PATH
@@ -19,6 +22,7 @@ echo "Dropping Jisho table for demo"
 sqlite3 ~/.local/share/cardbuilder/cardbuilder.db "drop table jisho;"
 
 asciinema rec demo --command ./demo.sh
-asciicast2gif demo demo.gif
+GIFSICLE_OPTS="-k 10 --conserve_memory -O2 -Okeep-empty"
+asciicast2gif -s 1 demo demo.gif
 
-rm words.txt cards.apkg demo
+rm ./*words.txt ./*cards.apkg demo

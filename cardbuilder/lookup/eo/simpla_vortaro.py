@@ -6,7 +6,7 @@ from cardbuilder.lookup.lookup_data import LookupData
 
 simpla_vortaro_url = 'http://www.simplavortaro.org'
 
-#TODO: finish this class, then write tests
+#TODO: finish this class, write tests, and add it to 'eo_to_en'
 class SimplaVortaro(AggregatingDataSource):
     def lookup_word(self, word: Word, form: str, following_link: bool = False) -> LookupData:
         pass

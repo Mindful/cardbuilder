@@ -9,7 +9,7 @@ from cardbuilder.common.util import log
 from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.input.input_list import InputList
 from cardbuilder.input.instantiable import instantiable_word_lists
-from cardbuilder.input.word import WordForm
+from cardbuilder.input.word import WordForm, Word
 from cardbuilder.input.word_list import WordList
 
 
@@ -33,10 +33,14 @@ def get_args_and_input_from_parser(parser: ArgumentParser,
     if sum(1 for argument in [args.start, args.stop] if argument is not None) % 2 != 0:
         raise CardBuilderUsageException('Must provide either both --start and --stop arguments or neither')
 
+    default_word_forms = [WordForm.PHONETICALLY_EQUIVALENT]
+    # don't default to any word forms that aren't implemented for this language
+    default_word_forms = [form for form in default_word_forms if input_language in Word.form_map[form]]
+
     if args.input in instantiable_word_lists:
         input_wordlist = instantiable_word_lists[args.input]()
     else:
-        input_wordlist = InputList(args.input, input_language, [WordForm.PHONETICALLY_EQUIVALENT])
+        input_wordlist = InputList(args.input, input_language, default_word_forms)
 
     if args.start is not None and args.stop is not None:
         return args, input_wordlist[args.start:args.stop]
