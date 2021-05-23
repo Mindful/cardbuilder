@@ -19,6 +19,7 @@ Welcome to Cardbuilder's documentation!
    :maxdepth: 2
    :caption: Library Documentation
 
+   library_overview
    common/common
    input/input
    lookup/lookup
