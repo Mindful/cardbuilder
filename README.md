@@ -16,11 +16,11 @@ A command line tool and Python library for creating language learning flashcards
 </p>
 
 <p align="center">
-  <a href="http://cardbuilder.readthedocs.io/en/">Documentation</a>
+  <a href="http://cardbuilder.readthedocs.io/en/latest">Documentation</a>
   ·
-  <a href="what-can-cardbuilder-do">Uses</a>
+  <a href="https://github.com/Mindful/cardbuilder#what-can-i-do-with-cardbuilder">Uses</a>
   ·
-  <a href="#supported-langauges">Supported Languages</a>
+  <a href="https://github.com/Mindful/cardbuilder#supported-languages">Supported Languages</a>
 </p>
 
 ## Quick Start
