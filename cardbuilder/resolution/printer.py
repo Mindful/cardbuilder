@@ -9,7 +9,7 @@ import requests
 
 from cardbuilder.common.util import dedup_by, retry_with_logging, InDataDir, DATABASE_NAME
 from cardbuilder.exceptions import CardBuilderUsageException
-from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue, MultiValue, Value
+from cardbuilder.lookup.value import SingleValue, ListValue, MultiListValue, MultiValue, Value, PitchAccentValue
 
 
 class Printer(ABC):
@@ -42,6 +42,28 @@ class SingleValuePrinter(Printer):
 
     def __call__(self, value: SingleValue) -> str:
         return self.format_string.format(value=value.get_data())
+
+
+class PitchAccentPrinter(Printer):
+    """The printer for pitch accent values."""
+
+    def __init__(self, html: bool = False):
+        self.html = html
+
+    def __call__(self, value: PitchAccentValue) -> str:
+        pitch_accent_string, word = value.get_data()
+        prev_tone = None
+        if self.html:
+            output = ''
+            for pitch, word_char in zip(pitch_accent_string, word):
+                tone_class = pitch.lower()
+                if prev_tone is not None and prev_tone != tone_class:
+                    tone_class += '-change'
+                output += f'<span class="tone-{tone_class}">{word_char}</span>'
+                prev_tone = pitch.lower()
+            return output
+        else:
+            return f'{word}\n{pitch_accent_string}'
 
 
 class MultiValuePrinter(Printer):
@@ -147,6 +169,7 @@ class DefaultPrinter(Printer):
     def __call__(self, value: Value):
         return {
             SingleValue: SingleValuePrinter(),
+            PitchAccentValue: PitchAccentPrinter(),
             MultiValue: MultiValuePrinter(),
             ListValue: ListValuePrinter(),
             MultiListValue: MultiListValuePrinter()

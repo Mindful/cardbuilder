@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import List, Tuple, Optional, Sequence
+from typing import List, Tuple, Optional, Sequence, Iterable
 
 from cardbuilder.exceptions import CardBuilderUsageException
 
@@ -42,6 +42,21 @@ class SingleValue(Value):
 
     def get_data(self) -> str:
         return copy(self._data)
+
+
+class PitchAccentValue(SingleValue):
+    """Represents pitch value for an associated word"""
+
+    def __init__(self, pitch_accent: str, word: str):
+        super(PitchAccentValue, self).__init__(pitch_accent)
+        self.word = word
+
+        if not isinstance(word, str) or len(pitch_accent) != len(word):
+            raise CardBuilderUsageException('PitchAccentValue word value must be a string of the same length as the'
+                                            'pitch accent string')
+
+    def get_data(self) -> Tuple[SingleValue.input_type, Iterable[str]]:
+        return copy(self._data), copy(self.word)
 
 
 class MultiValue(Value):

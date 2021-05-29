@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import sys
+from abc import ABC
 from io import BytesIO
 from itertools import takewhile, repeat, zip_longest
 from pathlib import Path
@@ -14,8 +15,6 @@ from pykakasi import kakasi as kakasi_state
 from retry.api import retry_call
 from spacy.cli.download import download as spacy_download
 from tqdm import tqdm
-
-from cardbuilder.common import Language
 
 from cardbuilder.common import Language
 from cardbuilder.exceptions import CardBuilderUsageException
@@ -66,7 +65,22 @@ class Shared:
         return cls.spacy_models[language]
 
 
-class InDataDir:
+class InDir(ABC):
+    def __enter__(self):
+        self.prev_dir = os.getcwd()
+        os.chdir(self.directory)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        os.chdir(self.prev_dir)
+        self.prev_dir = None
+
+
+class InResourceDir(InDir):
+
+    directory = Path(__file__).parent.parent / 'resources'
+
+
+class InDataDir(InDir):
 
     os_platform = platform.system()
     if os_platform == 'Darwin':  # mac, https://stackoverflow.com/a/5084892/4243650
@@ -82,17 +96,6 @@ class InDataDir:
 
     if not directory.exists():
         directory.mkdir(parents=True)
-
-    def __init__(self):
-        self.prev_dir = None
-
-    def __enter__(self):
-        self.prev_dir = os.getcwd()
-        os.chdir(self.directory)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        os.chdir(self.prev_dir)
-        self.prev_dir = None
 
 
 def retry_with_logging(func: Callable, tries: int, delay: int, fargs=None, fkwargs=None):

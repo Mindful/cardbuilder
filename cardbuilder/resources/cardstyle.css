@@ -1,0 +1,32 @@
+:root {
+  --color-primary: white;
+  --color-background: #23282F;
+}
+
+.card {
+	background-color: #23282F;
+	color: var(--color-primary);
+	text-align: left;
+}
+
+h1 {
+	font-size: 350%
+}
+
+span.tone-l {
+    border-bottom: 1px solid var(--color-primary);
+}
+
+span.tone-h-change {
+    border: solid var(--color-primary);
+    border-width: 1px 0 0 1px;
+}
+
+span.tone-l-change {
+    border: solid var(--color-primary);
+    border-width: 0 0 1px 1px;
+}
+
+span.tone-h {
+    border-top: 1px solid var(--color-primary);
+}
