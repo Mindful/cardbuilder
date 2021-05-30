@@ -1,6 +1,6 @@
 import pytest
 
-from cardbuilder.common import Language
+from cardbuilder.common import Language, Fieldname
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import DataSource
@@ -21,4 +21,7 @@ class TestScrapingOjad(DataSourceTest):
         with pytest.raises(WordLookupException):
             not_found = data_source.lookup_word(Word('dog', Language.ENGLISH), 'dog')
 
-        print('debuggy')
+        assert(eat.get_data()[Fieldname.PITCH_ACCENT].get_data()[0][0].get_data()[0].get_data() == 'ldl')
+        assert(eat.get_data()[Fieldname.PITCH_ACCENT].get_data()[0][1].get_data() == 'たべる')
+
+        #TODO: flesh out test

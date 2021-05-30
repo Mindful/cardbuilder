@@ -51,7 +51,8 @@ class PitchAccentPrinter(Printer):
         self.html = html
 
     def __call__(self, value: PitchAccentValue) -> str:
-        pitch_accent_string, word = value.get_data()
+        pitch_accent_string = value.get_data()
+        word = value.word
         prev_tone = None
         if self.html:
             output = ''

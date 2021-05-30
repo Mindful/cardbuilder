@@ -10,7 +10,7 @@ from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
-from cardbuilder.lookup.value import ListValue, MultiListValue
+from cardbuilder.lookup.value import ListValue, MultiListValue, PitchAccentValue
 
 
 # thanks to @huntingdb whose notebook is the basis for some of the implementations
@@ -38,6 +38,11 @@ class ScrapingOjad(WebApiDataSource):
     #     'katsuyo_kano_js': 'potential',
     #     'katsuyo_ishi_js': 'volitional'
     # }
+
+    pitch_accent_dict = defaultdict(lambda: PitchAccentValue.PitchAccent.LOW, {
+        'accent_plain': PitchAccentValue.PitchAccent.HIGH,
+        'accent_top': PitchAccentValue.PitchAccent.DROP
+    })
 
     base_url = "http://www.gavo.t.u-tokyo.ac.jp/ojad/"
 
@@ -90,21 +95,19 @@ class ScrapingOjad(WebApiDataSource):
                     morae_elems = list(accented_word.children)
 
                     accent_data = []
+                    reading = ''
                     for span in morae_elems:
-                        accent = 0
-                        if span.get("class")[0].startswith("accent"):
-                            accent = 1
-                        char = span.find("span", class_="char").string
-                        accent_data.append((char, accent))
+                        span_accent_class = span.get('class')[0]
+                        accent_value = self.pitch_accent_dict[span_accent_class]
+                        accent_data.append(accent_value)
+                        reading += span.find("span", class_="char").string
 
-                    inflection = ''.join(x[0] for x in accent_data)
-                    inflections.add(inflection)
+                    inflections.add(reading)
 
                     if audio_button is not None:
-                        audio[inflection].append(self._audio_file_url(audio_button['id']))
+                        audio[reading].append(self._audio_file_url(audio_button['id']))
 
-                    #TODO: come up with a reasonable way to present this info, not this. maybe use the HTML?
-                    pitch_accent[inflection].append(''.join(''.join(str(z) for z in x) for x in accent_data))
+                    pitch_accent[reading].append(PitchAccentValue(accent_data, reading))
 
         if len(inflections) <= 0:
             raise WordLookupException(f'Found no data for word form "{form}" in Ojad')
