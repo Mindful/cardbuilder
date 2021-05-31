@@ -56,7 +56,7 @@ class AkpgResolver(Resolver):
         range_ceil = 1 << 31
         return (abs(hash(s)) % (range_ceil - range_floor + 1)) + range_floor
 
-    def set_note_name(self, name: str, templates: Optional[List[Dict[str, str]]], css: str = ''):
+    def set_note_data(self, name: str, templates: Optional[List[Dict[str, str]]], css: str = ''):
         if templates is not None:
             for template in templates:
                 for attr in ['name', 'qfmt', 'afmt']:

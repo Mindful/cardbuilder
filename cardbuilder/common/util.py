@@ -180,7 +180,3 @@ def grouper(n, iterable):
 def dedup_by(input_list: List, key: Callable) -> List:
     seen_set = set()
     return [x for x in input_list if key(x) not in seen_set and not seen_set.add(key(x))]
-
-
-def trim_whitespace(string: str) -> str:
-    return whitespace_trim.sub('\n', string)

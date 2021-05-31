@@ -3,7 +3,7 @@ from cardbuilder.lookup.eo_to_en.espdic import ESPDIC
 from cardbuilder.resolution.field import Field
 from cardbuilder.resolution.instantiable import instantiable_resolvers
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
-    log_failed_resolutions
+    log_failed_resolutions, anki_card_html, anki_css
 from cardbuilder.scripts.router import command
 
 
@@ -35,6 +35,13 @@ def main():
     ]
 
     resolver = instantiable_resolvers[args.output_format](fields)
+
+    if args.output_format == 'anki':
+        resolver.set_note_data(args.output, [
+            {'name': 'Esperanto->English', 'qfmt': anki_card_html('eo_to_en', 'word_card_front'),
+             'afmt': anki_card_html('eo_to_en', 'word_card_back')},
+            {'name': 'English->Esperanto', 'qfmt': anki_card_html('eo_to_en', 'def_card_front'),
+             'afmt': anki_card_html('eo_to_en', 'def_card_back')}], css=anki_css())
 
     failed_resolutions = resolver.resolve_to_file(input_words, args.output)
     log_failed_resolutions(failed_resolutions)

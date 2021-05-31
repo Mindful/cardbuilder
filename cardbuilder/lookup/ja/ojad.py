@@ -23,6 +23,7 @@ from cardbuilder.lookup.value import ListValue, MultiListValue, PitchAccentValue
     Fieldname.PITCH_ACCENT: MultiListValue,
 })
 class ScrapingOjad(WebApiDataSource):
+    """Scrapes Japanese audio and pitch accent data from http://www.gavo.t.u-tokyo.ac.jp/ojad/."""
 
     # conjugation_box_dict = {
     #     'katsuyo_jisho_js': 'dictionary form',

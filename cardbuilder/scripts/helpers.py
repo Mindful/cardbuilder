@@ -1,3 +1,4 @@
+import os
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
 from logging import WARNING
@@ -5,7 +6,7 @@ from typing import Tuple, List, Union
 
 import cardbuilder.resolution.instantiable
 from cardbuilder.common import Language
-from cardbuilder.common.util import log
+from cardbuilder.common.util import log, InResourceDir
 from cardbuilder.exceptions import CardBuilderException, CardBuilderUsageException
 from cardbuilder.input.input_list import InputList
 from cardbuilder.input.instantiable import instantiable_word_lists
@@ -53,6 +54,18 @@ def log_failed_resolutions(failed_resolutions: List[Tuple[str, CardBuilderExcept
         log(None, 'Some resolutions failed - see below', WARNING)
         for word, exception in failed_resolutions:
             print('{} : {}'.format(word, exception))
+
+
+def anki_card_html(cmd_name: str, card_name: str) -> str:
+    with InResourceDir():
+        with open(os.path.join('anki', cmd_name, card_name+'.html'), 'r') as html_file:
+            return html_file.read()
+
+
+def anki_css() -> str:
+    with InResourceDir:
+        with open(os.path.join('anki', 'cardstyle.css'), 'r') as css_file:
+            return css_file.read()
 
 
 

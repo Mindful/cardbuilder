@@ -44,7 +44,7 @@ class SingleValuePrinter(Printer):
         return self.format_string.format(value=value.get_data())
 
 
-class PitchAccentPrinter(Printer):
+class PitchAccentPrinter(SingleValuePrinter):
     """The printer for pitch accent values."""
 
     def __init__(self, html: bool = False):

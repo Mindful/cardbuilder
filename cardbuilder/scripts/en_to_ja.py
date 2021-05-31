@@ -1,5 +1,5 @@
 from cardbuilder.common import Fieldname, Language
-from cardbuilder.common.util import trim_whitespace, log
+from cardbuilder.common.util import log
 from cardbuilder.exceptions import CardBuilderUsageException
 from cardbuilder.lookup.en import MerriamWebster, WordFrequency
 from cardbuilder.lookup.en.merriam_webster import ScrapingMerriamWebster
@@ -10,82 +10,11 @@ from cardbuilder.lookup.value import SingleValue
 from cardbuilder.resolution.anki import AnkiAudioDownloadPrinter
 from cardbuilder.resolution.field import Field
 from cardbuilder.resolution.instantiable import instantiable_resolvers
-from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrinter, SingleValuePrinter, TatoebaPrinter, \
+from cardbuilder.resolution.printer import ListValuePrinter, MultiListValuePrinter, TatoebaPrinter, \
     DownloadPrinter, FirstValuePrinter
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
-    log_failed_resolutions
+    log_failed_resolutions, anki_card_html, anki_css
 from cardbuilder.scripts.router import command
-
-eng_card_front = trim_whitespace('''
-                    <div style="text-align: center;"><h1>{{英単語}}</h1></div>
-                    <br/>
-                    {{#英語での定義}}
-                        {{英語での定義}}
-                    {{/英語での定義}}
-                    <br/><br/>
-                    {{#類義語}}
-                        類義語: {{類義語}}<br/>
-                    {{/類義語}}
-                    {{#対義語}}
-                        対義語: {{対義語}}<br/>
-                    {{/対義語}}
-                ''')
-
-eng_card_back = trim_whitespace('''
-                    <div style="text-align: center;">
-                        <h1>{{英単語}}</h1>
-                        {{#国際音声記号}}
-                            [ &nbsp; {{国際音声記号}} &nbsp; ]
-                        {{/国際音声記号}}
-                    </div>
-                    <br/>
-                    {{音声}}
-                    {{日本語での定義}}
-                    <br/><br/>
-                    {{#活用形}}
-                        活用形: {{活用形}}<br/>
-                    {{/活用形}}
-                    <br/>
-                    {{例文}}
-                ''')
-
-jp_card_front = '{{日本語での定義}}'
-jp_card_back = trim_whitespace('''
-                    <div style="text-align: center;">
-                        <h1>{{英単語}}</h1>
-                        {{#国際音声記号}}
-                            [ &nbsp; {{国際音声記号}} &nbsp; ]
-                        {{/国際音声記号}}
-                    </div>
-                    <br/>
-                    {{音声}}
-                    {{日本語での定義}}
-                    <br/><br/>
-                    {{#活用形}}
-                        活用形: {{活用形}}<br/>
-                    {{/活用形}}
-                    {{#類義語}}
-                        類義語: {{類義語}}<br/>
-                    {{/類義語}}
-                    {{#対義語}}
-                        対義語: {{対義語}}<br/>
-                    {{/対義語}}
-                    <br/>
-                    {{例文}}
-                ''')
-
-
-anki_css = trim_whitespace('''
-                .card { 
-                    background-color: #23282F;
-                    color: white; 
-                    text-align: left;
-                }
-                
-                h1 {
-                   font-size: 350%
-                }
-        ''')
 
 
 @command('en_to_ja')
@@ -151,12 +80,10 @@ def main():
     # max_length=1 combined with print_lone_header=False effectively prints only the content of the first list
     related_words_printer = MultiListValuePrinter(list_printer=ListValuePrinter(sort_key=word_freq_sort_key),
                                                   print_lone_header=False, max_length=1)
+    tatoeba_printer = TatoebaPrinter()
     if args.output_format == 'anki':
-        tatoeba_printer = TatoebaPrinter(header_printer=SingleValuePrinter('<span style="font-size:150%"> {value}<br/>'),
-                                         value_printer=SingleValuePrinter('{value} </span>'))
         audio_printer = AnkiAudioDownloadPrinter()
     else:
-        tatoeba_printer = TatoebaPrinter()
         audio_directory = args.output+'_audio'
         audio_printer = DownloadPrinter(audio_directory)
 
@@ -177,10 +104,11 @@ def main():
 
     resolver = instantiable_resolvers[args.output_format](fields)
     if args.output_format == 'anki':
-        resolver.set_note_name(args.output,
-                               [{'name': '英語->日本語', 'qfmt': eng_card_front, 'afmt': eng_card_back},
-                                {'name': '日本語->英語', 'qfmt': jp_card_front, 'afmt': eng_card_back}],
-                               css=anki_css)
+        resolver.set_note_data(args.output,
+                               [{'name': '英語->日本語', 'qfmt': anki_card_html('en_to_ja', 'word_card_front'),
+                                 'afmt': anki_card_html('en_to_ja', 'word_card_back')},
+                                {'name': '日本語->英語', 'qfmt': anki_card_html('en_to_ja', 'def_card_front'),
+                                 'afmt': anki_card_html('en_to_ja', 'def_card_back')}], css=anki_css())
 
     failed_resolutions = resolver.resolve_to_file(input_words, args.output)
     log_failed_resolutions(failed_resolutions)
