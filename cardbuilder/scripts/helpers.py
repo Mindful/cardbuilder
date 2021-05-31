@@ -63,7 +63,7 @@ def anki_card_html(cmd_name: str, card_name: str) -> str:
 
 
 def anki_css() -> str:
-    with InResourceDir:
+    with InResourceDir():
         with open(os.path.join('anki', 'cardstyle.css'), 'r') as css_file:
             return css_file.read()
 

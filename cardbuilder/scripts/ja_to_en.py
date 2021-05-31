@@ -3,10 +3,11 @@ from cardbuilder.common import Fieldname, Language
 from cardbuilder.lookup.ja import ScrapingOjad
 from cardbuilder.lookup.ja_to_en import Jisho
 from cardbuilder.lookup.tatoeba import TatoebaExampleSentences
+from cardbuilder.resolution.anki import AnkiAudioDownloadPrinter
 from cardbuilder.resolution.field import Field
 from cardbuilder.resolution.instantiable import instantiable_resolvers
 from cardbuilder.resolution.printer import TatoebaPrinter, MultiListValuePrinter, ListValuePrinter, \
-    PitchAccentPrinter
+    PitchAccentPrinter, DownloadPrinter
 from cardbuilder.scripts.helpers import build_parser_with_common_args, get_args_and_input_from_parser, \
     log_failed_resolutions, anki_css, anki_card_html
 from cardbuilder.scripts.router import command
@@ -36,18 +37,22 @@ def main():
     ojad = ScrapingOjad()
     example_sentences = TatoebaExampleSentences(source_lang=Language.JAPANESE, target_lang=Language.ENGLISH)
 
+    if args.output_format == 'anki':
+        audio_printer = AnkiAudioDownloadPrinter()
+    else:
+        audio_directory = args.output+'_audio'
+        audio_printer = DownloadPrinter(audio_directory)
+
     fields = [
         Field(dictionary, Fieldname.WORD, 'Word'),
         Field(dictionary, Fieldname.DEFINITIONS, 'Definitions', required=True),
         Field(dictionary, Fieldname.DETAILED_READING, 'Reading'),
         Field(ojad, Fieldname.PITCH_ACCENT, 'Pitch Accent',
               printer=MultiListValuePrinter(max_length=1,
-                                            list_printer=ListValuePrinter(max_length=1,
-                                                                          single_value_printer=PitchAccentPrinter()),
-                                            header_printer=None)),
+                        list_printer=ListValuePrinter(max_length=1,single_value_printer=PitchAccentPrinter(html=True)),
+                        header_printer=None)),
         Field(ojad, Fieldname.INFLECTIONS, 'Inflections'),
-        Field(ojad, Fieldname.AUDIO, 'Audio', MultiListValuePrinter(max_length=1,
-                                                                    list_printer=ListValuePrinter(max_length=1))),
+        Field(ojad, Fieldname.AUDIO, 'Audio', audio_printer),
         Field(example_sentences, Fieldname.EXAMPLE_SENTENCES, 'Example Sentences', printer=TatoebaPrinter())
     ]
 

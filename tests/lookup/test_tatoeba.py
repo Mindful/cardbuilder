@@ -28,3 +28,9 @@ class TestTatoeba(DataSourceTest):
 
         with pytest.raises(WordLookupException):
             data_source.lookup_word(Word('עברית', Language.HEBREW), 'עברית')
+
+        # no results for 日本語 because mecab splits it into 日本 and 語. very sad
+        # jp_tatoeba = TatoebaExampleSentences(Language.JAPANESE, Language.ENGLISH)
+        #
+        # nihongo_data = jp_tatoeba.lookup_word(Word('日本語', Language.JAPANESE), '日本語')
+

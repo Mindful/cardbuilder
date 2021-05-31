@@ -56,8 +56,19 @@ class PitchAccentPrinter(SingleValuePrinter):
         prev_tone = None
         if self.html:
             output = ''
-            for pitch, word_char in zip(pitch_accent_string, word):
+            for pitch, word_char, idx in zip(pitch_accent_string, word, range(len(word))):
                 tone_class = pitch.lower()
+                if tone_class == PitchAccentValue.PitchAccent.DROP.value:
+                    if idx == len(word) - 1:  # final drop requires special CSS
+                        if prev_tone == PitchAccentValue.PitchAccent.HIGH.value:
+                            output += f'<span class="tone-drop-final">{word_char}</span>'
+                        else:
+                            output += f'<span class="tone-drop-final-change">{word_char}</span>'
+                        return output
+                    else:
+                        # otherwise it's just a normal high (presumably low comes next)
+                        tone_class = PitchAccentValue.PitchAccent.HIGH.value
+
                 if prev_tone is not None and prev_tone != tone_class:
                     tone_class += '-change'
                 output += f'<span class="tone-{tone_class}">{word_char}</span>'
@@ -135,7 +146,7 @@ class MultiListValuePrinter(Printer):
             for data_list, header in data:
                 if header not in grouped_data:
                     grouped_data[header] = list()
-                grouped_data[header].extend(x.get_data() for x in data_list.get_data())
+                grouped_data[header].extend(x for x in data_list.get_data())
 
             data = list((ListValue(val), key) for key, val in grouped_data.items())
 
@@ -161,8 +172,8 @@ class TatoebaPrinter(MultiValuePrinter):
         super(TatoebaPrinter, self).__init__(**kwargs)
 
     def __call__(self, value: MultiValue) -> str:
-        deduped_value = MultiValue([(x.get_data(), y.get_data()) for x, y in
-                                   dedup_by(dedup_by(value.get_data(), lambda x: x[0]), lambda x: x[1])])
+        deduped_value = MultiValue([(x, y) for x, y in
+                                    dedup_by(dedup_by(value.get_data(), lambda x: x[0]), lambda x: x[1])])
         return super().__call__(deduped_value)
 
 

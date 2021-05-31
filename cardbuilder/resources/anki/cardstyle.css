@@ -29,6 +29,16 @@ span.tone-l-change {
     border-width: 0 0 1px 1px;
 }
 
+span.tone-drop-final {
+    border: solid var(--color-primary);
+    border-width: 1px 1px 0 0;
+}
+
+span.tone-drop-final-change {
+    border: solid var(--color-primary);
+    border-width: 1px 1px 0 1px;
+}
+
 span.tone-h {
     border-top: 1px solid var(--color-primary);
 }
