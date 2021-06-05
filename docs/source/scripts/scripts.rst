@@ -11,6 +11,7 @@ This a list of the Cardbuilder commands which can be invoked from the terminal t
    :caption: Flashcard Generation:
 
    ja_to_en
+   eo_to_en
    en_to_ja
 
 Utility Commands

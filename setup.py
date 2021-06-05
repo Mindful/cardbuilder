@@ -24,6 +24,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=setuptools.find_packages(),
+    include_package_data=True,
+    package_data={'': ['resources/*', 'resources/*/*', 'resources/*/*/*']},
     python_requires='>=3.6',
     install_requires=[
         "requests ~= 2.25.1",

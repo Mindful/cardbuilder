@@ -58,7 +58,7 @@ class ESPDIC(ExternalDataDataSource):
             'e': 'adverb',
             's': 'verb',
             'u': 'verb',
-            'i': 'verb,',
+            'i': 'verb',
             't': 'verb',
             'ŭ': 'adverb'
         }[last_char]

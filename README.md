@@ -69,6 +69,10 @@ Cardbuilder welcomes contributions, and in particular we're always looking for h
 
 ## FAQ
 
+### Who owns the data Cardbuilder uses?
+
+The data used by Cardbuilder is owned by a wide variety of organizations and people, and made available under various licenses. All of the data used by Cardbuilder is licensed, at minimum, for educational use. If you want to use the data for something commercial, it is up to you to figure out which licenses allow that.
+
 ### Can you add support for `<language>` or `<data source>`? 
 
 Probably! You're welcome to [open an issue](https://github.com/Mindful/cardbuilder/issues/new) requesting support for a new language and/or new source of data, although in both cases it really helps if you can point to the location of a publicly available web API or dictionary file. Alternatively, we welcome pull requests implementing new [data sources](https://cardbuilder.readthedocs.io/en/latest/contributing/contrib_data_source.html).

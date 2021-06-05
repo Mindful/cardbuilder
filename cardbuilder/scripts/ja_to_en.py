@@ -51,7 +51,6 @@ def main():
               printer=MultiListValuePrinter(max_length=1,
                         list_printer=ListValuePrinter(max_length=1,single_value_printer=PitchAccentPrinter(html=True)),
                         header_printer=None)),
-        Field(ojad, Fieldname.INFLECTIONS, 'Inflections'),
         Field(ojad, Fieldname.AUDIO, 'Audio', audio_printer),
         Field(example_sentences, Fieldname.EXAMPLE_SENTENCES, 'Example Sentences', printer=TatoebaPrinter())
     ]
