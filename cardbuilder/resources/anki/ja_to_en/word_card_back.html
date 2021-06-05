@@ -1,13 +1,25 @@
+<br/>
 <h1>{{Word}}</h1>
 {{#Reading}}
-    [ &nbsp; {{Reading}} &nbsp; ]
+    {{Reading}}
 {{/Reading}}
 <br/>
-{{Definitions}}
-<br/><br/>
 {{#Pitch Accent}}
-    Pitch Accent: {{Pitch Accent}}<br/>
+    {{Pitch Accent}}<br/>
 {{/Pitch Accent}}
 {{Audio}}
-<br/>
-{{Example Sentences}}
+<br/><br/>
+<div style="text-align: center;">
+    <div style="display: inline-block; text-align: left;">
+	{{Definitions}}
+    </div>
+</div>
+<br/><br/>
+{{#Example Sentences}}
+    <hr/><br/>
+    <div style="text-align: center;">
+        <div style="display: inline-block; text-align: left; width:90%;">
+        {{Example Sentences}}
+        </div>
+    </div>
+{{/Example Sentences}}

@@ -1,19 +1,32 @@
+<br/>
 <h1>{{英単語}}</h1>
 {{#国際音声記号}}
     [ &nbsp; {{国際音声記号}} &nbsp; ]
 {{/国際音声記号}}
 <br/>
 {{音声}}
-{{日本語での定義}}
+<div style="text-align: center;">
+    <div style="display: inline-block; text-align: left;">
+        {{日本語での定義}}
+        <br/><br/>
+        {{#活用形}}
+            活用形: {{活用形}}<br/>
+        {{/活用形}}
+        {{#類義語}}
+            類義語: {{類義語}}<br/>
+        {{/類義語}}
+        {{#対義語}}
+            対義語: {{対義語}}<br/>
+        {{/対義語}}
+    </div>
+</div>
+
 <br/><br/>
-{{#活用形}}
-    活用形: {{活用形}}<br/>
-{{/活用形}}
-{{#類義語}}
-    類義語: {{類義語}}<br/>
-{{/類義語}}
-{{#対義語}}
-    対義語: {{対義語}}<br/>
-{{/対義語}}
-<br/>
-{{例文}}
+{{#例文}}
+    <hr/><br/>
+    <div style="text-align: center;">
+        <div style="display: inline-block; text-align: left; width:90%;">
+        {{例文}}
+        </div>
+    </div>
+{{/例文}}
