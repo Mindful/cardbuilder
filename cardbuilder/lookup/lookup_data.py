@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import copy
+from pprint import pformat
 from typing import Dict
 
 from cardbuilder.common import Fieldname
@@ -127,6 +128,19 @@ def outputs(output_spec: Dict[Fieldname, type]):
         GeneratedLookupData.__name__ = clazz.__name__ + 'LookupData'
 
         clazz.lookup_data_type = GeneratedLookupData
+
+        returns_string = f'''Outputs the following:
+
+.. code-block:: text
+ 
+ {pformat({key.name: val.__name__ for key, val in output_spec.items()}).replace("'", '').strip('{').strip('}')}
+
+'''
+
+        if clazz.__doc__:
+            clazz.__doc__ += '\n\n' + returns_string
+        else:
+            clazz.__doc__ = returns_string
 
         return clazz
     return decorator
