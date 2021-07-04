@@ -1,4 +1,5 @@
 from enum import Enum
+from iso639 import languages
 
 
 class Fieldname(Enum):
@@ -47,3 +48,6 @@ class Language(Enum):
     ENGLISH = 'eng'
     HEBREW = 'heb'
     ESPERANTO = 'epo'
+
+    def to_language_object(self):
+        return languages.get(part3=self.value)

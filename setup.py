@@ -37,6 +37,8 @@ setuptools.setup(
         "fugashi ~= 1.1.0",
         "retry ~= 0.9.2",
         "spacy ~= 3.0.5",
-        "beautifulsoup4 ~= 4.9.3"
+        "beautifulsoup4 ~= 4.9.3",
+        "iso-639 ~= 0.4.5",
+        "wiktionaryparser ~= 0.0.97"
     ]
 )
