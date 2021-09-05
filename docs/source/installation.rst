@@ -25,6 +25,14 @@ Windows installation is fundamentally the same as the Mac & Linux installation d
 
 Note that virtual environment managers other than Anaconda will also likely work fine, but installations outside of virtual environments may have problems.
 
+Updating
+------------------
+Once you have successfully installed Cardbuilder, it can be updated like this:
+
+.. code-block:: bash
+
+    pip install cardbuilder --upgrade
+
 Installation worked - what now?
 -------------------------------
 

@@ -23,6 +23,9 @@ class Fieldname(Enum):
     SUPPLEMENTAL = 'supp'
     LINKS = 'link'
 
+    # Special
+    BLANK = 'blank'
+
 
     @classmethod
     def link_friendly_fields(cls) -> set:

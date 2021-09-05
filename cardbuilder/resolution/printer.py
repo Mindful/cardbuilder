@@ -259,5 +259,3 @@ class DownloadPrinter(Printer):
         self.conn.execute('INSERT OR REPLACE INTO download_cache VALUES (?, ?)', (url, data))
         self.conn.commit()
 
-
-

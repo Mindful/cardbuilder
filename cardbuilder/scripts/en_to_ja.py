@@ -1,6 +1,7 @@
 from cardbuilder.common import Fieldname, Language
 from cardbuilder.common.util import log
 from cardbuilder.exceptions import CardBuilderUsageException
+from cardbuilder.lookup.blank import Blank
 from cardbuilder.lookup.en import MerriamWebster, WordFrequency
 from cardbuilder.lookup.en.merriam_webster import ScrapingMerriamWebster
 from cardbuilder.lookup.en_to_ja.eijiro import Eijiro
@@ -29,6 +30,10 @@ def main():
     --output_format     (任意）出力するデータ形式。CSVやAnkiなど色々あるが、デフォルトではAnkiになる
     --start     (任意) 入力から処理する最初の単語を定義する整数（5なら5語目以上のみ処理される）
     --stop      (任意) 入力から処理する最後の単語を定義する整数（5なら5語目以下のみ処理される）
+    --eijiro_location     (任意）英辞郎のテキストファイルの位置（提供すると英辞郎の定義分が使われる）
+    --learner_key     (任意）Merriam-Webster Learner's DictionaryのAPIキー（廃止予定)
+    --thesaurus_key     (任意）Merriam-Webster Collegiate ThesaurusのAPIキー（廃止予定)
+
 
     このコマンドはmerriam-webster.comから英単語に関する情報を読み込むため、実行するにはインターネット接続が必要です。
 
@@ -87,20 +92,24 @@ def main():
         audio_directory = args.output+'_audio'
         audio_printer = DownloadPrinter(audio_directory)
 
-    fields = [f for f in [
+    blank = Blank()
+    ipa_field_name = '国際音声記号'
+    infl_field_name = '活用形'
+    eng_def_field_name = '英語での定義'
+    fields = [
         Field(jp_dictionary, Fieldname.WORD, '英単語'),
-        Field(mw, Fieldname.PRONUNCIATION_IPA, '国際音声記号',
-              printer=FirstValuePrinter()) if isinstance(mw, MerriamWebster) else None,
-        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, '活用形',
-              printer=related_words_printer) if isinstance(jp_dictionary, Eijiro) else None,
+        Field(mw, Fieldname.PRONUNCIATION_IPA, ipa_field_name, printer=FirstValuePrinter()) if isinstance(mw, MerriamWebster)
+        else Field(blank, Fieldname.BLANK,  ipa_field_name),
+        Field([mw, jp_dictionary], Fieldname.INFLECTIONS, infl_field_name, printer=related_words_printer) if isinstance(jp_dictionary, Eijiro)
+        else Field(blank, Fieldname.BLANK,  infl_field_name),
         Field(mw, Fieldname.AUDIO, '音声', printer=audio_printer),
-        Field(mw, Fieldname.DEFINITIONS, '英語での定義',
-              printer=eng_def_printer) if isinstance(mw, MerriamWebster) else None,
+        Field(mw, Fieldname.DEFINITIONS, eng_def_field_name, printer=eng_def_printer) if isinstance(mw, MerriamWebster)
+        else Field(blank, Fieldname.BLANK, eng_def_field_name),
         Field(jp_dictionary, Fieldname.DEFINITIONS, '日本語での定義', printer=jp_def_printer, required=True),
         Field(mw, Fieldname.SYNONYMS, '類義語', printer=related_words_printer),
         Field(mw, Fieldname.ANTONYMS, '対義語', printer=related_words_printer),
         Field(tatoeba, Fieldname.EXAMPLE_SENTENCES, '例文', printer=tatoeba_printer)
-    ] if f is not None]
+    ]
 
     resolver = instantiable_resolvers[args.output_format](fields)
     if args.output_format == 'anki':
