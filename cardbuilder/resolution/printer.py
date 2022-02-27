@@ -224,6 +224,9 @@ class DownloadPrinter(Printer):
             content BLOB);''')
         self.conn.commit()
 
+        if not exists(self.output_directory):
+            mkdir(self.output_directory)
+
     def __call__(self, value: Value) -> str:
         if isinstance(value, SingleValue):
             url = value.get_data()
@@ -236,8 +239,6 @@ class DownloadPrinter(Printer):
                 DownloadPrinter.__name__, type(value).__name__))
 
         filename = url.split('/')[-1]
-        if not exists(self.output_directory):
-            mkdir(self.output_directory)
 
         data = self._get_cached_data(url)
         if data is None:

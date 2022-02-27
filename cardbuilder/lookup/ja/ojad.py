@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from cardbuilder.common import Fieldname
+from cardbuilder.common.util import Shared
 from cardbuilder.exceptions import WordLookupException
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.data_source import WebApiDataSource
@@ -103,12 +104,13 @@ class ScrapingOjad(WebApiDataSource):
                         accent_data.append(accent_value)
                         reading += span.find("span", class_="char").string
 
-                    inflections.add(reading)
+                    if reading in word:
+                        inflections.add(reading)
 
-                    if audio_button is not None:
-                        audio[reading].append(self._audio_file_url(audio_button['id']))
+                        if audio_button is not None:
+                            audio[reading].append(self._audio_file_url(audio_button['id']))
 
-                    pitch_accent[reading].append(PitchAccentValue(accent_data, reading))
+                        pitch_accent[reading].append(PitchAccentValue(accent_data, reading))
 
         if len(inflections) <= 0:
             raise WordLookupException(f'Found no data for word form "{form}" in Ojad')
