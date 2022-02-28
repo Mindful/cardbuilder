@@ -39,4 +39,4 @@ class Wiktionary(WebApiDataSource):
         super(Wiktionary, self).__init__(enable_cache_retrieval=enable_cache_retrieval)
         self.lang = language
         self.parser = WiktionaryParser()
-        self.parser.set_default_language(language.to_language_object().name)
+        self.parser.set_default_language(language.get_name())

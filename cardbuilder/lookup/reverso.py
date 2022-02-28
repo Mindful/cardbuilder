@@ -1,36 +1,33 @@
+from collections import defaultdict
 from json import dumps, loads
 
-from cardbuilder.common.fieldnames import Fieldname
+from cardbuilder.common import Fieldname, Language
 from cardbuilder.exceptions import WordLookupException
-from cardbuilder.lookup.data_source import DataSource, WebApiDataSource
+from cardbuilder.lookup.data_source import WebApiDataSource
 from cardbuilder.lookup.lookup_data import LookupData, outputs
 from cardbuilder.input.word import Word
 from cardbuilder.lookup.value import ListValue, MultiListValue, MultiValue
 
 from reverso_api.context import ReversoContextAPI
-endpoint = "https://context.reverso.net/translation/english-hebrew/"
-
 
 
 @outputs({
-    Fieldname.DEFINITIONS: ListValue,
-    Fieldname.PART_OF_SPEECH: ListValue,
-    Fieldname.EXAMPLE_SENTENCES: MultiListValue
+    Fieldname.EXAMPLE_SENTENCES: MultiValue,
+    Fieldname.DEFINITIONS: MultiListValue
 })
-
 class Reverso(WebApiDataSource):
 
-    def __init__(self, source_lang: str, target_lang: str):
+    def __init__(self, source_lang: Language, target_lang: Language, enable_cache_retrieval: bool = True):
+        super(Reverso, self).__init__(enable_cache_retrieval=enable_cache_retrieval)
         self.source_language = source_lang
         self.target_language = target_lang
         self.max_examples = 5
 
-    def _get_example_sentences(self, translation_form: str) -> [str]:
+    def _query_api(self, form: str) -> str:
+        reverso_api = ReversoContextAPI(source_text=form, source_lang=self.source_language.get_iso2(),
+                                        target_lang=self.target_language.get_iso2())
 
-        # swap the src and target languages so we don't need thousands of calls to get one example for rarer translation
-        reversed_api = ReversoContextAPI(source_text=translation_form, source_lang=self.target_language, target_lang=self.source_language)
-
-        example_getter = reversed_api.get_examples()
+        example_getter = reverso_api.get_examples()
         examples = []
         # just get 5 examples max, this takes way too long for common words
         for i in range(self.max_examples):
@@ -38,29 +35,20 @@ class Reverso(WebApiDataSource):
                 target_example, src_example = next(example_getter)
                 examples.append(target_example.text)
             except StopIteration:
-                continue
+                break
 
-        return examples
+        definitions = defaultdict(list)
+        for _, translation, _, pos, _ in reverso_api.get_translations():
+            cleaned_pos = pos.strip('.')
+            definitions[cleaned_pos].append(translation)
 
-    def _query_api(self, form: str) -> str:
-        api = ReversoContextAPI(source_text=form,
-                                source_lang=self.source_language,
-                                target_lang=self.target_language)
-        """
-        api.get_translations() look like:
+        return dumps({
+            Fieldname.EXAMPLE_SENTENCES: [(ex.text, ex.highlighted) for ex in examples],
+            Fieldname.DEFINITIONS: definitions
+        })
 
-        Translation(source_word='hello', 
-        translation='שלום', frequency=15335, 
-        part_of_speech='adv.', inflected_forms=[]), ...
-        """
-        data = {}
-        examples = api.get_examples()  # generator for examples
-        for _, translation, _, pos, _ in api.get_translations():
-            examples = self._get_example_sentences(translation)
-            data[translation] = {'part_of_speech': pos, 'examples': examples}
-        return dumps(data)
-
-    def parse_word_content(self, word: Word, form: str, content: str) -> LookupData:
+    def parse_word_content(self, word: Word, form: str, content: str, following_link: bool = False) -> LookupData:
+        #TODO: finish rewriting this
         """
         So for every word we'll have a list of possible translations, and then examples sentences.
         I'm guessing for the anki card output we'll just want: all possible translations followed by all examples
@@ -79,5 +67,3 @@ class Reverso(WebApiDataSource):
                                          Fieldname.PART_OF_SPEECH: MultiValue(pos_values),
                                          Fieldname.EXAMPLE_SENTENCES: MultiListValue(example_sentence_values)
                                      })
-
-

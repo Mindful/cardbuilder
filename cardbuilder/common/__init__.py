@@ -52,5 +52,11 @@ class Language(Enum):
     HEBREW = 'heb'
     ESPERANTO = 'epo'
 
-    def to_language_object(self):
+    def _to_iso_object(self):
         return languages.get(part3=self.value)
+
+    def get_name(self):
+        return self._to_iso_object().name
+
+    def get_iso2(self):
+        return self._to_iso_object().part2b
