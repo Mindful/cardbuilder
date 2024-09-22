@@ -22,7 +22,9 @@ class BlankLookupData(LookupData):
         elif key == Fieldname.FOUND_FORM:
             return SingleValue(self.found_form)
         elif key == Fieldname.BLANK:
-            return SingleValue('')
+            # use a space here, because if we use an actual empty string, Anki will treat it as a missing field
+            # and if it's missing from all cards, the field won't be created
+            return SingleValue(' ')
         else:
             raise CardBuilderUsageException('Blank lookup data can only contain the BLANK field')
 
